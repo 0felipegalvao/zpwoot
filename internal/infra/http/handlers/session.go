@@ -1,0 +1,525 @@
+package handlers
+
+import (
+	"github.com/gofiber/fiber/v2"
+	appdto "zpwoot/internal/app"
+	"zpwoot/internal/domain/session"
+	"zpwoot/internal/infra/http/helpers"
+	"zpwoot/platform/logger"
+)
+
+type SessionHandler struct {
+	logger          *logger.Logger
+	sessionUC       appdto.SessionUseCase
+	sessionResolver *helpers.SessionResolver
+}
+
+func NewSessionHandler(appLogger *logger.Logger, sessionUC appdto.SessionUseCase, sessionRepo helpers.SessionRepository) *SessionHandler {
+	return &SessionHandler{
+		logger:          appLogger,
+		sessionUC:       sessionUC,
+		sessionResolver: helpers.NewSessionResolver(appLogger, sessionRepo),
+	}
+}
+
+// NewSessionHandlerWithoutUseCase creates a session handler without use case (temporary)
+func NewSessionHandlerWithoutUseCase(appLogger *logger.Logger, sessionRepo helpers.SessionRepository) *SessionHandler {
+	return &SessionHandler{
+		logger:          appLogger,
+		sessionUC:       nil, // Will be nil until properly wired
+		sessionResolver: helpers.NewSessionResolver(appLogger, sessionRepo),
+	}
+}
+
+// resolveSessionIdentifier resolves session ID or name from URL parameter
+func (h *SessionHandler) resolveSessionIdentifier(c *fiber.Ctx) (identifierType string, value string, error *fiber.Error) {
+	// Try both parameter names for backward compatibility
+	idOrName := c.Params("idOrName")
+	if idOrName == "" {
+		idOrName = c.Params("id")
+	}
+
+	identifierType, value, isValid := h.sessionResolver.ResolveSessionIdentifier(idOrName)
+	if !isValid {
+		h.logger.WarnWithFields("Invalid session identifier in URL", map[string]interface{}{
+			"identifier": idOrName,
+			"path":       c.Path(),
+		})
+		return "", "", fiber.NewError(400, "Invalid session identifier. Must be a valid UUID or session name.")
+	}
+
+	return identifierType, value, nil
+}
+
+// resolveSession resolves a session by identifier (UUID or name) and returns the session
+func (h *SessionHandler) resolveSession(c *fiber.Ctx) (*session.Session, *fiber.Error) {
+	// Get the identifier from the path parameter (accepts both UUID and name)
+	idOrName := c.Params("sessionId")
+
+	// Use SessionResolver to get the actual session
+	sess, err := h.sessionResolver.ResolveSession(c.Context(), idOrName)
+	if err != nil {
+		h.logger.WarnWithFields("Failed to resolve session", map[string]interface{}{
+			"identifier": idOrName,
+			"error":      err.Error(),
+			"path":       c.Path(),
+		})
+
+		// Check if it's a not found error
+		if err.Error() == "session not found" || err == session.ErrSessionNotFound {
+			return nil, fiber.NewError(404, "Session not found")
+		}
+
+		return nil, fiber.NewError(500, "Failed to resolve session")
+	}
+
+	return sess, nil
+}
+
+// CreateSession creates a new WhatsApp session
+// @Summary Create a new WhatsApp session
+// @Description Creates a new WhatsApp session with the provided configuration. Requires API key authentication.
+// @Tags Sessions
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param request body zpmeow_internal_app_session.CreateSessionRequest true "Session creation request"
+// @Success 201 {object} zpmeow_internal_app_session.CreateSessionResponse "Session created successfully"
+// @Failure 400 {object} object "Invalid request body or parameters"
+// @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
+// @Failure 500 {object} object "Internal server error"
+// @Router /sessions/create [post]
+func (h *SessionHandler) CreateSession(c *fiber.Ctx) error {
+	h.logger.Info("Creating new session")
+
+	// Temporary implementation without use case
+	if h.sessionUC == nil {
+		response := appdto.NewSuccessResponse(nil, "Session creation endpoint - TODO: implement with use case")
+		return c.Status(201).JSON(response)
+	}
+
+	// Parse request body
+	var req appdto.CreateSessionRequest
+	if err := c.BodyParser(&req); err != nil {
+		h.logger.Error("Failed to parse request body: " + err.Error())
+		return c.Status(400).JSON(appdto.NewErrorResponse("Invalid request body"))
+	}
+
+	// Validate session name
+	if isValid, errorMsg := h.sessionResolver.ValidateSessionName(req.Name); !isValid {
+		h.logger.WarnWithFields("Invalid session name provided", map[string]interface{}{
+			"name":  req.Name,
+			"error": errorMsg,
+		})
+
+		// Suggest a valid name
+		suggested := h.sessionResolver.SuggestValidName(req.Name)
+		return c.Status(400).JSON(fiber.Map{
+			"error":         "Invalid session name",
+			"message":       errorMsg,
+			"suggestedName": suggested,
+			"namingRules": []string{
+				"Must be 3-50 characters long",
+				"Must start with a letter",
+				"Can contain letters, numbers, hyphens, and underscores",
+				"Cannot use reserved names (create, list, info, etc.)",
+			},
+		})
+	}
+
+	// Call use case
+	result, err := h.sessionUC.CreateSession(c.Context(), &req)
+	if err != nil {
+		h.logger.Error("Failed to create session: " + err.Error())
+		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to create session"))
+	}
+
+	// Return success response
+	response := appdto.NewSuccessResponse(result, "Session created successfully")
+	return c.Status(201).JSON(response)
+}
+
+// ListSessions lists all sessions with optional filters
+// @Summary List all WhatsApp sessions
+// @Description Retrieves a list of all WhatsApp sessions with optional filtering. Requires API key authentication.
+// @Tags Sessions
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param status query string false "Filter by session status" Enums(created,connecting,connected,disconnected,error,logged_out) example("connected")
+// @Param deviceJid query string false "Filter by device JID" example("5511999999999@s.whatsapp.net")
+// @Param limit query int false "Limit number of results" minimum(1) maximum(100) default(20) example(20)
+// @Param offset query int false "Offset for pagination" minimum(0) default(0) example(0)
+// @Success 200 {object} zpmeow_internal_app_session.ListSessionsResponse "Sessions retrieved successfully"
+// @Failure 400 {object} object "Invalid request parameters"
+// @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
+// @Failure 500 {object} object "Internal server error"
+// @Router /sessions/list [get]
+func (h *SessionHandler) ListSessions(c *fiber.Ctx) error {
+	h.logger.Info("Listing sessions")
+
+	if h.sessionUC == nil {
+		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+	}
+
+	// Parse query parameters
+	var req appdto.ListSessionsRequest
+
+	// Parse isConnected filter
+	if isConnectedStr := c.Query("isConnected"); isConnectedStr != "" {
+		if isConnectedStr == "true" {
+			isConnected := true
+			req.IsConnected = &isConnected
+		} else if isConnectedStr == "false" {
+			isConnected := false
+			req.IsConnected = &isConnected
+		}
+	}
+
+	// Parse deviceJid filter
+	if deviceJid := c.Query("deviceJid"); deviceJid != "" {
+		req.DeviceJid = &deviceJid
+	}
+
+	// Parse pagination parameters
+	if limit := c.QueryInt("limit", 20); limit > 0 && limit <= 100 {
+		req.Limit = limit
+	} else {
+		req.Limit = 20
+	}
+
+	if offset := c.QueryInt("offset", 0); offset >= 0 {
+		req.Offset = offset
+	}
+
+	// Call use case
+	result, err := h.sessionUC.ListSessions(c.Context(), &req)
+	if err != nil {
+		h.logger.Error("Failed to list sessions: " + err.Error())
+		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to list sessions"))
+	}
+
+	// Return success response
+	response := appdto.NewSuccessResponse(result, "Sessions retrieved successfully")
+	return c.JSON(response)
+}
+
+// GetSessionInfo gets details of a specific session
+// @Summary Get session information
+// @Description Retrieves detailed information about a specific WhatsApp session including connection status and device info. You can use either the session UUID or session name. Requires API key authentication.
+// @Tags Sessions
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param sessionId path string true "Session ID or Name" example("customer-support-team")
+// @Success 200 {object} zpmeow_internal_app_session.SessionInfoResponse "Session info retrieved successfully"
+// @Failure 400 {object} object "Invalid session identifier"
+// @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
+// @Failure 404 {object} object "Session not found"
+// @Failure 500 {object} object "Internal server error"
+// @Router /sessions/{sessionId}/info [get]
+func (h *SessionHandler) GetSessionInfo(c *fiber.Ctx) error {
+	if h.sessionUC == nil {
+		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+	}
+
+	// Resolve session using SessionResolver
+	sess, fiberErr := h.resolveSession(c)
+	if fiberErr != nil {
+		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+	}
+
+	h.logger.InfoWithFields("Getting session info", map[string]interface{}{
+		"session_id":   sess.ID.String(),
+		"session_name": sess.Name,
+	})
+
+	// Call use case with resolved session ID
+	result, err := h.sessionUC.GetSessionInfo(c.Context(), sess.ID.String())
+	if err != nil {
+		h.logger.Error("Failed to get session info: " + err.Error())
+		// Check if it's a not found error
+		if err.Error() == "session not found" {
+			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+		}
+		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to get session info"))
+	}
+
+	// Return success response
+	response := appdto.NewSuccessResponse(result, "Session info retrieved successfully")
+	return c.JSON(response)
+}
+
+// DeleteSession removes a session permanently
+// @Summary Delete a WhatsApp session
+// @Description Permanently removes a WhatsApp session and all associated data. This action cannot be undone. You can use either the session UUID or session name. Requires API key authentication.
+// @Tags Sessions
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param sessionId path string true "Session ID or Name" example("customer-support-team")
+// @Success 200 {object} object "Session deleted successfully"
+// @Failure 400 {object} object "Invalid session identifier"
+// @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
+// @Failure 404 {object} object "Session not found"
+// @Failure 500 {object} object "Internal server error"
+// @Router /sessions/{sessionId}/delete [delete]
+func (h *SessionHandler) DeleteSession(c *fiber.Ctx) error {
+	if h.sessionUC == nil {
+		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+	}
+
+	// Resolve session using SessionResolver
+	sess, fiberErr := h.resolveSession(c)
+	if fiberErr != nil {
+		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+	}
+
+	h.logger.InfoWithFields("Deleting session", map[string]interface{}{
+		"session_id":   sess.ID.String(),
+		"session_name": sess.Name,
+	})
+
+	// Call use case with resolved session ID
+	err := h.sessionUC.DeleteSession(c.Context(), sess.ID.String())
+	if err != nil {
+		h.logger.Error("Failed to delete session: " + err.Error())
+		// Check if it's a not found error
+		if err.Error() == "session not found" {
+			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+		}
+		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to delete session"))
+	}
+
+	// Return success response
+	response := appdto.NewSuccessResponse(nil, "Session deleted successfully")
+	return c.JSON(response)
+}
+
+// ConnectSession establishes connection with WhatsApp
+// @Summary Connect WhatsApp session
+// @Description Establishes connection with WhatsApp for the specified session. Will generate QR code if not paired. You can use either the session UUID or session name. Requires API key authentication.
+// @Tags Sessions
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param sessionId path string true "Session ID or Name" example("customer-support-team")
+// @Success 200 {object} object "Connection initiated successfully"
+// @Failure 400 {object} object "Invalid session identifier"
+// @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
+// @Failure 404 {object} object "Session not found"
+// @Failure 500 {object} object "Internal server error"
+// @Router /sessions/{sessionId}/connect [post]
+func (h *SessionHandler) ConnectSession(c *fiber.Ctx) error {
+	if h.sessionUC == nil {
+		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+	}
+
+	// Resolve session using SessionResolver
+	sess, fiberErr := h.resolveSession(c)
+	if fiberErr != nil {
+		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+	}
+
+	h.logger.InfoWithFields("Connecting session", map[string]interface{}{
+		"session_id":   sess.ID.String(),
+		"session_name": sess.Name,
+	})
+
+	// Call use case with resolved session ID
+	err := h.sessionUC.ConnectSession(c.Context(), sess.ID.String())
+	if err != nil {
+		h.logger.Error("Failed to connect session: " + err.Error())
+		// Check if it's a not found error
+		if err.Error() == "session not found" {
+			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+		}
+		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to connect session"))
+	}
+
+	// Return success response
+	response := appdto.NewSuccessResponse(nil, "Session connection initiated successfully")
+	return c.JSON(response)
+}
+
+// LogoutSession logs out from WhatsApp
+// @Summary Logout WhatsApp session
+// @Description Logs out from WhatsApp for the specified session. You can use either the session UUID or session name. Requires API key authentication.
+// @Tags Sessions
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param sessionId path string true "Session ID or Name" example("customer-support-team")
+// @Success 200 {object} object "Session logged out successfully"
+// @Failure 400 {object} object "Invalid session identifier"
+// @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
+// @Failure 404 {object} object "Session not found"
+// @Failure 500 {object} object "Internal server error"
+// @Router /sessions/{sessionId}/logout [post]
+func (h *SessionHandler) LogoutSession(c *fiber.Ctx) error {
+	if h.sessionUC == nil {
+		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+	}
+
+	// Resolve session using SessionResolver
+	sess, fiberErr := h.resolveSession(c)
+	if fiberErr != nil {
+		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+	}
+
+	h.logger.InfoWithFields("Logging out session", map[string]interface{}{
+		"session_id":   sess.ID.String(),
+		"session_name": sess.Name,
+	})
+
+	// Call use case with resolved session ID
+	err := h.sessionUC.LogoutSession(c.Context(), sess.ID.String())
+	if err != nil {
+		h.logger.Error("Failed to logout session: " + err.Error())
+		// Check if it's a not found error
+		if err.Error() == "session not found" {
+			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+		}
+		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to logout session"))
+	}
+
+	// Return success response
+	response := appdto.NewSuccessResponse(nil, "Session logged out successfully")
+	return c.JSON(response)
+}
+
+// GetQRCode retrieves the current QR code
+// @Summary Get QR code for session pairing
+// @Description Retrieves the current QR code for pairing a WhatsApp session. The QR code expires after 60 seconds. You can use either the session UUID or session name. Requires API key authentication.
+// @Tags Sessions
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param X-API-Key header string true "API Key for authentication" example("your-api-key-here")
+// @Param id path string true "Session ID or Name" example("customer-support-team")
+// @Success 200 {object} appdto.SuccessResponse{data=appdto.QRCodeResponse} "QR code retrieved successfully"
+// @Failure 400 {object} appdto.ErrorResponse "Invalid session identifier"
+// @Failure 401 {object} appdto.ErrorResponse "Unauthorized - Invalid or missing API key"
+// @Failure 404 {object} appdto.ErrorResponse "Session not found or no QR code available"
+// @Failure 500 {object} appdto.ErrorResponse "Internal server error"
+// @Router /sessions/{id}/qr [get]
+func (h *SessionHandler) GetQRCode(c *fiber.Ctx) error {
+	if h.sessionUC == nil {
+		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+	}
+
+	// Resolve session using SessionResolver
+	sess, fiberErr := h.resolveSession(c)
+	if fiberErr != nil {
+		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+	}
+
+	h.logger.InfoWithFields("Getting QR code", map[string]interface{}{
+		"session_id":   sess.ID.String(),
+		"session_name": sess.Name,
+	})
+
+	// Call use case with resolved session ID
+	result, err := h.sessionUC.GetQRCode(c.Context(), sess.ID.String())
+	if err != nil {
+		h.logger.Error("Failed to get QR code: " + err.Error())
+		// Check if it's a not found error
+		if err.Error() == "session not found" {
+			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+		}
+		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to get QR code"))
+	}
+
+	// Return success response
+	response := appdto.NewSuccessResponse(result, "QR code retrieved successfully")
+	return c.JSON(response)
+}
+
+// PairPhone pairs a phone with the session
+// POST /sessions/{id}/pair
+func (h *SessionHandler) PairPhone(c *fiber.Ctx) error {
+	id := c.Params("id")
+	h.logger.InfoWithFields("Pairing phone", map[string]interface{}{
+		"session_id": id,
+	})
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Phone pair endpoint - TODO: implement",
+		"id":      id,
+	})
+}
+
+// SetProxy sets proxy configuration for the session
+// POST /sessions/{id}/proxy/set
+func (h *SessionHandler) SetProxy(c *fiber.Ctx) error {
+	if h.sessionUC == nil {
+		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+	}
+
+	// Resolve session using SessionResolver
+	sess, fiberErr := h.resolveSession(c)
+	if fiberErr != nil {
+		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+	}
+
+	h.logger.InfoWithFields("Setting proxy", map[string]interface{}{
+		"session_id":   sess.ID.String(),
+		"session_name": sess.Name,
+	})
+
+	// Parse request body
+	var req appdto.SetProxyRequest
+	if err := c.BodyParser(&req); err != nil {
+		h.logger.Error("Failed to parse request body: " + err.Error())
+		return c.Status(400).JSON(appdto.NewErrorResponse("Invalid request body"))
+	}
+
+	// Call use case with resolved session ID
+	err := h.sessionUC.SetProxy(c.Context(), sess.ID.String(), &req)
+	if err != nil {
+		h.logger.Error("Failed to set proxy: " + err.Error())
+		// Check if it's a not found error
+		if err.Error() == "session not found" {
+			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+		}
+		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to set proxy"))
+	}
+
+	// Return success response
+	response := appdto.NewSuccessResponse(nil, "Proxy configuration updated successfully")
+	return c.JSON(response)
+}
+
+// GetProxy gets proxy configuration for the session
+// GET /sessions/{id}/proxy/find
+func (h *SessionHandler) GetProxy(c *fiber.Ctx) error {
+	if h.sessionUC == nil {
+		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+	}
+
+	// Resolve session using SessionResolver
+	sess, fiberErr := h.resolveSession(c)
+	if fiberErr != nil {
+		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+	}
+
+	h.logger.InfoWithFields("Getting proxy config", map[string]interface{}{
+		"session_id":   sess.ID.String(),
+		"session_name": sess.Name,
+	})
+
+	// Call use case with resolved session ID
+	result, err := h.sessionUC.GetProxy(c.Context(), sess.ID.String())
+	if err != nil {
+		h.logger.Error("Failed to get proxy: " + err.Error())
+		// Check if it's a not found error
+		if err.Error() == "session not found" {
+			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+		}
+		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to get proxy"))
+	}
+
+	// Return success response
+	response := appdto.NewSuccessResponse(result, "Proxy configuration retrieved successfully")
+	return c.JSON(response)
+}

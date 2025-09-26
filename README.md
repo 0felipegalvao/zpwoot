@@ -1,1 +1,307 @@
-# zpwoot
+# ZPMeow - WhatsApp Multi-Session API
+
+Uma API REST completa para gerenciamento de múltiplas sessões do WhatsApp usando Go, Fiber, SQLx, PostgreSQL, WhatsApp (whatsmeow), integração com Chatwoot e webhooks.
+
+## Características
+
+- 🚀 **Multi-sessão**: Gerencie múltiplas sessões do WhatsApp simultaneamente
+- 📱 **WhatsApp Web API**: Integração completa com whatsmeow
+- 🔄 **Webhooks**: Sistema de webhooks para eventos em tempo real
+- 💬 **Chatwoot**: Integração nativa com Chatwoot para atendimento
+- 🗄️ **PostgreSQL**: Persistência de dados robusta
+- 🔒 **Proxy Support**: Suporte a proxy HTTP e SOCKS5
+- 📊 **Monitoramento**: Health checks e métricas
+
+## Tecnologias
+
+- **Go 1.21+**
+- **Fiber v2** - Framework web rápido
+- **SQLx** - Extensões SQL para Go
+- **PostgreSQL** - Banco de dados
+- **whatsmeow** - Biblioteca WhatsApp Web API
+- **Zap** - Logger estruturado
+- **UUID** - Geração de identificadores únicos
+
+## Instalação
+
+1. Clone o repositório:
+```bash
+git clone <repository-url>
+cd zpmeow
+```
+
+2. Copie o arquivo de configuração:
+```bash
+cp .env.example .env
+```
+
+3. Configure as variáveis de ambiente no arquivo `.env`
+
+4. Execute as migrações do banco de dados:
+```bash
+# TODO: Implementar migrações
+```
+
+5. Execute a aplicação:
+```bash
+go run cmd/zpmeow/main.go
+```
+
+## API Endpoints
+
+### Gerenciamento de Sessões
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/api/v1/sessions` | Criar uma nova sessão do WhatsApp |
+| `GET` | `/api/v1/sessions` | Listar todas as sessões (com filtros opcionais) |
+| `GET` | `/api/v1/sessions/{id}` | Detalhes de uma sessão específica |
+| `DELETE` | `/api/v1/sessions/{id}` | Remove permanentemente uma sessão |
+| `POST` | `/api/v1/sessions/{id}/connect` | Estabelece a conexão da sessão com o WhatsApp |
+| `POST` | `/api/v1/sessions/{id}/logout` | Faz o logout da sessão do WhatsApp |
+| `GET` | `/api/v1/sessions/{id}/qr` | Recupera o QR Code atual (se existir) |
+| `POST` | `/api/v1/sessions/{id}/pair` | Emparelha um telefone com a sessão |
+| `POST` | `/api/v1/sessions/{id}/proxy` | Define proxy para a sessão |
+| `GET` | `/api/v1/sessions/{id}/proxy` | Obtém configuração de proxy para a sessão |
+
+### WhatsApp Messaging
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/api/v1/whatsapp/{sessionId}/send/text` | Enviar mensagem de texto |
+| `POST` | `/api/v1/whatsapp/{sessionId}/send/media` | Enviar mensagem de mídia |
+| `GET` | `/api/v1/whatsapp/{sessionId}/contacts` | Listar contatos |
+| `GET` | `/api/v1/whatsapp/{sessionId}/chats` | Listar conversas |
+| `GET` | `/api/v1/whatsapp/{sessionId}/status` | Status da sessão |
+
+### Webhooks
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/api/v1/webhooks/config` | Criar configuração de webhook |
+| `GET` | `/api/v1/webhooks/config` | Listar configurações de webhook |
+| `PUT` | `/api/v1/webhooks/config/{id}` | Atualizar configuração de webhook |
+| `DELETE` | `/api/v1/webhooks/config/{id}` | Remover configuração de webhook |
+| `GET` | `/api/v1/webhooks/events` | Listar eventos suportados |
+| `POST` | `/api/v1/webhooks/test/{id}` | Testar webhook |
+| `POST` | `/api/v1/webhooks/incoming/{sessionId}` | Webhook de entrada |
+
+### Integração Chatwoot
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/api/v1/chatwoot/config` | Criar configuração Chatwoot |
+| `GET` | `/api/v1/chatwoot/config` | Obter configuração Chatwoot |
+| `PUT` | `/api/v1/chatwoot/config` | Atualizar configuração Chatwoot |
+| `DELETE` | `/api/v1/chatwoot/config` | Remover configuração Chatwoot |
+| `POST` | `/api/v1/chatwoot/sync/contacts` | Sincronizar contatos |
+| `POST` | `/api/v1/chatwoot/sync/conversations` | Sincronizar conversas |
+| `POST` | `/api/v1/chatwoot/webhook` | Webhook do Chatwoot |
+| `POST` | `/api/v1/chatwoot/test` | Testar conexão Chatwoot |
+| `GET` | `/api/v1/chatwoot/stats` | Estatísticas da integração |
+
+## 🔐 Autenticação
+
+Todos os endpoints da API (exceto `/health` e `/swagger/*`) requerem autenticação via API Key.
+
+### Configuração da API Key
+
+1. Configure a variável de ambiente `GLOBAL_API_KEY` no arquivo `.env`:
+```bash
+GLOBAL_API_KEY=dev-api-key-12345
+```
+
+2. Inclua a API Key no header `Authorization` de todas as requisições:
+```bash
+Authorization: dev-api-key-12345
+```
+
+**Nota:** Não use prefixo "Bearer " - apenas o valor da API Key diretamente.
+
+## 🏷️ Nomes de Sessão URL-Friendly
+
+O ZPMeow suporta tanto UUID quanto **nomes de sessão legíveis** nas URLs da API, tornando-as mais intuitivas:
+
+### ✅ Nomes Válidos
+- **Formato**: 3-50 caracteres, começar com letra, usar apenas letras, números, hífens e underscores
+- **Exemplos**: `my-whatsapp-session`, `customer-support`, `sales-team-1`
+
+### ❌ Nomes Inválidos
+- Palavras reservadas: `create`, `list`, `info`, `delete`, etc.
+- Caracteres especiais: `my@session`, `session#1`
+- Muito curto/longo: `ab` ou nomes com mais de 50 caracteres
+
+### 🔄 Sugestões Automáticas
+Se você fornecer um nome inválido, a API sugerirá uma alternativa válida.
+
+## Exemplos de Uso
+
+### Criar uma nova sessão
+
+```bash
+curl -X POST http://localhost:8080/sessions/create \
+  -H "Content-Type: application/json" \
+  -H "Authorization: dev-api-key-12345" \
+  -d '{
+    "name": "my-whatsapp-session",
+    "deviceJid": "5511999999999@s.whatsapp.net"
+  }'
+```
+
+### Usar nome da sessão nas URLs
+
+```bash
+# Obter informações da sessão usando o nome
+curl -H "Authorization: dev-api-key-12345" \
+  http://localhost:8080/sessions/my-whatsapp-session/info
+
+# Conectar sessão usando o nome
+curl -X POST -H "Authorization: dev-api-key-12345" \
+  http://localhost:8080/sessions/my-whatsapp-session/connect
+
+# Obter QR code usando o nome
+curl -H "Authorization: dev-api-key-12345" \
+  http://localhost:8080/sessions/my-whatsapp-session/qr
+```
+
+### Listar sessões
+
+```bash
+curl http://localhost:8080/api/v1/sessions/list?status=connected&limit=10
+```
+
+### Conectar uma sessão
+
+```bash
+curl -X POST http://localhost:8080/api/v1/sessions/{session-id}/connect
+```
+
+### Obter QR Code
+
+```bash
+curl http://localhost:8080/api/v1/sessions/{session-id}/qr
+```
+
+### Configurar Proxy
+
+```bash
+curl -X POST http://localhost:8080/api/v1/sessions/{session-id}/proxy/set \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "http",
+    "host": "proxy.example.com",
+    "port": 8080,
+    "username": "user",
+    "password": "pass"
+  }'
+```
+
+## Status de Sessão
+
+- `created` - Sessão criada mas não conectada
+- `connecting` - Tentando conectar
+- `connected` - Conectada e ativa
+- `disconnected` - Desconectada
+- `error` - Erro na conexão
+- `logged_out` - Logout realizado
+
+## Configuração de Proxy
+
+Suporte para proxies HTTP e SOCKS5:
+
+```json
+{
+  "type": "http|socks5",
+  "host": "proxy.example.com",
+  "port": 8080,
+  "username": "optional",
+  "password": "optional"
+}
+```
+
+## Estrutura do Projeto
+
+```
+zpmeow/
+├── cmd/zpmeow/           # Ponto de entrada da aplicação
+├── internal/
+│   ├── domain/           # Lógica de negócio
+│   │   └── session/      # Domínio de sessões
+│   ├── app/              # Casos de uso
+│   ├── ports/            # Interfaces/Portas
+│   └── infra/            # Infraestrutura
+│       ├── http/         # Handlers HTTP
+│       ├── repositories/ # Repositórios
+│       └── integrations/ # Integrações externas
+├── platform/             # Plataforma (config, db, logger)
+├── pkg/                  # Pacotes utilitários
+└── migrations/           # Migrações do banco
+```
+
+## Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## Licença
+
+Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## 📝 Sistema de Logging
+
+O ZPMeow utiliza **zerolog** para um sistema de logging estruturado e performático.
+
+### Configuração de Logs
+
+| Variável | Valores | Descrição |
+|----------|---------|-----------|
+| `LOG_LEVEL` | `trace`, `debug`, `info`, `warn`, `error`, `fatal` | Nível de log |
+| `LOG_FORMAT` | `console`, `json` | Formato de saída |
+| `LOG_OUTPUT` | `stdout`, `stderr`, `file`, `path/to/file` | Destino dos logs |
+
+### Exemplos de Uso
+
+```go
+// Logger básico
+logger := logger.New("info")
+logger.Info("Aplicação iniciada")
+logger.Error("Erro na conexão")
+
+// Logger com campos estruturados
+logger.InfoWithFields("Sessão criada", map[string]interface{}{
+    "session_id": "sess_123",
+    "user_id": "user_456",
+    "timestamp": time.Now(),
+})
+
+// Logger com contexto persistente
+sessionLogger := logger.WithFields(map[string]interface{}{
+    "session_id": "sess_123",
+    "component": "whatsapp",
+})
+sessionLogger.Info("Mensagem enviada")
+sessionLogger.Debug("QR code gerado")
+```
+
+### Logs Estruturados
+
+O sistema suporta logs estruturados para melhor observabilidade:
+
+```json
+{
+  "level": "info",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "caller": "session/service.go:45",
+  "message": "Session created",
+  "session_id": "sess_abc123",
+  "user_id": "user_456",
+  "component": "session_manager"
+}
+```
+
+## Suporte
+
+Para suporte e dúvidas, abra uma issue no repositório do projeto.

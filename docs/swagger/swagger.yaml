@@ -1,0 +1,714 @@
+basePath: /
+definitions:
+  ChatwootConfigResponse:
+    properties:
+      account_id:
+        example: "1"
+        type: string
+      active:
+        example: true
+        type: boolean
+      created_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      id:
+        example: chatwoot-config-123
+        type: string
+      inbox_id:
+        example: "1"
+        type: string
+      updated_at:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      url:
+        example: https://chatwoot.example.com
+        type: string
+    type: object
+  CreateChatwootConfigRequest:
+    properties:
+      accountId:
+        example: "1"
+        type: string
+      apiKey:
+        example: chatwoot-api-key-123
+        type: string
+      inboxId:
+        example: "1"
+        type: string
+      url:
+        example: https://chatwoot.example.com
+        type: string
+    required:
+    - accountId
+    - apiKey
+    - url
+    type: object
+  CreateWebhookRequest:
+    properties:
+      events:
+        example:
+        - message
+        - status
+        items:
+          type: string
+        minItems: 1
+        type: array
+      secret:
+        example: webhook-secret-key
+        type: string
+      sessionId:
+        example: session-123
+        type: string
+      url:
+        example: https://example.com/webhook
+        type: string
+    required:
+    - events
+    - url
+    type: object
+  DeviceInfoResponse:
+    properties:
+      appVersion:
+        example: 2.21.4.18
+        type: string
+      deviceModel:
+        example: Samsung Galaxy S21
+        type: string
+      osVersion:
+        example: "11"
+        type: string
+      platform:
+        example: android
+        type: string
+    type: object
+  ListSessionsResponse:
+    properties:
+      limit:
+        example: 20
+        type: integer
+      offset:
+        example: 0
+        type: integer
+      sessions:
+        items:
+          $ref: '#/definitions/SessionInfoResponse'
+        type: array
+      total:
+        example: 10
+        type: integer
+    type: object
+  SessionCreateRequest:
+    properties:
+      name:
+        example: customer-support-team
+        maxLength: 50
+        minLength: 3
+        type: string
+      proxyConfig:
+        $ref: '#/definitions/zpmeow_internal_domain_session.ProxyConfig'
+    required:
+    - name
+    type: object
+  SessionCreateResponse:
+    properties:
+      createdAt:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      id:
+        example: session-123
+        type: string
+      isConnected:
+        example: false
+        type: boolean
+      name:
+        example: customer-support-team
+        type: string
+      proxyConfig:
+        $ref: '#/definitions/zpmeow_internal_domain_session.ProxyConfig'
+    type: object
+  SessionInfoResponse:
+    properties:
+      deviceInfo:
+        $ref: '#/definitions/DeviceInfoResponse'
+      session:
+        $ref: '#/definitions/SessionResponse'
+    type: object
+  SessionResponse:
+    properties:
+      connectedAt:
+        example: "2024-01-01T00:00:30Z"
+        type: string
+      connectionError:
+        example: Connection timeout
+        type: string
+      createdAt:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      deviceJid:
+        example: 5511999999999@s.whatsapp.net
+        type: string
+      id:
+        example: session-123
+        type: string
+      isConnected:
+        example: false
+        type: boolean
+      name:
+        example: my-whatsapp-session
+        type: string
+      proxyConfig:
+        $ref: '#/definitions/zpmeow_internal_domain_session.ProxyConfig'
+      updatedAt:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    type: object
+  WebhookResponse:
+    properties:
+      active:
+        example: true
+        type: boolean
+      createdAt:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      events:
+        example:
+        - message
+        - status
+        items:
+          type: string
+        type: array
+      id:
+        example: webhook-123
+        type: string
+      sessionId:
+        example: session-123
+        type: string
+      updatedAt:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      url:
+        example: https://example.com/webhook
+        type: string
+    type: object
+  zpmeow_internal_app.ErrorResponse:
+    properties:
+      code:
+        example: VALIDATION_ERROR
+        type: string
+      details: {}
+      error:
+        example: Invalid request
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  zpmeow_internal_app.QRCodeResponse:
+    properties:
+      expiresAt:
+        example: "2024-01-01T00:01:00Z"
+        type: string
+      qrCode:
+        example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
+        type: string
+      timeoutSeconds:
+        example: 60
+        type: integer
+    type: object
+  zpmeow_internal_app.SuccessResponse:
+    properties:
+      data: {}
+      message:
+        example: Operation completed successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  zpmeow_internal_domain_session.ProxyConfig:
+    properties:
+      host:
+        example: proxy.example.com
+        type: string
+      password:
+        example: password
+        type: string
+      port:
+        example: 8080
+        type: integer
+      type:
+        description: http, socks5
+        example: http
+        type: string
+      username:
+        example: user
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@zpmeow.com
+    name: ZPMeow Support
+    url: https://github.com/your-org/zpmeow
+  description: |-
+    A complete REST API for managing multiple WhatsApp sessions using Go, Fiber, PostgreSQL, and whatsmeow library.
+
+    ## Authentication
+    All API endpoints (except /health and /swagger/*) require API key authentication.
+    Provide your API key in the `Authorization` header.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: ZPMeow - WhatsApp Multi-Session API
+  version: "1.0"
+paths:
+  /api/v1/chatwoot/config:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new Chatwoot integration configuration. This enables
+        synchronization between WhatsApp and Chatwoot. Requires API key authentication.
+      parameters:
+      - description: Chatwoot configuration request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/CreateChatwootConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Chatwoot configuration created successfully
+          schema:
+            $ref: '#/definitions/ChatwootConfigResponse'
+        "400":
+          description: Invalid request body or parameters
+          schema:
+            type: object
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create Chatwoot configuration
+      tags:
+      - Chatwoot
+  /sessions/{id}/qr:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the current QR code for pairing a WhatsApp session. The
+        QR code expires after 60 seconds. You can use either the session UUID or session
+        name. Requires API key authentication.
+      parameters:
+      - description: API Key for authentication
+        example: '"your-api-key-here"'
+        in: header
+        name: X-API-Key
+        required: true
+        type: string
+      - description: Session ID or Name
+        example: '"customer-support-team"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: QR code retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/zpmeow_internal_app.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/zpmeow_internal_app.QRCodeResponse'
+              type: object
+        "400":
+          description: Invalid session identifier
+          schema:
+            $ref: '#/definitions/zpmeow_internal_app.ErrorResponse'
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          schema:
+            $ref: '#/definitions/zpmeow_internal_app.ErrorResponse'
+        "404":
+          description: Session not found or no QR code available
+          schema:
+            $ref: '#/definitions/zpmeow_internal_app.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/zpmeow_internal_app.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get QR code for session pairing
+      tags:
+      - Sessions
+  /sessions/{id}/webhook/config:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the current webhook configuration for a specific session.
+        Requires API key authentication.
+      parameters:
+      - description: Session ID
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Webhook configuration retrieved successfully
+          schema:
+            $ref: '#/definitions/WebhookResponse'
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          schema:
+            type: object
+        "404":
+          description: Session or webhook configuration not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get webhook configuration
+      tags:
+      - Webhooks
+    post:
+      consumes:
+      - application/json
+      description: Creates a new webhook configuration for a specific session. Webhooks
+        will receive real-time events from WhatsApp. Requires API key authentication.
+      parameters:
+      - description: Session ID
+        example: '"123e4567-e89b-12d3-a456-426614174000"'
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Webhook configuration request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/CreateWebhookRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Webhook created successfully
+          schema:
+            $ref: '#/definitions/WebhookResponse'
+        "400":
+          description: Invalid request body or parameters
+          schema:
+            type: object
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          schema:
+            type: object
+        "404":
+          description: Session not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create webhook configuration
+      tags:
+      - Webhooks
+  /sessions/{sessionId}/connect:
+    post:
+      consumes:
+      - application/json
+      description: Establishes connection with WhatsApp for the specified session.
+        Will generate QR code if not paired. You can use either the session UUID or
+        session name. Requires API key authentication.
+      parameters:
+      - description: Session ID or Name
+        example: '"customer-support-team"'
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Connection initiated successfully
+          schema:
+            type: object
+        "400":
+          description: Invalid session identifier
+          schema:
+            type: object
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          schema:
+            type: object
+        "404":
+          description: Session not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Connect WhatsApp session
+      tags:
+      - Sessions
+  /sessions/{sessionId}/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently removes a WhatsApp session and all associated data.
+        This action cannot be undone. You can use either the session UUID or session
+        name. Requires API key authentication.
+      parameters:
+      - description: Session ID or Name
+        example: '"customer-support-team"'
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Session deleted successfully
+          schema:
+            type: object
+        "400":
+          description: Invalid session identifier
+          schema:
+            type: object
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          schema:
+            type: object
+        "404":
+          description: Session not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a WhatsApp session
+      tags:
+      - Sessions
+  /sessions/{sessionId}/info:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves detailed information about a specific WhatsApp session
+        including connection status and device info. You can use either the session
+        UUID or session name. Requires API key authentication.
+      parameters:
+      - description: Session ID or Name
+        example: '"customer-support-team"'
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Session info retrieved successfully
+          schema:
+            $ref: '#/definitions/SessionInfoResponse'
+        "400":
+          description: Invalid session identifier
+          schema:
+            type: object
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          schema:
+            type: object
+        "404":
+          description: Session not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get session information
+      tags:
+      - Sessions
+  /sessions/{sessionId}/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logs out from WhatsApp for the specified session. You can use either
+        the session UUID or session name. Requires API key authentication.
+      parameters:
+      - description: Session ID or Name
+        example: '"customer-support-team"'
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Session logged out successfully
+          schema:
+            type: object
+        "400":
+          description: Invalid session identifier
+          schema:
+            type: object
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          schema:
+            type: object
+        "404":
+          description: Session not found
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Logout WhatsApp session
+      tags:
+      - Sessions
+  /sessions/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new WhatsApp session with the provided configuration.
+        Requires API key authentication.
+      parameters:
+      - description: Session creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/SessionCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Session created successfully
+          schema:
+            $ref: '#/definitions/SessionCreateResponse'
+        "400":
+          description: Invalid request body or parameters
+          schema:
+            type: object
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new WhatsApp session
+      tags:
+      - Sessions
+  /sessions/list:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all WhatsApp sessions with optional filtering.
+        Requires API key authentication.
+      parameters:
+      - description: Filter by session status
+        enum:
+        - created
+        - connecting
+        - connected
+        - disconnected
+        - error
+        - logged_out
+        example: '"connected"'
+        in: query
+        name: status
+        type: string
+      - description: Filter by device JID
+        example: '"5511999999999@s.whatsapp.net"'
+        in: query
+        name: deviceJid
+        type: string
+      - default: 20
+        description: Limit number of results
+        example: 20
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset for pagination
+        example: 0
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sessions retrieved successfully
+          schema:
+            $ref: '#/definitions/ListSessionsResponse'
+        "400":
+          description: Invalid request parameters
+          schema:
+            type: object
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          schema:
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: List all WhatsApp sessions
+      tags:
+      - Sessions
+securityDefinitions:
+  ApiKeyAuth:
+    description: 'Enter your API key directly (no Bearer prefix required). Example:
+      dev-api-key-12345'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
