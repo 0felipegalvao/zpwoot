@@ -173,7 +173,7 @@ down-clean: ## Stop main development services and remove volumes
 
 up-cw: ## Start Chatwoot services
 	@echo "💬 Starting Chatwoot services..."
-	docker compose -f chatwoot-dev.yml up -d
+	docker compose -f docker-compose.chatwoot.yml up -d
 	@echo "✅ Chatwoot services started!"
 	@echo "💬 Chatwoot: http://localhost:3001"
 	@echo ""
@@ -182,19 +182,19 @@ up-cw: ## Start Chatwoot services
 
 down-cw: ## Stop Chatwoot services (keeps volumes)
 	@echo "🛑 Stopping Chatwoot services..."
-	docker compose -f chatwoot-dev.yml down
+	docker compose -f docker-compose.chatwoot.yml down
 	@echo "✅ Chatwoot services stopped!"
 	@echo "💾 Volumes preserved. Use 'make down-cw-clean' to remove volumes too."
 
 down-cw-clean: ## Stop Chatwoot services and remove volumes
 	@echo "🛑 Stopping Chatwoot services and removing volumes..."
-	docker compose -f chatwoot-dev.yml down -v
+	docker compose -f docker-compose.chatwoot.yml down -v
 	@echo "✅ Chatwoot services stopped and volumes removed!"
 	@echo "⚠️  All Chatwoot data has been permanently deleted!"
 
 logs-cw: ## Show Chatwoot logs
 	@echo "📋 Showing logs for Chatwoot services..."
-	docker compose -f chatwoot-dev.yml logs -f
+	docker compose -f docker-compose.chatwoot.yml logs -f
 
 ps-services: ## Show status of all development containers
 	@echo "📊 Development services status:"
@@ -206,7 +206,7 @@ clean-services: ## Stop all services and remove volumes (DESTRUCTIVE)
 	@echo "⚠️  This will permanently delete ALL data!"
 	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
 	docker compose -f docker-compose.dev.yml down -v
-	docker compose -f chatwoot-dev.yml down -v
+	docker compose -f docker-compose.chatwoot.yml down -v
 	@echo "✅ Cleanup complete - all data permanently deleted!"
 
 clean-volumes: ## Remove only the volumes (without stopping services)
@@ -231,7 +231,7 @@ restart-services: ## Restart main development services
 
 restart-cw: ## Restart Chatwoot services
 	@echo "🔄 Restarting Chatwoot services..."
-	docker compose -f chatwoot-dev.yml restart
+	docker compose -f docker-compose.chatwoot.yml restart
 	@echo "✅ Chatwoot services restarted!"
 
 urls: ## Show all service URLs
