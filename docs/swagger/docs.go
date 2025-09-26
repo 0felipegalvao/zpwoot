@@ -11,8 +11,8 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "contact": {
             "name": "zpwoot Support",
-            "url": "https://github.com/your-org/zpmeow",
-            "email": "support@zpmeow.com"
+            "url": "https://github.com/your-org/zpwoot",
+            "email": "support@zpwoot.com"
         },
         "license": {
             "name": "MIT",
@@ -268,13 +268,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/zpmeow_internal_app.SuccessResponse"
+                                    "$ref": "#/definitions/zpwoot_internal_app.SuccessResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/zpmeow_internal_app.QRCodeResponse"
+                                            "$ref": "#/definitions/zpwoot_internal_app.QRCodeResponse"
                                         }
                                     }
                                 }
@@ -284,25 +284,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid session identifier",
                         "schema": {
-                            "$ref": "#/definitions/zpmeow_internal_app.ErrorResponse"
+                            "$ref": "#/definitions/zpwoot_internal_app.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - Invalid or missing API key",
                         "schema": {
-                            "$ref": "#/definitions/zpmeow_internal_app.ErrorResponse"
+                            "$ref": "#/definitions/zpwoot_internal_app.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Session not found or no QR code available",
                         "schema": {
-                            "$ref": "#/definitions/zpmeow_internal_app.ErrorResponse"
+                            "$ref": "#/definitions/zpwoot_internal_app.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/zpmeow_internal_app.ErrorResponse"
+                            "$ref": "#/definitions/zpwoot_internal_app.ErrorResponse"
                         }
                     }
                 }
@@ -833,7 +833,7 @@ const docTemplate = `{
                     "example": "customer-support-team"
                 },
                 "proxyConfig": {
-                    "$ref": "#/definitions/zpmeow_internal_domain_session.ProxyConfig"
+                    "$ref": "#/definitions/zpwoot_internal_domain_session.ProxyConfig"
                 }
             }
         },
@@ -857,7 +857,7 @@ const docTemplate = `{
                     "example": "customer-support-team"
                 },
                 "proxyConfig": {
-                    "$ref": "#/definitions/zpmeow_internal_domain_session.ProxyConfig"
+                    "$ref": "#/definitions/zpwoot_internal_domain_session.ProxyConfig"
                 }
             }
         },
@@ -904,7 +904,7 @@ const docTemplate = `{
                     "example": "my-whatsapp-session"
                 },
                 "proxyConfig": {
-                    "$ref": "#/definitions/zpmeow_internal_domain_session.ProxyConfig"
+                    "$ref": "#/definitions/zpwoot_internal_domain_session.ProxyConfig"
                 },
                 "updatedAt": {
                     "type": "string",

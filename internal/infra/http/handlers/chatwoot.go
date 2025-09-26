@@ -36,8 +36,8 @@ func NewChatwootHandler(chatwootService ChatwootService) *ChatwootHandler {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param request body zpmeow_internal_app_chatwoot.CreateChatwootConfigRequest true "Chatwoot configuration request"
-// @Success 201 {object} zpmeow_internal_app_chatwoot.ChatwootConfigResponse "Chatwoot configuration created successfully"
+// @Param request body zpwoot_internal_app_chatwoot.CreateChatwootConfigRequest true "Chatwoot configuration request"
+// @Success 201 {object} zpwoot_internal_app_chatwoot.ChatwootConfigResponse "Chatwoot configuration created successfully"
 // @Failure 400 {object} object "Invalid request body or parameters"
 // @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
 // @Failure 500 {object} object "Internal server error"

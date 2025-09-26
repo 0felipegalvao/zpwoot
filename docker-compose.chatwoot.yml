@@ -2,7 +2,7 @@ services:
   # PostgreSQL para Chatwoot
   chatwoot-postgres:
     image: pgvector/pgvector:pg13
-    container_name: zpmeow_chatwoot_postgres_dev
+    container_name: zpwoot_chatwoot_postgres_dev
     restart: unless-stopped
     ports:
       - "5433:5432"  # Porta diferente para evitar conflito
@@ -14,7 +14,7 @@ services:
     volumes:
       - chatwoot_postgres_data:/var/lib/postgresql/data
     networks:
-      - zpmeow_network
+      - zpwoot_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U chatwoot -d chatwoot_production"]
       interval: 10s
@@ -24,12 +24,12 @@ services:
   # Redis para Chatwoot
   chatwoot-redis:
     image: redis:6.2-alpine
-    container_name: zpmeow_chatwoot_redis_dev
+    container_name: zpwoot_chatwoot_redis_dev
     restart: unless-stopped
     volumes:
       - chatwoot_redis_data:/data
     networks:
-      - zpmeow_network
+      - zpwoot_network
     command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -40,7 +40,7 @@ services:
   # Chatwoot Web Application
   chatwoot-app:
     image: chatwoot/chatwoot:latest
-    container_name: zpmeow_chatwoot_app_dev
+    container_name: zpwoot_chatwoot_app_dev
     restart: unless-stopped
     ports:
       - "3001:3000"
@@ -57,7 +57,7 @@ services:
       
       # Rails
       RAILS_ENV: production
-      SECRET_KEY_BASE: zpmeow_chatwoot_secret_key_base_development_2024
+      SECRET_KEY_BASE: zpwoot_chatwoot_secret_key_base_development_2024
       RAILS_LOG_TO_STDOUT: true
       
       # Chatwoot
@@ -75,7 +75,7 @@ services:
       - chatwoot_storage:/app/storage
       - chatwoot_public:/app/public
     networks:
-      - zpmeow_network
+      - zpwoot_network
     depends_on:
       chatwoot-postgres:
         condition: service_healthy
@@ -90,7 +90,7 @@ services:
   # Chatwoot Sidekiq
   chatwoot-sidekiq:
     image: chatwoot/chatwoot:latest
-    container_name: zpmeow_chatwoot_sidekiq_dev
+    container_name: zpwoot_chatwoot_sidekiq_dev
     restart: unless-stopped
     environment:
       # Database
@@ -105,7 +105,7 @@ services:
       
       # Rails
       RAILS_ENV: production
-      SECRET_KEY_BASE: zpmeow_chatwoot_secret_key_base_development_2024
+      SECRET_KEY_BASE: zpwoot_chatwoot_secret_key_base_development_2024
       RAILS_LOG_TO_STDOUT: true
       
       # Chatwoot
@@ -121,7 +121,7 @@ services:
     volumes:
       - chatwoot_storage:/app/storage
     networks:
-      - zpmeow_network
+      - zpwoot_network
     depends_on:
       chatwoot-postgres:
         condition: service_healthy
@@ -140,6 +140,6 @@ volumes:
     driver: local
 
 networks:
-  zpmeow_network:
+  zpwoot_network:
     external: true
-    name: zpmeow_network
+    name: zpwoot_network

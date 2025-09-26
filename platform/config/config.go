@@ -42,7 +42,7 @@ func Load() *Config {
 		LogFormat:  getEnv("LOG_FORMAT", "console"),
 		LogOutput:  getEnv("LOG_OUTPUT", "stdout"),
 
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:password@localhost/zpmeow?sslmode=disable"),
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:password@localhost/zpwoot?sslmode=disable"),
 
 		WhatsAppLogLevel: getEnv("WA_LOG_LEVEL", "INFO"),
 

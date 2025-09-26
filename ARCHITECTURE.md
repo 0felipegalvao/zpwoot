@@ -1,14 +1,14 @@
-# ZPMeow - Clean Architecture Implementation
+# zpwoot - Clean Architecture Implementation
 
 ## 📋 Visão Geral
 
-Este documento descreve a implementação completa da arquitetura Clean Architecture no projeto ZPMeow, incluindo repositórios, use cases, DTOs e documentação Swagger.
+Este documento descreve a implementação completa da arquitetura Clean Architecture no projeto zpwoot, incluindo repositórios, use cases, DTOs e documentação Swagger.
 
 ## 🏗️ Estrutura da Arquitetura
 
 ```
-zpmeow/
-├── cmd/zpmeow/                    # Entry point da aplicação
+zpwoot/
+├── cmd/zpwoot/                    # Entry point da aplicação
 ├── internal/
 │   ├── app/                       # 🎯 APPLICATION LAYER
 │   │   ├── app.go                 # Entry point e índice da camada de aplicação

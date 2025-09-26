@@ -1,10 +1,10 @@
 services:
-  # ZPMeow Application
-  zpmeow:
+  # zpwoot Application
+  zpwoot:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: zpmeow_app
+    container_name: zpwoot_app
     ports:
       - "8080:8080"
     environment:
@@ -12,14 +12,14 @@ services:
       - LOG_LEVEL=info
       - LOG_FORMAT=console
       - LOG_OUTPUT=stdout
-      - DATABASE_URL=postgres://zpmeow:zpmeow123@postgres:5432/zpmeow?sslmode=disable
+      - DATABASE_URL=postgres://zpwoot:zpwoot123@postgres:5432/zpwoot?sslmode=disable
       - WA_LOG_LEVEL=INFO
       - GLOBAL_API_KEY=dev-api-key-12345
     volumes:
       - ./sessions:/app/sessions
       - ./logs:/app/logs
     networks:
-      - zpmeow_network
+      - zpwoot_network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
@@ -28,11 +28,11 @@ services:
       retries: 3
 
 volumes:
-  zpmeow_sessions:
+  zpwoot_sessions:
     driver: local
-  zpmeow_logs:
+  zpwoot_logs:
     driver: local
 
 networks:
-  zpmeow_network:
+  zpwoot_network:
     driver: bridge

@@ -83,8 +83,8 @@ func (h *SessionHandler) resolveSession(c *fiber.Ctx) (*session.Session, *fiber.
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param request body zpmeow_internal_app_session.CreateSessionRequest true "Session creation request"
-// @Success 201 {object} zpmeow_internal_app_session.CreateSessionResponse "Session created successfully"
+// @Param request body zpwoot_internal_app_session.CreateSessionRequest true "Session creation request"
+// @Success 201 {object} zpwoot_internal_app_session.CreateSessionResponse "Session created successfully"
 // @Failure 400 {object} object "Invalid request body or parameters"
 // @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
 // @Failure 500 {object} object "Internal server error"
@@ -150,7 +150,7 @@ func (h *SessionHandler) CreateSession(c *fiber.Ctx) error {
 // @Param deviceJid query string false "Filter by device JID" example("5511999999999@s.whatsapp.net")
 // @Param limit query int false "Limit number of results" minimum(1) maximum(100) default(20) example(20)
 // @Param offset query int false "Offset for pagination" minimum(0) default(0) example(0)
-// @Success 200 {object} zpmeow_internal_app_session.ListSessionsResponse "Sessions retrieved successfully"
+// @Success 200 {object} zpwoot_internal_app_session.ListSessionsResponse "Sessions retrieved successfully"
 // @Failure 400 {object} object "Invalid request parameters"
 // @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
 // @Failure 500 {object} object "Internal server error"
@@ -212,7 +212,7 @@ func (h *SessionHandler) ListSessions(c *fiber.Ctx) error {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param sessionId path string true "Session ID or Name" example("customer-support-team")
-// @Success 200 {object} zpmeow_internal_app_session.SessionInfoResponse "Session info retrieved successfully"
+// @Success 200 {object} zpwoot_internal_app_session.SessionInfoResponse "Session info retrieved successfully"
 // @Failure 400 {object} object "Invalid session identifier"
 // @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
 // @Failure 404 {object} object "Session not found"

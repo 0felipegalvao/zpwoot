@@ -296,9 +296,9 @@ go test -tags=integration ./internal/infra/wmeow/...
 
 ### **Internas**
 
-- `zpmeow/internal/domain/session` - Entidades de sessão
-- `zpmeow/internal/ports` - Interfaces
-- `zpmeow/platform/logger` - Sistema de logging
+- `zpwoot/internal/domain/session` - Entidades de sessão
+- `zpwoot/internal/ports` - Interfaces
+- `zpwoot/platform/logger` - Sistema de logging
 
 ## 🚨 Limitações Conhecidas
 

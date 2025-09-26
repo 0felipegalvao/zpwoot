@@ -1,4 +1,4 @@
-# ZPMeow - WhatsApp Multi-Session API
+# zpwoot - WhatsApp Multi-Session API
 
 Uma API REST completa para gerenciamento de múltiplas sessões do WhatsApp usando Go, Fiber, SQLx, PostgreSQL, WhatsApp (whatsmeow), integração com Chatwoot e webhooks.
 
@@ -27,7 +27,7 @@ Uma API REST completa para gerenciamento de múltiplas sessões do WhatsApp usan
 1. Clone o repositório:
 ```bash
 git clone <repository-url>
-cd zpmeow
+cd zpwoot
 ```
 
 2. Copie o arquivo de configuração:
@@ -44,7 +44,7 @@ cp .env.example .env
 
 5. Execute a aplicação:
 ```bash
-go run cmd/zpmeow/main.go
+go run cmd/zpwoot/main.go
 ```
 
 ## API Endpoints
@@ -120,7 +120,7 @@ Authorization: dev-api-key-12345
 
 ## 🏷️ Nomes de Sessão URL-Friendly
 
-O ZPMeow suporta tanto UUID quanto **nomes de sessão legíveis** nas URLs da API, tornando-as mais intuitivas:
+O zpwoot suporta tanto UUID quanto **nomes de sessão legíveis** nas URLs da API, tornando-as mais intuitivas:
 
 ### ✅ Nomes Válidos
 - **Formato**: 3-50 caracteres, começar com letra, usar apenas letras, números, hífens e underscores
@@ -222,8 +222,8 @@ Suporte para proxies HTTP e SOCKS5:
 ## Estrutura do Projeto
 
 ```
-zpmeow/
-├── cmd/zpmeow/           # Ponto de entrada da aplicação
+zpwoot/
+├── cmd/zpwoot/           # Ponto de entrada da aplicação
 ├── internal/
 │   ├── domain/           # Lógica de negócio
 │   │   └── session/      # Domínio de sessões
@@ -252,7 +252,7 @@ Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICE
 
 ## 📝 Sistema de Logging
 
-O ZPMeow utiliza **zerolog** para um sistema de logging estruturado e performático.
+O zpwoot utiliza **zerolog** para um sistema de logging estruturado e performático.
 
 ### Configuração de Logs
 

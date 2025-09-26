@@ -2,19 +2,19 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: zpmeow_postgres_dev
+    container_name: zpwoot_postgres_dev
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-zpmeow}
-      POSTGRES_USER: ${POSTGRES_USER:-zpmeow}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zpmeow123}
+      POSTGRES_DB: ${POSTGRES_DB:-zpwoot}
+      POSTGRES_USER: ${POSTGRES_USER:-zpwoot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zpwoot123}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - zpmeow_network
+      - zpwoot_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zpmeow} -d ${POSTGRES_DB:-zpmeow}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zpwoot} -d ${POSTGRES_DB:-zpwoot}"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -25,13 +25,13 @@ services:
   # Redis (for caching and session storage)
   redis:
     image: redis:7-alpine
-    container_name: zpmeow_redis_dev
+    container_name: zpwoot_redis_dev
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
-      - zpmeow_network
+      - zpwoot_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
@@ -42,29 +42,29 @@ services:
   # DbGate - Database Administration Tool
   dbgate:
     image: dbgate/dbgate:latest
-    container_name: zpmeow_dbgate_dev
+    container_name: zpwoot_dbgate_dev
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       CONNECTIONS: con1
-      LABEL_con1: ZPMeow PostgreSQL
+      LABEL_con1: zpwoot PostgreSQL
       SERVER_con1: postgres
-      USER_con1: ${POSTGRES_USER:-zpmeow}
-      PASSWORD_con1: ${POSTGRES_PASSWORD:-zpmeow123}
+      USER_con1: ${POSTGRES_USER:-zpwoot}
+      PASSWORD_con1: ${POSTGRES_PASSWORD:-zpwoot123}
       PORT_con1: 5432
       ENGINE_con1: postgres@dbgate-plugin-postgres
-      DATABASE_con1: ${POSTGRES_DB:-zpmeow}
+      DATABASE_con1: ${POSTGRES_DB:-zpwoot}
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - zpmeow_network
+      - zpwoot_network
 
   # Webhook Tester - For testing webhooks
   webhook-tester:
     image: ghcr.io/tarampampam/webhook-tester:2
-    container_name: zpmeow_webhook_tester_dev
+    container_name: zpwoot_webhook_tester_dev
     ports:
       - "8090:8080"
     environment:
@@ -76,7 +76,7 @@ services:
       - STORAGE_DRIVER=memory
       - PUBSUB_DRIVER=memory
     networks:
-      - zpmeow_network
+      - zpwoot_network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/healthz"]
@@ -87,7 +87,7 @@ services:
   # Redis Commander - Redis Web UI (Alternative to DbGate for Redis)
   redis-commander:
     image: rediscommander/redis-commander:latest
-    container_name: zpmeow_redis_commander_dev
+    container_name: zpwoot_redis_commander_dev
     ports:
       - "8081:8081"
     environment:
@@ -98,7 +98,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - zpmeow_network
+      - zpwoot_network
     restart: unless-stopped
 
 
@@ -110,6 +110,6 @@ volumes:
     driver: local
 
 networks:
-  zpmeow_network:
+  zpwoot_network:
     driver: bridge
-    name: zpmeow_network
+    name: zpwoot_network

@@ -1,6 +1,6 @@
-// Package main provides the entry point for ZPMeow application
+// Package main provides the entry point for zpwoot application
 //
-// @title ZPMeow - WhatsApp Multi-Session API
+// @title zpwoot - WhatsApp Multi-Session API
 // @version 1.0
 // @description A complete REST API for managing multiple WhatsApp sessions using Go, Fiber, PostgreSQL, and whatsmeow library.
 // @description
@@ -8,9 +8,9 @@
 // @description All API endpoints (except /health and /swagger/*) require API key authentication.
 // @description Provide your API key in the `Authorization` header.
 //
-// @contact.name ZPMeow Support
-// @contact.url https://github.com/your-org/zpmeow
-// @contact.email support@zpmeow.com
+// @contact.name zpwoot Support
+// @contact.url https://github.com/your-org/zpwoot
+// @contact.email support@zpwoot.com
 //
 // @license.name MIT
 // @license.url https://opensource.org/licenses/MIT
@@ -137,7 +137,7 @@ func main() {
 	}()
 
 	// Start server
-	appLogger.InfoWithFields("Starting ZPMeow server", map[string]interface{}{
+	appLogger.InfoWithFields("Starting zpwoot server", map[string]interface{}{
 		"port":        cfg.Port,
 		"server_host": cfg.ServerHost,
 		"environment": cfg.NodeEnv,
