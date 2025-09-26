@@ -165,6 +165,9 @@ func (h *EventHandler) handlePairSuccess(evt *events.PairSuccess, sessionID stri
 
 	// Update session with device JID
 	h.updateSessionDeviceJID(sessionID, evt.ID.String())
+
+	// Clear QR code after successful pairing
+	h.clearSessionQRCode(sessionID)
 }
 
 // handlePairError handles pairing errors
@@ -450,6 +453,37 @@ func (h *EventHandler) updateSessionLastSeen(sessionID string) {
 		h.logger.ErrorWithFields("Failed to update session last seen", map[string]interface{}{
 			"session_id": sessionID,
 			"error":      err.Error(),
+		})
+	}
+}
+
+// clearSessionQRCode clears the QR code for a session after successful connection
+func (h *EventHandler) clearSessionQRCode(sessionID string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	sess, err := h.sessionMgr.sessionRepo.GetByID(ctx, sessionID)
+	if err != nil {
+		h.logger.ErrorWithFields("Failed to get session for QR code clearing", map[string]interface{}{
+			"session_id": sessionID,
+			"error":      err.Error(),
+		})
+		return
+	}
+
+	// Clear QR code and expiration
+	sess.QRCode = ""
+	sess.QRCodeExpiresAt = nil
+	sess.UpdatedAt = time.Now()
+
+	if err := h.sessionMgr.sessionRepo.Update(ctx, sess); err != nil {
+		h.logger.ErrorWithFields("Failed to clear session QR code", map[string]interface{}{
+			"session_id": sessionID,
+			"error":      err.Error(),
+		})
+	} else {
+		h.logger.InfoWithFields("QR code cleared after successful connection", map[string]interface{}{
+			"session_id": sessionID,
 		})
 	}
 }

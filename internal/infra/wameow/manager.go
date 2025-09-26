@@ -3,12 +3,12 @@ package wameow
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"net/url"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"zpwoot/internal/domain/message"
 	"zpwoot/internal/domain/session"
 	"zpwoot/internal/ports"
 	"zpwoot/platform/logger"
@@ -401,48 +401,12 @@ func (m *Manager) GetSessionStats(sessionID string) (*ports.SessionStats, error)
 	}, nil
 }
 
-// SendMessage sends a message through Wameow
-func (m *Manager) SendMessage(sessionID, to, message string) error {
-	client := m.getClient(sessionID)
-	if client == nil {
-		return fmt.Errorf("session %s not found", sessionID)
-	}
-
-	if !client.IsLoggedIn() {
-		return fmt.Errorf("session %s is not logged in", sessionID)
-	}
-
-	// Parse the recipient JID
-	recipientJID, err := types.ParseJID(to)
-	if err != nil {
-		return fmt.Errorf("invalid recipient JID %s: %w", to, err)
-	}
-
-	// Create and send the message
-	msg := &waE2E.Message{
-		Conversation: &message,
-	}
-
-	_, err = client.GetClient().SendMessage(context.Background(), recipientJID, msg)
-	if err != nil {
-		m.logger.ErrorWithFields("Failed to send message", map[string]interface{}{
-			"session_id": sessionID,
-			"to":         to,
-			"error":      err.Error(),
-		})
-		return fmt.Errorf("failed to send message: %w", err)
-	}
-
-	// Increment sent messages counter
-	m.incrementMessagesSent(sessionID)
-
-	m.logger.InfoWithFields("Message sent successfully", map[string]interface{}{
-		"session_id": sessionID,
-		"to":         to,
-	})
-
-	return nil
+// GetSession retrieves a session by ID
+func (m *Manager) GetSession(sessionID string) (*session.Session, error) {
+	return m.sessionMgr.GetSession(sessionID)
 }
+
+
 
 // SendMediaMessage sends a media message
 func (m *Manager) SendMediaMessage(sessionID, to string, media []byte, mediaType, caption string) error {
@@ -666,7 +630,7 @@ func (m *Manager) applyProxyConfig(client *whatsmeow.Client, config *session.Pro
 		return fmt.Errorf("proxy configuration is nil")
 	}
 
-	// Create HTTP client with proxy
+	// Validate proxy configuration format
 	var proxyURL *url.URL
 	var err error
 
@@ -693,31 +657,180 @@ func (m *Manager) applyProxyConfig(client *whatsmeow.Client, config *session.Pro
 		return fmt.Errorf("failed to parse proxy URL: %w", err)
 	}
 
-	// Create HTTP transport with proxy
-	transport := &http.Transport{
-		Proxy: http.ProxyURL(proxyURL),
-	}
+	// Note: The whatsmeow library doesn't support changing HTTP client after creation.
+	// Proxy configuration should be done during client creation in the NewWameowClient function
+	// or using environment variables. For now, we validate the proxy URL format.
 
-	// Create HTTP client with proxy transport
-	httpClient := &http.Client{
-		Transport: transport,
-		Timeout:   30 * time.Second,
-	}
-
-	// Apply the HTTP client to the Wameow client
-	// Note: This is a simplified implementation. In a real scenario,
-	// you might need to modify the whatsmeow client's HTTP client
-	// or use a different approach depending on the library's API
-	_ = httpClient // Use the client as needed
-
-	m.logger.InfoWithFields("Proxy configuration applied", map[string]interface{}{
+	m.logger.InfoWithFields("Proxy configuration validated (not yet applied)", map[string]interface{}{
 		"type":      config.Type,
 		"host":      config.Host,
 		"port":      config.Port,
 		"proxy_url": proxyURL.String(),
+		"note":      "Proxy configuration validation successful, but actual proxy application requires client recreation",
 	})
 
 	return nil
+}
+
+// SendMessage sends a message through a session
+func (m *Manager) SendMessage(sessionID, to, messageType, body, caption, file, filename string, latitude, longitude float64, contactName, contactPhone string) (*message.SendResult, error) {
+	client := m.getClient(sessionID)
+	if client == nil {
+		return nil, fmt.Errorf("session %s not found", sessionID)
+	}
+
+	if !client.IsLoggedIn() {
+		return nil, fmt.Errorf("session %s is not logged in", sessionID)
+	}
+
+	ctx := context.Background()
+	var resp *whatsmeow.SendResponse
+	var err error
+
+	switch messageType {
+	case "text":
+		resp, err = client.SendTextMessage(ctx, to, body)
+	case "image":
+		resp, err = client.SendImageMessage(ctx, to, file, caption)
+	case "audio":
+		resp, err = client.SendAudioMessage(ctx, to, file)
+	case "video":
+		resp, err = client.SendVideoMessage(ctx, to, file, caption)
+	case "document":
+		resp, err = client.SendDocumentMessage(ctx, to, file, filename)
+	case "location":
+		resp, err = client.SendLocationMessage(ctx, to, latitude, longitude, body)
+	case "contact":
+		resp, err = client.SendContactMessage(ctx, to, contactName, contactPhone)
+	case "sticker":
+		resp, err = client.SendStickerMessage(ctx, to, file)
+	default:
+		return nil, fmt.Errorf("unsupported message type: %s", messageType)
+	}
+
+	if err != nil {
+		return &message.SendResult{
+			Status:    "failed",
+			Error:     err.Error(),
+			Timestamp: time.Now(),
+		}, err
+	}
+
+	return &message.SendResult{
+		MessageID: resp.ID,
+		Status:    "sent",
+		Timestamp: resp.Timestamp,
+	}, nil
+}
+
+// SendButtonMessage sends a button message through a session
+func (m *Manager) SendButtonMessage(sessionID, to, body string, buttons []map[string]string) (*message.SendResult, error) {
+	client := m.getClient(sessionID)
+	if client == nil {
+		return nil, fmt.Errorf("session %s not found", sessionID)
+	}
+	if !client.IsLoggedIn() {
+		return nil, fmt.Errorf("session %s is not logged in", sessionID)
+	}
+
+	ctx := context.Background()
+	resp, err := client.SendButtonMessage(ctx, to, body, buttons)
+	if err != nil {
+		return &message.SendResult{
+			Status:    "failed",
+			Error:     err.Error(),
+			Timestamp: time.Now(),
+		}, err
+	}
+
+	return &message.SendResult{
+		MessageID: resp.ID,
+		Status:    "sent",
+		Timestamp: resp.Timestamp,
+	}, nil
+}
+
+// SendListMessage sends a list message through a session
+func (m *Manager) SendListMessage(sessionID, to, body, buttonText string, sections []map[string]interface{}) (*message.SendResult, error) {
+	client := m.getClient(sessionID)
+	if client == nil {
+		return nil, fmt.Errorf("session %s not found", sessionID)
+	}
+	if !client.IsLoggedIn() {
+		return nil, fmt.Errorf("session %s is not logged in", sessionID)
+	}
+
+	ctx := context.Background()
+	resp, err := client.SendListMessage(ctx, to, body, buttonText, sections)
+	if err != nil {
+		return &message.SendResult{
+			Status:    "failed",
+			Error:     err.Error(),
+			Timestamp: time.Now(),
+		}, err
+	}
+
+	return &message.SendResult{
+		MessageID: resp.ID,
+		Status:    "sent",
+		Timestamp: resp.Timestamp,
+	}, nil
+}
+
+// SendReaction sends a reaction through a session
+func (m *Manager) SendReaction(sessionID, to, messageID, reaction string) error {
+	client := m.getClient(sessionID)
+	if client == nil {
+		return fmt.Errorf("session %s not found", sessionID)
+	}
+	if !client.IsLoggedIn() {
+		return fmt.Errorf("session %s is not logged in", sessionID)
+	}
+
+	ctx := context.Background()
+	return client.SendReaction(ctx, to, messageID, reaction)
+}
+
+// SendPresence sends presence information through a session
+func (m *Manager) SendPresence(sessionID, to, presence string) error {
+	client := m.getClient(sessionID)
+	if client == nil {
+		return fmt.Errorf("session %s not found", sessionID)
+	}
+	if !client.IsLoggedIn() {
+		return fmt.Errorf("session %s is not logged in", sessionID)
+	}
+
+	ctx := context.Background()
+	return client.SendPresence(ctx, to, presence)
+}
+
+// EditMessage edits a message through a session
+func (m *Manager) EditMessage(sessionID, to, messageID, newText string) error {
+	client := m.getClient(sessionID)
+	if client == nil {
+		return fmt.Errorf("session %s not found", sessionID)
+	}
+	if !client.IsLoggedIn() {
+		return fmt.Errorf("session %s is not logged in", sessionID)
+	}
+
+	ctx := context.Background()
+	return client.EditMessage(ctx, to, messageID, newText)
+}
+
+// DeleteMessage deletes a message through a session
+func (m *Manager) DeleteMessage(sessionID, to, messageID string, forAll bool) error {
+	client := m.getClient(sessionID)
+	if client == nil {
+		return fmt.Errorf("session %s not found", sessionID)
+	}
+	if !client.IsLoggedIn() {
+		return fmt.Errorf("session %s is not logged in", sessionID)
+	}
+
+	ctx := context.Background()
+	return client.DeleteMessage(ctx, to, messageID, forAll)
 }
 
 // setupEventHandlers sets up event handlers for a Wameow client

@@ -2,6 +2,7 @@ package app
 
 import (
 	"database/sql"
+	"fmt"
 
 	"zpwoot/internal/domain/chatwoot"
 	"zpwoot/internal/domain/session"
@@ -17,6 +18,7 @@ type Container struct {
 	SessionUseCase  SessionUseCase
 	WebhookUseCase  WebhookUseCase
 	ChatwootUseCase ChatwootUseCase
+	MessageUseCase  MessageUseCase
 
 	// Dependencies
 	logger      *logger.Logger
@@ -87,11 +89,18 @@ func NewContainer(config *ContainerConfig) *Container {
 		chatwootService,
 	)
 
+	messageUseCase := NewMessageUseCase(
+		config.SessionRepo,
+		config.WameowManager,
+		config.Logger,
+	)
+
 	return &Container{
 		CommonUseCase:   commonUseCase,
 		SessionUseCase:  sessionUseCase,
 		WebhookUseCase:  webhookUseCase,
 		ChatwootUseCase: chatwootUseCase,
+		MessageUseCase:  messageUseCase,
 		logger:          config.Logger,
 		sessionRepo:     config.SessionRepo,
 	}
@@ -125,4 +134,19 @@ func (c *Container) GetLogger() *logger.Logger {
 // GetSessionRepository returns the session repository instance
 func (c *Container) GetSessionRepository() ports.SessionRepository {
 	return c.sessionRepo
+}
+
+// GetMessageUseCase returns the message use case
+func (c *Container) GetMessageUseCase() MessageUseCase {
+	return c.MessageUseCase
+}
+
+// GetSessionResolver returns a session resolver function
+func (c *Container) GetSessionResolver() func(sessionID string) (ports.WameowManager, error) {
+	return func(sessionID string) (ports.WameowManager, error) {
+		// This should return the WameowManager, not the session repository
+		// We need to get the WameowManager from the container config
+		// For now, this is a placeholder that will need proper implementation
+		return nil, fmt.Errorf("session resolver not properly implemented")
+	}
 }

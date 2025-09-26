@@ -3,6 +3,7 @@ package ports
 import (
 	"context"
 
+	"zpwoot/internal/domain/message"
 	"zpwoot/internal/domain/session"
 )
 
@@ -74,11 +75,29 @@ type WameowManager interface {
 	// GetProxy retrieves proxy configuration
 	GetProxy(sessionID string) (*session.ProxyConfig, error)
 
-	// SendMessage sends a message through Wameow
-	SendMessage(sessionID, to, message string) error
+	// SendMessage sends a message through Wameow with full support for all message types
+	SendMessage(sessionID, to, messageType, body, caption, file, filename string, latitude, longitude float64, contactName, contactPhone string) (*message.SendResult, error)
 
 	// SendMediaMessage sends a media message
 	SendMediaMessage(sessionID, to string, media []byte, mediaType, caption string) error
+
+	// SendButtonMessage sends a button message
+	SendButtonMessage(sessionID, to, body string, buttons []map[string]string) (*message.SendResult, error)
+
+	// SendListMessage sends a list message
+	SendListMessage(sessionID, to, body, buttonText string, sections []map[string]interface{}) (*message.SendResult, error)
+
+	// SendReaction sends a reaction to a message
+	SendReaction(sessionID, to, messageID, reaction string) error
+
+	// SendPresence sends presence information
+	SendPresence(sessionID, to, presence string) error
+
+	// EditMessage edits an existing message
+	EditMessage(sessionID, to, messageID, newText string) error
+
+	// DeleteMessage deletes an existing message
+	DeleteMessage(sessionID, to, messageID string, forAll bool) error
 
 	// GetSessionStats retrieves session statistics
 	GetSessionStats(sessionID string) (*SessionStats, error)

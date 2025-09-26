@@ -225,6 +225,15 @@ func (s *SessionManager) UpdateConnectionStatus(sessionID string, isConnected bo
 	// Update connection status
 	sessionEntity.SetConnected(isConnected)
 
+	// Clear QR code when successfully connected
+	if isConnected {
+		s.logger.InfoWithFields("Clearing QR code after successful connection", map[string]interface{}{
+			"session_id": sessionID,
+		})
+		sessionEntity.QRCode = ""
+		sessionEntity.QRCodeExpiresAt = nil
+	}
+
 	if err := s.sessionRepo.Update(ctx, sessionEntity); err != nil {
 		s.logger.ErrorWithFields("Failed to update session in database", map[string]interface{}{
 			"session_id": sessionID,

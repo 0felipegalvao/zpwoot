@@ -393,7 +393,7 @@ func (h *SessionHandler) LogoutSession(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param X-API-Key header string true "API Key for authentication" example("your-api-key-here")
+
 // @Param id path string true "Session ID or Name" example("mySession")
 // @Success 200 {object} app.SuccessResponse{data=app.QRCodeResponse} "QR code retrieved successfully"
 // @Failure 400 {object} app.ErrorResponse "Invalid session identifier"

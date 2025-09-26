@@ -14,6 +14,7 @@ package app
 import (
 	"zpwoot/internal/app/chatwoot"
 	"zpwoot/internal/app/common"
+	"zpwoot/internal/app/message"
 	"zpwoot/internal/app/session"
 	"zpwoot/internal/app/webhook"
 )
@@ -83,6 +84,12 @@ type (
 	ChatwootStatsResponse          = chatwoot.ChatwootStatsResponse
 )
 
+// Message DTOs
+type (
+	SendMessageRequest  = message.SendMessageRequest
+	SendMessageResponse = message.SendMessageResponse
+)
+
 // Helper functions - re-export from common
 var (
 	NewSuccessResponse         = common.NewSuccessResponse
@@ -120,6 +127,9 @@ type (
 
 	// Chatwoot use cases
 	ChatwootUseCase = chatwoot.UseCase
+
+	// Message use cases
+	MessageUseCase = message.UseCase
 )
 
 // Use Case constructors
@@ -135,4 +145,7 @@ var (
 
 	// Chatwoot use case constructor
 	NewChatwootUseCase = chatwoot.NewUseCase
+
+	// Message use case constructor
+	NewMessageUseCase = message.NewUseCase
 )
