@@ -106,9 +106,9 @@ Todos os endpoints da API (exceto `/health` e `/swagger/*`) requerem autenticaç
 
 ### Configuração da API Key
 
-1. Configure a variável de ambiente `GLOBAL_API_KEY` no arquivo `.env`:
+1. Configure a variável de ambiente `ZP_API_KEY` no arquivo `.env`:
 ```bash
-GLOBAL_API_KEY=dev-api-key-12345
+ZP_API_KEY=dev-api-key-12345
 ```
 
 2. Inclua a API Key no header `Authorization` de todas as requisições:

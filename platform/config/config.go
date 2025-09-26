@@ -49,7 +49,7 @@ func Load() *Config {
 		GlobalWebhookURL: getEnv("GLOBAL_WEBHOOK_URL", ""),
 		WebhookSecret:    getEnv("WEBHOOK_SECRET", ""),
 
-		GlobalAPIKey: getEnv("GLOBAL_API_KEY", "a0b1125a0eb3364d98e2c49ec6f7d6ba"),
+		GlobalAPIKey: getEnv("ZP_API_KEY", "a0b1125a0eb3364d98e2c49ec6f7d6ba"),
 
 		NodeEnv: getEnv("NODE_ENV", "development"),
 	}
