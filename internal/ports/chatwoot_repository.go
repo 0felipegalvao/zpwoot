@@ -115,7 +115,7 @@ type ChatwootIntegrationExtended interface {
 	UpdateContactCustomAttribute(contactID int, attributeKey string, value interface{}) error
 
 	// Webhook operations
-	CreateWebhook(url string, events []string) (*ChatwootWebhook, error)
+	SetConfig(url string, events []string) (*ChatwootWebhook, error)
 	GetWebhooks() ([]*ChatwootWebhook, error)
 	UpdateWebhook(webhookID int, updates map[string]interface{}) error
 	DeleteWebhook(webhookID int) error

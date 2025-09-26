@@ -25,9 +25,13 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -35,16 +39,40 @@ import (
 
 	_ "zpwoot/docs/swagger" // Import generated swagger docs
 	"zpwoot/internal/app"
+	"zpwoot/internal/infra/db"
 	"zpwoot/internal/infra/http/middleware"
 	"zpwoot/internal/infra/http/routers"
 	"zpwoot/internal/infra/repository"
 	"zpwoot/internal/infra/wmeow"
 	"zpwoot/platform/config"
-	"zpwoot/platform/db"
+	platformDB "zpwoot/platform/db"
 	"zpwoot/platform/logger"
 )
 
+// Build information - set via ldflags during build
+var (
+	Version   = "dev"
+	BuildTime = "unknown"
+	GitCommit = "unknown"
+)
+
 func main() {
+	// Define command line flags
+	var (
+		migrateUp     = flag.Bool("migrate-up", false, "Run database migrations up")
+		migrateDown   = flag.Bool("migrate-down", false, "Rollback last migration")
+		migrateStatus = flag.Bool("migrate-status", false, "Show migration status")
+		seed          = flag.Bool("seed", false, "Seed database with sample data")
+		version       = flag.Bool("version", false, "Show version information")
+	)
+	flag.Parse()
+
+	// Handle version flag
+	if *version {
+		showVersion()
+		return
+	}
+
 	// Load configuration
 	cfg := config.Load()
 
@@ -66,7 +94,7 @@ func main() {
 	appLogger := logger.NewWithConfig(loggerConfig)
 
 	// Initialize database with automatic migrations
-	database, err := db.NewWithMigrations(cfg.DatabaseURL, appLogger)
+	database, err := platformDB.NewWithMigrations(cfg.DatabaseURL, appLogger)
 	if err != nil {
 		appLogger.Fatal("Failed to connect to database and run migrations: " + err.Error())
 	}
@@ -75,6 +103,42 @@ func main() {
 			appLogger.Error("Failed to close database connection: " + err.Error())
 		}
 	}()
+
+	// Handle migration and seeding flags
+	migrator := db.NewMigrator(database.GetDB().DB, appLogger)
+
+	if *migrateUp {
+		if err := migrator.RunMigrations(); err != nil {
+			appLogger.Fatal("Failed to run migrations: " + err.Error())
+		}
+		appLogger.Info("Migrations completed successfully")
+		return
+	}
+
+	if *migrateDown {
+		if err := migrator.Rollback(); err != nil {
+			appLogger.Fatal("Failed to rollback migration: " + err.Error())
+		}
+		appLogger.Info("Migration rollback completed successfully")
+		return
+	}
+
+	if *migrateStatus {
+		migrations, err := migrator.GetMigrationStatus()
+		if err != nil {
+			appLogger.Fatal("Failed to get migration status: " + err.Error())
+		}
+		showMigrationStatus(migrations, appLogger)
+		return
+	}
+
+	if *seed {
+		if err := seedDatabase(database, appLogger); err != nil {
+			appLogger.Fatal("Failed to seed database: " + err.Error())
+		}
+		appLogger.Info("Database seeding completed successfully")
+		return
+	}
 
 	// Initialize repositories
 	repositories := repository.NewRepositories(database.GetDB(), appLogger)
@@ -93,11 +157,12 @@ func main() {
 		WebhookRepo:         repositories.GetWebhookRepository(),
 		ChatwootRepo:        repositories.GetChatwootRepository(),
 		WhatsAppManager:     whatsappManager,
-		ChatwootIntegration: nil, // TODO: implement when needed
+		ChatwootIntegration: nil, // Will be implemented when Chatwoot integration is needed
 		Logger:              appLogger,
-		Version:             "1.0.0", // TODO: get from build flags
-		BuildTime:           "dev",   // TODO: get from build flags
-		GitCommit:           "dev",   // TODO: get from build flags
+		DB:                  database.GetDB().DB,
+		Version:             Version,
+		BuildTime:           BuildTime,
+		GitCommit:           GitCommit,
 	})
 
 	// Initialize Fiber app
@@ -118,6 +183,7 @@ func main() {
 	app.Use(recover.New())
 	app.Use(middleware.RequestID(appLogger))
 	app.Use(middleware.HTTPLogger(appLogger))
+	app.Use(middleware.Metrics(container, appLogger))
 	app.Use(cors.New())
 	app.Use(middleware.APIKeyAuth(cfg, appLogger))
 
@@ -165,4 +231,106 @@ func initializeWhatsAppManager(database *db.DB, appLogger *logger.Logger) (*wmeo
 
 	appLogger.Info("WhatsApp manager created successfully - whatsmeow tables are now available")
 	return manager, nil
+}
+
+// showVersion displays version information
+func showVersion() {
+	fmt.Printf("zpwoot - WhatsApp Multi-Session API\n")
+	fmt.Printf("Version: %s\n", Version)
+	fmt.Printf("Build Time: %s\n", BuildTime)
+	fmt.Printf("Git Commit: %s\n", GitCommit)
+	fmt.Printf("Go Version: %s\n", runtime.Version())
+	fmt.Printf("OS/Arch: %s/%s\n", runtime.GOOS, runtime.GOARCH)
+}
+
+// showMigrationStatus displays the current migration status
+func showMigrationStatus(migrations []*db.Migration, logger *logger.Logger) {
+	fmt.Printf("Migration Status:\n")
+	fmt.Printf("================\n\n")
+
+	if len(migrations) == 0 {
+		fmt.Printf("No migrations found.\n")
+		return
+	}
+
+	for _, migration := range migrations {
+		status := "PENDING"
+		appliedAt := "Not applied"
+
+		if migration.AppliedAt != nil {
+			status = "APPLIED"
+			appliedAt = migration.AppliedAt.Format("2006-01-02 15:04:05")
+		}
+
+		fmt.Printf("Version: %03d | Status: %-7s | Name: %s | Applied: %s\n",
+			migration.Version, status, migration.Name, appliedAt)
+	}
+	fmt.Printf("\n")
+}
+
+// seedDatabase seeds the database with sample data
+func seedDatabase(database *platformDB.DB, logger *logger.Logger) error {
+	logger.Info("Starting database seeding...")
+
+	// Sample session data
+	sampleSessions := []map[string]interface{}{
+		{
+			"id":          "sample-session-1",
+			"name":        "Sample WhatsApp Session",
+			"device_jid":  "5511999999999@s.whatsapp.net",
+			"status":      "created",
+			"created_at":  time.Now(),
+			"updated_at":  time.Now(),
+		},
+	}
+
+	// Sample webhook data
+	sampleWebhooks := []map[string]interface{}{
+		{
+			"id":          "sample-webhook-1",
+			"session_id":  "sample-session-1",
+			"url":         "https://example.com/webhook",
+			"events":      []string{"message", "status"},
+			"enabled":     true,
+			"created_at":  time.Now(),
+			"updated_at":  time.Now(),
+		},
+	}
+
+	// Insert sample sessions
+	for _, session := range sampleSessions {
+		query := `
+			INSERT INTO "zpSessions" ("id", "name", "deviceJid", "status", "createdAt", "updatedAt")
+			VALUES ($1, $2, $3, $4, $5, $6)
+			ON CONFLICT ("id") DO NOTHING
+		`
+		_, err := database.GetDB().Exec(query,
+			session["id"], session["name"], session["device_jid"],
+			session["status"], session["created_at"], session["updated_at"])
+		if err != nil {
+			return fmt.Errorf("failed to insert sample session: %w", err)
+		}
+	}
+
+	// Insert sample webhooks
+	for _, webhook := range sampleWebhooks {
+		query := `
+			INSERT INTO "zpWebhooks" ("id", "sessionId", "url", "events", "enabled", "createdAt", "updatedAt")
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
+			ON CONFLICT ("id") DO NOTHING
+		`
+		_, err := database.GetDB().Exec(query,
+			webhook["id"], webhook["session_id"], webhook["url"],
+			webhook["events"], webhook["enabled"], webhook["created_at"], webhook["updated_at"])
+		if err != nil {
+			return fmt.Errorf("failed to insert sample webhook: %w", err)
+		}
+	}
+
+	logger.InfoWithFields("Database seeding completed", map[string]interface{}{
+		"sessions_created": len(sampleSessions),
+		"webhooks_created": len(sampleWebhooks),
+	})
+
+	return nil
 }

@@ -249,30 +249,142 @@ func (h *ChatwootHandler) ReceiveWebhook(c *fiber.Ctx) error {
 // TestConnection tests Chatwoot API connection
 // POST /api/v1/chatwoot/test
 func (h *ChatwootHandler) TestConnection(c *fiber.Ctx) error {
-	// TODO: Implement connection test
-	// This would test the API connection with current configuration
+	ctx := c.Context()
+
+	// Get current Chatwoot configuration
+	config, err := h.chatwootUC.GetConfig(ctx)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"success": false,
+			"message": "No Chatwoot configuration found",
+			"error":   err.Error(),
+		})
+	}
+
+	// Test the connection using the use case
+	result, err := h.chatwootUC.TestConnection(ctx)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"success": false,
+			"message": "Chatwoot connection test failed",
+			"error":   err.Error(),
+			"status":  "failed",
+		})
+	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Chatwoot connection test completed",
-		"status":  "connected", // or "failed"
+		"data":    result,
+		"status":  "connected",
 	})
 }
 
 // GetStats gets Chatwoot integration statistics
 // GET /api/v1/chatwoot/stats
 func (h *ChatwootHandler) GetStats(c *fiber.Ctx) error {
-	// TODO: Implement statistics
-	// This would return sync statistics, message counts, etc.
+	ctx := c.Context()
+
+	// Get statistics from the use case
+	stats, err := h.chatwootUC.GetStats(ctx)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to get Chatwoot statistics",
+			"error":   err.Error(),
+		})
+	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
-		"data": fiber.Map{
-			"contacts_synced":      0,
-			"conversations_synced": 0,
-			"messages_sent":        0,
-			"messages_received":    0,
-			"last_sync":            nil,
-		},
+		"data":    stats,
+	})
+}
+
+// SetConfig sets/updates Chatwoot configuration (create or update)
+// POST /sessions/{sessionId}/chatwoot/set
+func (h *ChatwootHandler) SetConfig(c *fiber.Ctx) error {
+	sessionID := c.Params("sessionId")
+
+	var req chatwoot.CreateChatwootConfigRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid request body",
+			"error":   err.Error(),
+		})
+	}
+
+	// Set session ID from URL parameter
+	req.SessionID = sessionID
+
+	ctx := c.Context()
+
+	// Try to get existing config first
+	existingConfig, err := h.chatwootUC.GetConfig(ctx)
+
+	if err != nil {
+		// Config doesn't exist, create new one
+		result, createErr := h.chatwootUC.Create(ctx, &req)
+		if createErr != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"success": false,
+				"message": "Failed to create Chatwoot configuration",
+				"error":   createErr.Error(),
+			})
+		}
+
+		return c.Status(201).JSON(fiber.Map{
+			"success": true,
+			"message": "Chatwoot configuration created successfully",
+			"data":    result,
+		})
+	}
+
+	// Config exists, update it
+	updateReq := chatwoot.UpdateChatwootConfigRequest{
+		BaseURL:     req.BaseURL,
+		AccessToken: req.AccessToken,
+		AccountID:   req.AccountID,
+		InboxID:     req.InboxID,
+		Enabled:     req.Enabled,
+	}
+
+	result, updateErr := h.chatwootUC.Update(ctx, &updateReq)
+	if updateErr != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"success": false,
+			"message": "Failed to update Chatwoot configuration",
+			"error":   updateErr.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Chatwoot configuration updated successfully",
+		"data":    result,
+	})
+}
+
+// FindConfig finds the Chatwoot configuration
+// GET /sessions/{sessionId}/chatwoot/find
+func (h *ChatwootHandler) FindConfig(c *fiber.Ctx) error {
+	sessionID := c.Params("sessionId")
+
+	ctx := c.Context()
+	config, err := h.chatwootUC.GetConfig(ctx)
+
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"success": false,
+			"message": "Chatwoot configuration not found for this session",
+			"session_id": sessionID,
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Chatwoot configuration found",
+		"data":    config,
 	})
 }

@@ -96,16 +96,13 @@ func setupSessionRoutes(app *fiber.App, database *db.DB, appLogger *logger.Logge
 	webhookHandler := handlers.NewWebhookHandler(appLogger)
 
 	// Session-specific webhook configuration (supports both UUID and session names)
-	sessions.Post("/:sessionId/webhook/config", webhookHandler.CreateWebhook)   // POST /sessions/:sessionId/webhook/config
-	sessions.Get("/:sessionId/webhook/config", webhookHandler.GetWebhookConfig) // GET /sessions/:sessionId/webhook/config
+	sessions.Post("/:sessionId/webhook/set", webhookHandler.SetConfig)   // POST /sessions/:sessionId/webhook/set
+	sessions.Get("/:sessionId/webhook/find", webhookHandler.FindConfig) // GET /sessions/:sessionId/webhook/find
 
-	// Session-specific Chatwoot configuration - TODO: implement
-	sessions.Post("/:sessionId/chatwoot/config", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"message": "Chatwoot config endpoint - TODO: implement"})
-	})
-	sessions.Get("/:sessionId/chatwoot/config", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"message": "Chatwoot config endpoint - TODO: implement"})
-	})
+	// Session-specific Chatwoot configuration (simplified to 2 endpoints)
+	chatwootHandler := handlers.NewChatwootHandler(container.GetChatwootUseCase(), appLogger)
+	sessions.Post("/:sessionId/chatwoot/set", chatwootHandler.SetConfig)   // POST /sessions/:sessionId/chatwoot/set (create/update)
+	sessions.Get("/:sessionId/chatwoot/find", chatwootHandler.FindConfig)  // GET /sessions/:sessionId/chatwoot/find
 }
 
 // setupSessionSpecificRoutes configures routes grouped by session ID

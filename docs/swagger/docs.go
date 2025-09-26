@@ -397,7 +397,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/CreateWebhookRequest"
+                            "$ref": "#/definitions/SetConfigRequest"
                         }
                     }
                 ],
@@ -744,7 +744,7 @@ const docTemplate = `{
                 }
             }
         },
-        "CreateWebhookRequest": {
+        "SetConfigRequest": {
             "type": "object",
             "required": [
                 "events",

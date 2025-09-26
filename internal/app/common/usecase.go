@@ -2,8 +2,12 @@ package common
 
 import (
 	"context"
+	"database/sql"
 	"runtime"
+	"sync/atomic"
 	"time"
+
+	"zpwoot/internal/ports"
 )
 
 // UseCase defines the common use case interface
@@ -11,6 +15,8 @@ type UseCase interface {
 	GetHealth(ctx context.Context) (*HealthResponse, error)
 	GetVersion(ctx context.Context) (*VersionResponse, error)
 	GetStats(ctx context.Context) (*StatsResponse, error)
+	IncrementRequestCount()
+	IncrementErrorCount()
 }
 
 // VersionResponse represents version information
@@ -45,19 +51,27 @@ type MemoryStats struct {
 
 // useCaseImpl implements the common use case
 type useCaseImpl struct {
-	startTime time.Time
-	version   string
-	buildTime string
-	gitCommit string
+	startTime      time.Time
+	version        string
+	buildTime      string
+	gitCommit      string
+	db             *sql.DB
+	sessionRepo    ports.SessionRepository
+	webhookRepo    ports.WebhookRepository
+	requestCount   int64
+	errorCount     int64
 }
 
 // NewUseCase creates a new common use case
-func NewUseCase(version, buildTime, gitCommit string) UseCase {
+func NewUseCase(version, buildTime, gitCommit string, db *sql.DB, sessionRepo ports.SessionRepository, webhookRepo ports.WebhookRepository) UseCase {
 	return &useCaseImpl{
-		startTime: time.Now(),
-		version:   version,
-		buildTime: buildTime,
-		gitCommit: gitCommit,
+		startTime:   time.Now(),
+		version:     version,
+		buildTime:   buildTime,
+		gitCommit:   gitCommit,
+		db:          db,
+		sessionRepo: sessionRepo,
+		webhookRepo: webhookRepo,
 	}
 }
 
@@ -94,6 +108,15 @@ func (uc *useCaseImpl) GetStats(ctx context.Context) (*StatsResponse, error) {
 
 	uptime := time.Since(uc.startTime)
 
+	// Check database status
+	dbStatus := uc.checkDatabaseStatus(ctx)
+
+	// Get active sessions count
+	activeSessions := uc.getActiveSessionsCount(ctx)
+
+	// Get active webhooks count
+	activeWebhooks := uc.getActiveWebhooksCount(ctx)
+
 	response := &StatsResponse{
 		Uptime:         uptime.String(),
 		GoroutineCount: runtime.NumGoroutine(),
@@ -103,7 +126,7 @@ func (uc *useCaseImpl) GetStats(ctx context.Context) (*StatsResponse, error) {
 			Sys:        memStats.Sys,
 			NumGC:      memStats.NumGC,
 		},
-		DatabaseStatus:  "connected", // TODO: Check actual database status
+		DatabaseStatus:  dbStatus,
 		LastHealthCheck: time.Now(),
 		Features: map[string]bool{
 			"sessions":      true,
@@ -113,12 +136,89 @@ func (uc *useCaseImpl) GetStats(ctx context.Context) (*StatsResponse, error) {
 			"health_checks": true,
 			"metrics":       true,
 		},
-		// TODO: Implement actual counters
-		RequestCount:   0,
-		ErrorCount:     0,
-		ActiveSessions: 0,
-		ActiveWebhooks: 0,
+		RequestCount:   atomic.LoadInt64(&uc.requestCount),
+		ErrorCount:     atomic.LoadInt64(&uc.errorCount),
+		ActiveSessions: activeSessions,
+		ActiveWebhooks: activeWebhooks,
 	}
 
 	return response, nil
+}
+
+// IncrementRequestCount increments the request counter
+func (uc *useCaseImpl) IncrementRequestCount() {
+	atomic.AddInt64(&uc.requestCount, 1)
+}
+
+// IncrementErrorCount increments the error counter
+func (uc *useCaseImpl) IncrementErrorCount() {
+	atomic.AddInt64(&uc.errorCount, 1)
+}
+
+// checkDatabaseStatus checks if the database is accessible
+func (uc *useCaseImpl) checkDatabaseStatus(ctx context.Context) string {
+	if uc.db == nil {
+		return "not_configured"
+	}
+
+	// Create a context with timeout for the ping
+	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	if err := uc.db.PingContext(pingCtx); err != nil {
+		return "disconnected"
+	}
+
+	return "connected"
+}
+
+// getActiveSessionsCount returns the number of active sessions
+func (uc *useCaseImpl) getActiveSessionsCount(ctx context.Context) int {
+	if uc.sessionRepo == nil {
+		return 0
+	}
+
+	// Create a context with timeout
+	countCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	// Try to get sessions count using the CountByConnectionStatus method
+	connectedCount, err := uc.sessionRepo.CountByConnectionStatus(countCtx, true)
+	if err != nil {
+		return 0
+	}
+
+	disconnectedCount, err := uc.sessionRepo.CountByConnectionStatus(countCtx, false)
+	if err != nil {
+		return 0
+	}
+
+	return connectedCount + disconnectedCount
+}
+
+// getActiveWebhooksCount returns the number of active webhooks
+func (uc *useCaseImpl) getActiveWebhooksCount(ctx context.Context) int {
+	if uc.webhookRepo == nil {
+		return 0
+	}
+
+	// Create a context with timeout
+	countCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	// Try to get webhooks count
+	webhooks, err := uc.webhookRepo.List(countCtx, 1, 0) // Get just one to check if repo works
+	if err != nil {
+		return 0
+	}
+
+	// Count only enabled webhooks
+	activeCount := 0
+	for _, webhook := range webhooks {
+		if webhook.Enabled {
+			activeCount++
+		}
+	}
+
+	return activeCount
 }

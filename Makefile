@@ -8,6 +8,12 @@ BUILD_DIR=build
 DOCKER_IMAGE=zpwoot:latest
 DATABASE_URL=postgres://user:password@localhost:5432/zpwoot?sslmode=disable
 
+# Build information
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
+BUILD_TIME ?= $(shell date -u '+%Y-%m-%d %H:%M:%S UTC')
+GIT_COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+LDFLAGS = -X 'main.Version=$(VERSION)' -X 'main.BuildTime=$(BUILD_TIME)' -X 'main.GitCommit=$(GIT_COMMIT)'
+
 # Default target
 help: ## Show this help message
 	@echo "Available commands:"
@@ -20,8 +26,22 @@ deps: ## Install dependencies
 
 build: ## Build the application
 	@echo "Building $(APP_NAME)..."
+	@echo "Version: $(VERSION)"
+	@echo "Build Time: $(BUILD_TIME)"
+	@echo "Git Commit: $(GIT_COMMIT)"
 	@mkdir -p $(BUILD_DIR)
-	go build -o $(BUILD_DIR)/$(APP_NAME) cmd/zpwoot/main.go
+	go build -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(APP_NAME) cmd/zpwoot/main.go
+
+build-release: ## Build the application for release
+	@echo "Building $(APP_NAME) for release..."
+	@echo "Version: $(VERSION)"
+	@echo "Build Time: $(BUILD_TIME)"
+	@echo "Git Commit: $(GIT_COMMIT)"
+	@mkdir -p $(BUILD_DIR)
+	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS) -s -w" -o $(BUILD_DIR)/$(APP_NAME) cmd/zpwoot/main.go
+
+version: ## Show version information
+	@go run -ldflags "$(LDFLAGS)" cmd/zpwoot/main.go -version
 
 run: ## Run the application (local development)
 	@echo "Running $(APP_NAME) in local mode..."
@@ -120,18 +140,38 @@ ps-port: ## Show processes running on port 8080
 # Database
 migrate-up: ## Run database migrations up
 	@echo "Running migrations up..."
-	# TODO: Implement migrations
-	# migrate -path migrations -database "$(DATABASE_URL)" up
+	@go run cmd/zpwoot/main.go -migrate-up || echo "Note: Migrations are automatically run on application startup"
 
-migrate-down: ## Run database migrations down
-	@echo "Running migrations down..."
-	# TODO: Implement migrations
-	# migrate -path migrations -database "$(DATABASE_URL)" down
+migrate-down: ## Run database migrations down (rollback last migration)
+	@echo "Rolling back last migration..."
+	@go run cmd/zpwoot/main.go -migrate-down
+
+migrate-status: ## Show migration status
+	@echo "Checking migration status..."
+	@go run cmd/zpwoot/main.go -migrate-status
 
 migrate-create: ## Create a new migration (usage: make migrate-create NAME=migration_name)
 	@echo "Creating migration: $(NAME)"
-	# TODO: Implement migrations
-	# migrate create -ext sql -dir migrations $(NAME)
+	@if [ -z "$(NAME)" ]; then \
+		echo "Error: NAME is required. Usage: make migrate-create NAME=migration_name"; \
+		exit 1; \
+	fi
+	@NEXT_VERSION=$$(ls internal/infra/db/migrations/ | grep -E '^[0-9]+_' | sed 's/_.*//' | sort -n | tail -1 | awk '{print $$1 + 1}') && \
+	if [ -z "$$NEXT_VERSION" ]; then NEXT_VERSION=1; fi && \
+	printf "%03d" $$NEXT_VERSION > /tmp/version && \
+	VERSION=$$(cat /tmp/version) && \
+	echo "Creating migration files for version $$VERSION..." && \
+	touch "internal/infra/db/migrations/$${VERSION}_$(NAME).up.sql" && \
+	touch "internal/infra/db/migrations/$${VERSION}_$(NAME).down.sql" && \
+	echo "-- Migration: $(NAME)" > "internal/infra/db/migrations/$${VERSION}_$(NAME).up.sql" && \
+	echo "-- Add your migration SQL here" >> "internal/infra/db/migrations/$${VERSION}_$(NAME).up.sql" && \
+	echo "" >> "internal/infra/db/migrations/$${VERSION}_$(NAME).up.sql" && \
+	echo "-- Migration: $(NAME) (rollback)" > "internal/infra/db/migrations/$${VERSION}_$(NAME).down.sql" && \
+	echo "-- Add your rollback SQL here" >> "internal/infra/db/migrations/$${VERSION}_$(NAME).down.sql" && \
+	echo "" >> "internal/infra/db/migrations/$${VERSION}_$(NAME).down.sql" && \
+	echo "Created migration files:" && \
+	echo "  internal/infra/db/migrations/$${VERSION}_$(NAME).up.sql" && \
+	echo "  internal/infra/db/migrations/$${VERSION}_$(NAME).down.sql"
 
 # Docker
 docker-build: ## Build Docker image
@@ -306,7 +346,7 @@ db-reset: migrate-down migrate-up ## Reset database
 
 db-seed: ## Seed database with sample data
 	@echo "Seeding database..."
-	# TODO: Implement database seeding
+	@go run cmd/zpwoot/main.go -seed
 
 # Backup and restore
 backup: ## Backup database

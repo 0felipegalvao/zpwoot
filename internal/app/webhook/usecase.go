@@ -9,8 +9,8 @@ import (
 
 // UseCase defines the webhook use case interface
 type UseCase interface {
-	CreateWebhook(ctx context.Context, req *CreateWebhookRequest) (*CreateWebhookResponse, error)
-	GetWebhookConfig(ctx context.Context, sessionID string) (*WebhookResponse, error)
+	SetConfig(ctx context.Context, req *SetConfigRequest) (*SetConfigResponse, error)
+	FindConfig(ctx context.Context, sessionID string) (*WebhookResponse, error)
 	UpdateWebhook(ctx context.Context, webhookID string, req *UpdateWebhookRequest) (*WebhookResponse, error)
 	DeleteWebhook(ctx context.Context, webhookID string) error
 	ListWebhooks(ctx context.Context, req *ListWebhooksRequest) (*ListWebhooksResponse, error)
@@ -36,19 +36,19 @@ func NewUseCase(
 	}
 }
 
-// CreateWebhook creates a new webhook configuration
-func (uc *useCaseImpl) CreateWebhook(ctx context.Context, req *CreateWebhookRequest) (*CreateWebhookResponse, error) {
+// SetConfig creates a new webhook configuration
+func (uc *useCaseImpl) SetConfig(ctx context.Context, req *SetConfigRequest) (*SetConfigResponse, error) {
 	// Convert DTO to domain request
-	domainReq := req.ToCreateWebhookRequest()
+	domainReq := req.ToSetConfigRequest()
 
 	// Create webhook using domain service
-	webhookConfig, err := uc.webhookService.CreateWebhook(ctx, domainReq)
+	webhookConfig, err := uc.webhookService.SetConfig(ctx, domainReq)
 	if err != nil {
 		return nil, err
 	}
 
 	// Convert domain entity to response DTO
-	response := &CreateWebhookResponse{
+	response := &SetConfigResponse{
 		ID:        webhookConfig.ID.String(),
 		SessionID: webhookConfig.SessionID,
 		URL:       webhookConfig.URL,
@@ -60,8 +60,8 @@ func (uc *useCaseImpl) CreateWebhook(ctx context.Context, req *CreateWebhookRequ
 	return response, nil
 }
 
-// GetWebhookConfig retrieves webhook configuration for a session
-func (uc *useCaseImpl) GetWebhookConfig(ctx context.Context, sessionID string) (*WebhookResponse, error) {
+// FindConfig retrieves webhook configuration for a session
+func (uc *useCaseImpl) FindConfig(ctx context.Context, sessionID string) (*WebhookResponse, error) {
 	// Get webhook config from domain service
 	webhookConfig, err := uc.webhookService.GetWebhookBySession(ctx, sessionID)
 	if err != nil {

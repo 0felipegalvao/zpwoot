@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	appdto "zpwoot/internal/app"
 	"zpwoot/internal/domain/session"
@@ -92,10 +95,13 @@ func (h *SessionHandler) resolveSession(c *fiber.Ctx) (*session.Session, *fiber.
 func (h *SessionHandler) CreateSession(c *fiber.Ctx) error {
 	h.logger.Info("Creating new session")
 
-	// Temporary implementation without use case
+	// Check if use case is available
 	if h.sessionUC == nil {
-		response := appdto.NewSuccessResponse(nil, "Session creation endpoint - TODO: implement with use case")
-		return c.Status(201).JSON(response)
+		h.logger.Error("Session use case not initialized")
+		return c.Status(500).JSON(fiber.Map{
+			"success": false,
+			"message": "Session service not available",
+		})
 	}
 
 	// Parse request body
@@ -131,6 +137,16 @@ func (h *SessionHandler) CreateSession(c *fiber.Ctx) error {
 	result, err := h.sessionUC.CreateSession(c.Context(), &req)
 	if err != nil {
 		h.logger.Error("Failed to create session: " + err.Error())
+
+		// Check if it's a session already exists error
+		if strings.Contains(err.Error(), "Session already exists") {
+			return c.Status(409).JSON(fiber.Map{
+				"success": false,
+				"error":   "Session already exists",
+				"message": fmt.Sprintf("A session with the name '%s' already exists. Please choose a different name.", req.Name),
+			})
+		}
+
 		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to create session"))
 	}
 
@@ -438,15 +454,34 @@ func (h *SessionHandler) GetQRCode(c *fiber.Ctx) error {
 // PairPhone pairs a phone with the session
 // POST /sessions/{sessionId}/pair
 func (h *SessionHandler) PairPhone(c *fiber.Ctx) error {
-	id := c.Params("id")
-	h.logger.InfoWithFields("Pairing phone", map[string]interface{}{
-		"session_id": id,
-	})
-	return c.JSON(fiber.Map{
-		"success": true,
-		"message": "Phone pair endpoint - TODO: implement",
-		"id":      id,
-	})
+	if h.sessionUC == nil {
+		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+	}
+
+	// Resolve session using SessionResolver
+	sess, fiberErr := h.resolveSession(c)
+	if fiberErr != nil {
+		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+	}
+
+	// Parse request body
+	var req appdto.PairPhoneRequest
+	if err := c.BodyParser(&req); err != nil {
+		h.logger.Error("Failed to parse pair phone request: " + err.Error())
+		return c.Status(400).JSON(appdto.NewErrorResponse("Invalid request body"))
+	}
+
+	// Call use case to pair phone
+	ctx := c.Context()
+	result, err := h.sessionUC.PairPhone(ctx, sess.ID, &req)
+	if err != nil {
+		h.logger.Error("Failed to pair phone: " + err.Error())
+		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to pair phone"))
+	}
+
+	// Return success response
+	response := appdto.NewSuccessResponse(result, "Phone pairing initiated successfully")
+	return c.JSON(response)
 }
 
 // SetProxy sets proxy configuration for the session

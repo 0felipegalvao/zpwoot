@@ -21,8 +21,8 @@ func NewService(logger *logger.Logger) *Service {
 	}
 }
 
-// CreateWebhook creates a new webhook configuration
-func (s *Service) CreateWebhook(ctx context.Context, req *CreateWebhookRequest) (*WebhookConfig, error) {
+// SetConfig creates a new webhook configuration
+func (s *Service) SetConfig(ctx context.Context, req *SetConfigRequest) (*WebhookConfig, error) {
 	s.logger.InfoWithFields("Creating webhook", map[string]interface{}{
 		"url":        req.URL,
 		"session_id": req.SessionID,

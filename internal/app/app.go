@@ -49,8 +49,8 @@ type (
 
 // Webhook DTOs
 type (
-	CreateWebhookRequest  = webhook.CreateWebhookRequest
-	CreateWebhookResponse = webhook.CreateWebhookResponse
+	SetConfigRequest  = webhook.SetConfigRequest
+	SetConfigResponse = webhook.SetConfigResponse
 	UpdateWebhookRequest  = webhook.UpdateWebhookRequest
 	ListWebhooksRequest   = webhook.ListWebhooksRequest
 	ListWebhooksResponse  = webhook.ListWebhooksResponse

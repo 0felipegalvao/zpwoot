@@ -55,6 +55,11 @@ var (
 	ErrChatwootNotConfigured = New(http.StatusServiceUnavailable, "Chatwoot not configured")
 	ErrChatwootAPIError      = New(http.StatusInternalServerError, "Chatwoot API error")
 
+	// Session specific errors
+	ErrSessionNotFound      = New(http.StatusNotFound, "Session not found")
+	ErrSessionAlreadyExists = New(http.StatusConflict, "Session already exists")
+	ErrInvalidSessionData   = New(http.StatusBadRequest, "Invalid session data")
+
 	// User specific errors
 	ErrUserNotFound      = New(http.StatusNotFound, "User not found")
 	ErrUserAlreadyExists = New(http.StatusConflict, "User already exists")

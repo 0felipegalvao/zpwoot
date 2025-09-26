@@ -27,8 +27,8 @@ var (
 	ErrWebhookDeliveryFailed = errors.New("webhook delivery failed")
 )
 
-// CreateWebhookRequest represents a request to create a webhook
-type CreateWebhookRequest struct {
+// SetConfigRequest represents a request to create a webhook
+type SetConfigRequest struct {
 	SessionID *string  `json:"session_id,omitempty" validate:"omitempty,uuid"`
 	URL       string   `json:"url" validate:"required,url"`
 	Secret    string   `json:"secret,omitempty"`

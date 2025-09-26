@@ -43,7 +43,7 @@ definitions:
     - apiKey
     - url
     type: object
-  CreateWebhookRequest:
+  SetConfigRequest:
     properties:
       events:
         example:
@@ -408,7 +408,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/CreateWebhookRequest'
+          $ref: '#/definitions/SetConfigRequest'
       produces:
       - application/json
       responses:

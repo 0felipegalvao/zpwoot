@@ -92,7 +92,7 @@ O arquivo `dto.go` na raiz do pacote `app` serve como um índice central que:
 - `ListSessionsRequest/Response` - Listar sessões
 
 #### Webhooks
-- `CreateWebhookRequest/Response` - Configurar webhook
+- `SetConfigRequest/Response` - Configurar webhook
 - `WebhookEventResponse` - Eventos de webhook
 - `TestWebhookRequest/Response` - Testar webhook
 

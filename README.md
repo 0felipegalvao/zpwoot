@@ -39,7 +39,15 @@ cp .env.example .env
 
 4. Execute as migrações do banco de dados:
 ```bash
-# TODO: Implementar migrações
+# As migrações são executadas automaticamente na inicialização
+# Ou você pode executá-las manualmente:
+make migrate-up
+
+# Para verificar o status das migrações:
+make migrate-status
+
+# Para criar uma nova migração:
+make migrate-create NAME=nome_da_migracao
 ```
 
 5. Execute a aplicação:
@@ -90,15 +98,17 @@ go run cmd/zpwoot/main.go
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| `POST` | `/api/v1/chatwoot/config` | Criar configuração Chatwoot |
-| `GET` | `/api/v1/chatwoot/config` | Obter configuração Chatwoot |
-| `PUT` | `/api/v1/chatwoot/config` | Atualizar configuração Chatwoot |
-| `DELETE` | `/api/v1/chatwoot/config` | Remover configuração Chatwoot |
+| `POST` | `/sessions/{sessionId}/chatwoot/set` | Configurar Chatwoot (criar/atualizar) |
+| `GET` | `/sessions/{sessionId}/chatwoot/find` | Buscar configuração Chatwoot |
 | `POST` | `/api/v1/chatwoot/sync/contacts` | Sincronizar contatos |
 | `POST` | `/api/v1/chatwoot/sync/conversations` | Sincronizar conversas |
 | `POST` | `/api/v1/chatwoot/webhook` | Webhook do Chatwoot |
 | `POST` | `/api/v1/chatwoot/test` | Testar conexão Chatwoot |
 | `GET` | `/api/v1/chatwoot/stats` | Estatísticas da integração |
+
+**Nota:** A configuração do Chatwoot agora é específica por sessão e simplificada em apenas 2 endpoints:
+- `set`: Cria ou atualiza a configuração (apenas uma configuração por sessão)
+- `find`: Busca a configuração existente
 
 ## 🔐 Autenticação
 

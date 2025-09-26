@@ -6,23 +6,23 @@ import (
 	"zpwoot/internal/domain/webhook"
 )
 
-// CreateWebhookRequest represents the request to create a webhook
-type CreateWebhookRequest struct {
+// SetConfigRequest represents the request to create a webhook
+type SetConfigRequest struct {
 	SessionID *string  `json:"sessionId,omitempty" validate:"omitempty,uuid" example:"session-123"`
 	URL       string   `json:"url" validate:"required,url" example:"https://example.com/webhook"`
 	Secret    string   `json:"secret,omitempty" example:"webhook-secret-key"`
 	Events    []string `json:"events" validate:"required,min=1" example:"message,status"`
-} // @name CreateWebhookRequest
+} // @name SetConfigRequest
 
-// CreateWebhookResponse represents the response after creating a webhook
-type CreateWebhookResponse struct {
+// SetConfigResponse represents the response after creating a webhook
+type SetConfigResponse struct {
 	ID        string    `json:"id" example:"webhook-123"`
 	SessionID *string   `json:"sessionId,omitempty" example:"session-123"`
 	URL       string    `json:"url" example:"https://example.com/webhook"`
 	Events    []string  `json:"events" example:"message,status"`
 	Active    bool      `json:"active" example:"true"`
 	CreatedAt time.Time `json:"createdAt" example:"2024-01-01T00:00:00Z"`
-} // @name CreateWebhookResponse
+} // @name SetConfigResponse
 
 // UpdateWebhookRequest represents the request to update a webhook
 type UpdateWebhookRequest struct {
@@ -96,9 +96,9 @@ type WebhookEventInfo struct {
 
 // Conversion methods
 
-// ToCreateWebhookRequest converts to domain request
-func (r *CreateWebhookRequest) ToCreateWebhookRequest() *webhook.CreateWebhookRequest {
-	return &webhook.CreateWebhookRequest{
+// ToSetConfigRequest converts to domain request
+func (r *SetConfigRequest) ToSetConfigRequest() *webhook.SetConfigRequest {
+	return &webhook.SetConfigRequest{
 		SessionID: r.SessionID,
 		URL:       r.URL,
 		Secret:    r.Secret,

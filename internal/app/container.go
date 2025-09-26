@@ -1,6 +1,8 @@
 package app
 
 import (
+	"database/sql"
+
 	"zpwoot/internal/domain/chatwoot"
 	"zpwoot/internal/domain/session"
 	"zpwoot/internal/domain/webhook"
@@ -34,6 +36,7 @@ type ContainerConfig struct {
 
 	// Infrastructure
 	Logger *logger.Logger
+	DB     *sql.DB
 
 	// Application metadata
 	Version   string
@@ -62,6 +65,9 @@ func NewContainer(config *ContainerConfig) *Container {
 		config.Version,
 		config.BuildTime,
 		config.GitCommit,
+		config.DB,
+		config.SessionRepo,
+		config.WebhookRepo,
 	)
 
 	sessionUseCase := NewSessionUseCase(

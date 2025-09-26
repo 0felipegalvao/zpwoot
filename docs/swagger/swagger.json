@@ -391,7 +391,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/CreateWebhookRequest"
+                            "$ref": "#/definitions/SetConfigRequest"
                         }
                     }
                 ],
@@ -738,7 +738,7 @@
                 }
             }
         },
-        "CreateWebhookRequest": {
+        "SetConfigRequest": {
             "type": "object",
             "required": [
                 "events",
