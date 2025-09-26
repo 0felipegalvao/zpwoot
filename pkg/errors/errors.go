@@ -46,10 +46,10 @@ var (
 	ErrInternalServerError = New(http.StatusInternalServerError, "Internal server error")
 	ErrServiceUnavailable  = New(http.StatusServiceUnavailable, "Service unavailable")
 
-	// WhatsApp specific errors
-	ErrWhatsAppNotConnected = New(http.StatusServiceUnavailable, "WhatsApp not connected")
-	ErrWhatsAppSendFailed   = New(http.StatusInternalServerError, "Failed to send WhatsApp message")
-	ErrInvalidPhoneNumber   = New(http.StatusBadRequest, "Invalid phone number")
+	// Wameow specific errors
+	ErrWameowNotConnected = New(http.StatusServiceUnavailable, "Wameow not connected")
+	ErrWameowSendFailed   = New(http.StatusInternalServerError, "Failed to send Wameow message")
+	ErrInvalidPhoneNumber = New(http.StatusBadRequest, "Invalid phone number")
 
 	// Chatwoot specific errors
 	ErrChatwootNotConfigured = New(http.StatusServiceUnavailable, "Chatwoot not configured")

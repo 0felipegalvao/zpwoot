@@ -185,7 +185,7 @@ func (s *Service) TestConnection(ctx context.Context) (*TestConnectionResult, er
 	return &TestConnectionResult{
 		Success:     true,
 		AccountName: "Test Account",
-		InboxName:   "WhatsApp Inbox",
+		InboxName:   "Wameow Inbox",
 	}, nil
 }
 

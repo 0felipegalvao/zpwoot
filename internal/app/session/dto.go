@@ -30,7 +30,7 @@ type UpdateSessionRequest struct {
 // ListSessionsRequest represents the request to list sessions
 type ListSessionsRequest struct {
 	IsConnected *bool   `json:"isConnected,omitempty" query:"isConnected" example:"true"`
-	DeviceJid   *string `json:"deviceJid,omitempty" query:"deviceJid" example:"5511999999999@s.whatsapp.net"`
+	DeviceJid   *string `json:"deviceJid,omitempty" query:"deviceJid" example:"5511999999999@s.Wameow.net"`
 	Limit       int     `json:"limit,omitempty" query:"limit" validate:"omitempty,min=1,max=100" example:"20"`
 	Offset      int     `json:"offset,omitempty" query:"offset" validate:"omitempty,min=0" example:"0"`
 } // @name ListSessionsRequest
@@ -52,8 +52,8 @@ type SessionInfoResponse struct {
 // SessionResponse represents a session in responses
 type SessionResponse struct {
 	ID              string               `json:"id" example:"session-123"`
-	Name            string               `json:"name" example:"my-whatsapp-session"`
-	DeviceJid       string               `json:"deviceJid,omitempty" example:"5511999999999@s.whatsapp.net"`
+	Name            string               `json:"name" example:"my-Wameow-session"`
+	DeviceJid       string               `json:"deviceJid,omitempty" example:"5511999999999@s.Wameow.net"`
 	IsConnected     bool                 `json:"isConnected" example:"false"`
 	ConnectionError *string              `json:"connectionError,omitempty" example:"Connection timeout"`
 	ProxyConfig     *session.ProxyConfig `json:"proxyConfig,omitempty"`

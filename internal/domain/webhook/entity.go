@@ -121,7 +121,7 @@ var SupportedEventTypes = []string{
 	// Errors
 	"CATRefreshError",
 
-	// Newsletter (WhatsApp Channels)
+	// Newsletter (Wameow Channels)
 	"NewsletterJoin",
 	"NewsletterLeave",
 	"NewsletterMuteChange",

@@ -122,7 +122,7 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
       deviceJid:
-        example: 5511999999999@s.whatsapp.net
+        example: 5511999999999@s.Wameow.net
         type: string
       id:
         example: session-123
@@ -131,7 +131,7 @@ definitions:
         example: false
         type: boolean
       name:
-        example: my-whatsapp-session
+        example: my-Wameow-session
         type: string
       proxyConfig:
         $ref: '#/definitions/zpwoot_internal_domain_session.ProxyConfig'
@@ -251,7 +251,7 @@ info:
     name: zpwoot Support
     url: https://github.com/your-org/zpwoot
   description: |-
-    A complete REST API for managing multiple WhatsApp sessions using Go, Fiber, PostgreSQL, and whatsmeow library.
+    A complete REST API for managing multiple Wameow sessions using Go, Fiber, PostgreSQL, and whatsmeow library.
 
     ## Authentication
     All API endpoints (except /health and /swagger/*) require API key authentication.
@@ -259,7 +259,7 @@ info:
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
-  title: zpwoot - WhatsApp Multi-Session API
+  title: zpwoot - Wameow Multi-Session API
   version: "1.0"
 paths:
   /chatwoot/config:
@@ -267,7 +267,7 @@ paths:
       consumes:
       - application/json
       description: Creates a new Chatwoot integration configuration. This enables
-        synchronization between WhatsApp and Chatwoot. Requires API key authentication.
+        synchronization between Wameow and Chatwoot. Requires API key authentication.
       parameters:
       - description: Chatwoot configuration request
         in: body
@@ -303,7 +303,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Establishes connection with WhatsApp for the specified session.
+      description: Establishes connection with Wameow for the specified session.
         Will generate QR code if not paired. You can use either the session UUID or
         session name. Requires API key authentication.
       parameters:
@@ -338,14 +338,14 @@ paths:
             type: object
       security:
       - ApiKeyAuth: []
-      summary: Connect WhatsApp session
+      summary: Connect Wameow session
       tags:
       - Sessions
   /sessions/{sessionId}/delete:
     delete:
       consumes:
       - application/json
-      description: Permanently removes a WhatsApp session and all associated data.
+      description: Permanently removes a Wameow session and all associated data.
         This action cannot be undone. You can use either the session UUID or session
         name. Requires API key authentication.
       parameters:
@@ -380,14 +380,14 @@ paths:
             type: object
       security:
       - ApiKeyAuth: []
-      summary: Delete a WhatsApp session
+      summary: Delete a Wameow session
       tags:
       - Sessions
   /sessions/{sessionId}/info:
     get:
       consumes:
       - application/json
-      description: Retrieves detailed information about a specific WhatsApp session
+      description: Retrieves detailed information about a specific Wameow session
         including connection status and device info. You can use either the session
         UUID or session name. Requires API key authentication.
       parameters:
@@ -429,7 +429,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Logs out from WhatsApp for the specified session. You can use either
+      description: Logs out from Wameow for the specified session. You can use either
         the session UUID or session name. Requires API key authentication.
       parameters:
       - description: Session ID or Name
@@ -463,14 +463,14 @@ paths:
             type: object
       security:
       - ApiKeyAuth: []
-      summary: Logout WhatsApp session
+      summary: Logout Wameow session
       tags:
       - Sessions
   /sessions/{sessionId}/qr:
     get:
       consumes:
       - application/json
-      description: Retrieves the current QR code for pairing a WhatsApp session. The
+      description: Retrieves the current QR code for pairing a Wameow session. The
         QR code expires after 60 seconds. You can use either the session UUID or session
         name. Requires API key authentication.
       parameters:
@@ -561,7 +561,7 @@ paths:
       consumes:
       - application/json
       description: Creates a new webhook configuration for a specific session. Webhooks
-        will receive real-time events from WhatsApp. Requires API key authentication.
+        will receive real-time events from Wameow. Requires API key authentication.
       parameters:
       - description: Session ID
         example: '"123e4567-e89b-12d3-a456-426614174000"'
@@ -608,7 +608,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates a new WhatsApp session with the provided configuration.
+      description: Creates a new Wameow session with the provided configuration.
         Requires API key authentication.
       parameters:
       - description: Session creation request
@@ -638,14 +638,14 @@ paths:
             type: object
       security:
       - ApiKeyAuth: []
-      summary: Create a new WhatsApp session
+      summary: Create a new Wameow session
       tags:
       - Sessions
   /sessions/list:
     get:
       consumes:
       - application/json
-      description: Retrieves a list of all WhatsApp sessions with optional filtering.
+      description: Retrieves a list of all Wameow sessions with optional filtering.
         Requires API key authentication.
       parameters:
       - description: Filter by session status
@@ -661,7 +661,7 @@ paths:
         name: status
         type: string
       - description: Filter by device JID
-        example: '"5511999999999@s.whatsapp.net"'
+        example: '"5511999999999@s.Wameow.net"'
         in: query
         name: deviceJid
         type: string
@@ -701,7 +701,7 @@ paths:
             type: object
       security:
       - ApiKeyAuth: []
-      summary: List all WhatsApp sessions
+      summary: List all Wameow sessions
       tags:
       - Sessions
 securityDefinitions:

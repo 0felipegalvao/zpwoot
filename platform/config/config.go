@@ -17,8 +17,8 @@ type Config struct {
 	// Database
 	DatabaseURL string
 
-	// WhatsApp
-	WhatsAppLogLevel string
+	// Wameow
+	WameowLogLevel string
 
 	// Global Webhooks
 	GlobalWebhookURL string
@@ -44,7 +44,7 @@ func Load() *Config {
 
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:password@localhost/zpwoot?sslmode=disable"),
 
-		WhatsAppLogLevel: getEnv("WA_LOG_LEVEL", "INFO"),
+		WameowLogLevel: getEnv("WA_LOG_LEVEL", "INFO"),
 
 		GlobalWebhookURL: getEnv("GLOBAL_WEBHOOK_URL", ""),
 		WebhookSecret:    getEnv("WEBHOOK_SECRET", ""),

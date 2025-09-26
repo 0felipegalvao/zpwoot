@@ -44,6 +44,7 @@ import (
 	"zpwoot/internal/infra/http/routers"
 	"zpwoot/internal/infra/repository"
 	"zpwoot/internal/infra/wmeow"
+	"zpwoot/internal/ports"
 	"zpwoot/platform/config"
 	platformDB "zpwoot/platform/db"
 	"zpwoot/platform/logger"
@@ -145,7 +146,7 @@ func main() {
 
 	// Initialize WhatsApp manager and create whatsmeow tables
 	appLogger.Info("Initializing WhatsApp manager and creating whatsmeow tables...")
-	whatsappManager, err := initializeWhatsAppManager(database, appLogger)
+	whatsappManager, err := initializeWhatsAppManager(database, repositories.GetSessionRepository(), appLogger)
 	if err != nil {
 		appLogger.Fatal("Failed to initialize WhatsApp manager: " + err.Error())
 	}

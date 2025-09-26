@@ -32,7 +32,7 @@ dist/
 logs/
 *.log
 
-# WhatsApp sessions (contains sensitive data)
+# Wameow sessions (contains sensitive data)
 sessions/
 *.session
 

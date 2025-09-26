@@ -18,7 +18,7 @@ zpwoot/
 │   │   │   ├── dto.go             # DTOs comuns (SuccessResponse, etc.)
 │   │   │   └── usecase.go         # Use cases comuns (health, stats)
 │   │   ├── session/
-│   │   │   ├── dto.go             # DTOs de sessões WhatsApp
+│   │   │   ├── dto.go             # DTOs de sessões Wameow
 │   │   │   └── usecase.go         # Use cases de sessões
 │   │   ├── webhook/
 │   │   │   ├── dto.go             # DTOs de webhooks
@@ -119,7 +119,7 @@ zpwoot/
 ### **Migrações**
 - **Localização**: `internal/infra/db/migrations/`
 - **Tabelas Criadas**:
-  - `zpSessions` - Sessões WhatsApp
+  - `zpSessions` - Sessões Wameow
   - `zpWebhooks` - Configurações de webhook
   - `zpChatwoot` - Configurações Chatwoot
 
@@ -131,7 +131,7 @@ zpwoot/
 - `ChatwootRepository` - CRUD de configurações + sincronização
 
 ### **Integrações Externas**
-- `WhatsAppManager` - Gerenciamento de sessões WhatsApp
+- `WameowManager` - Gerenciamento de sessões Wameow
 - `ChatwootIntegration` - API do Chatwoot
 
 ## 📖 Documentação Swagger
@@ -218,7 +218,7 @@ HTTP Request → Handler → DTO → Use Case → Domain Service → Repository 
 - [ ] Adicionar validações nos DTOs
 
 ### **2. Integrações**
-- [ ] WhatsApp Web API
+- [ ] Wameow Web API
 - [ ] Chatwoot API client
 - [ ] Sistema de webhooks
 

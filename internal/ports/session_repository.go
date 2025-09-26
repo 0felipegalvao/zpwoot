@@ -42,18 +42,18 @@ type SessionRepository interface {
 	CountByConnectionStatus(ctx context.Context, isConnected bool) (int, error)
 }
 
-// WhatsAppManager defines the interface for WhatsApp operations
-type WhatsAppManager interface {
-	// CreateSession initializes a new WhatsApp session
+// WameowManager defines the interface for Wameow operations
+type WameowManager interface {
+	// CreateSession initializes a new Wameow session
 	CreateSession(sessionID string, config *session.ProxyConfig) error
 
-	// ConnectSession establishes connection to WhatsApp
+	// ConnectSession establishes connection to Wameow
 	ConnectSession(sessionID string) error
 
-	// DisconnectSession disconnects from WhatsApp
+	// DisconnectSession disconnects from Wameow
 	DisconnectSession(sessionID string) error
 
-	// LogoutSession logs out from WhatsApp
+	// LogoutSession logs out from Wameow
 	LogoutSession(sessionID string) error
 
 	// GetQRCode retrieves the current QR code for pairing
@@ -74,7 +74,7 @@ type WhatsAppManager interface {
 	// GetProxy retrieves proxy configuration
 	GetProxy(sessionID string) (*session.ProxyConfig, error)
 
-	// SendMessage sends a message through WhatsApp
+	// SendMessage sends a message through Wameow
 	SendMessage(sessionID, to, message string) error
 
 	// SendMediaMessage sends a media message
@@ -83,7 +83,7 @@ type WhatsAppManager interface {
 	// GetSessionStats retrieves session statistics
 	GetSessionStats(sessionID string) (*SessionStats, error)
 
-	// RegisterEventHandler registers an event handler for WhatsApp events
+	// RegisterEventHandler registers an event handler for Wameow events
 	RegisterEventHandler(sessionID string, handler EventHandler) error
 
 	// UnregisterEventHandler removes an event handler
@@ -98,17 +98,17 @@ type SessionStats struct {
 	Uptime           int64 `json:"uptime"`
 }
 
-// EventHandler defines the interface for handling WhatsApp events
+// EventHandler defines the interface for handling Wameow events
 type EventHandler interface {
-	HandleMessage(sessionID string, message *WhatsAppMessage) error
+	HandleMessage(sessionID string, message *WameowMessage) error
 	HandleConnection(sessionID string, connected bool) error
 	HandleQRCode(sessionID string, qrCode string) error
 	HandlePairSuccess(sessionID string) error
 	HandleError(sessionID string, err error) error
 }
 
-// WhatsAppMessage represents a WhatsApp message
-type WhatsAppMessage struct {
+// WameowMessage represents a Wameow message
+type WameowMessage struct {
 	ID        string `json:"id"`
 	From      string `json:"from"`
 	To        string `json:"to"`

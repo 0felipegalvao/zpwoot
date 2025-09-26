@@ -10,7 +10,7 @@ import (
 
 type Service struct {
 	repo      Repository
-	whatsapp  WhatsAppManager
+	Wameow    WameowManager
 	generator *uuid.Generator
 }
 
@@ -23,7 +23,7 @@ type Repository interface {
 	Delete(ctx context.Context, id string) error
 }
 
-type WhatsAppManager interface {
+type WameowManager interface {
 	CreateSession(sessionID string, config *ProxyConfig) error
 	ConnectSession(sessionID string) error
 	DisconnectSession(sessionID string) error
@@ -36,16 +36,16 @@ type WhatsAppManager interface {
 	GetProxy(sessionID string) (*ProxyConfig, error)
 }
 
-func NewService(repo Repository, whatsapp WhatsAppManager) *Service {
+func NewService(repo Repository, Wameow WameowManager) *Service {
 	return &Service{
 		repo:      repo,
-		whatsapp:  whatsapp,
+		Wameow:    Wameow,
 		generator: uuid.New(),
 	}
 }
 
 func (s *Service) CreateSession(ctx context.Context, req *CreateSessionRequest) (*Session, error) {
-	// DeviceJid will be set when the session connects to WhatsApp
+	// DeviceJid will be set when the session connects to Wameow
 
 	// Create new session
 	session := NewSession(req.Name)
@@ -56,9 +56,9 @@ func (s *Service) CreateSession(ctx context.Context, req *CreateSessionRequest) 
 		return nil, errors.Wrap(err, "failed to create session")
 	}
 
-	// Initialize WhatsApp session
-	if err := s.whatsapp.CreateSession(session.ID.String(), req.ProxyConfig); err != nil {
-		return nil, errors.Wrap(err, "failed to initialize WhatsApp session")
+	// Initialize Wameow session
+	if err := s.Wameow.CreateSession(session.ID.String(), req.ProxyConfig); err != nil {
+		return nil, errors.Wrap(err, "failed to initialize Wameow session")
 	}
 
 	return session, nil
@@ -79,7 +79,7 @@ func (s *Service) GetSession(ctx context.Context, id string) (*SessionInfo, erro
 	}
 
 	if session.IsConnected {
-		deviceInfo, _ := s.whatsapp.GetDeviceInfo(id)
+		deviceInfo, _ := s.Wameow.GetDeviceInfo(id)
 		info.DeviceInfo = deviceInfo
 	}
 
@@ -110,9 +110,9 @@ func (s *Service) DeleteSession(ctx context.Context, id string) error {
 		return errors.ErrNotFound
 	}
 
-	// Disconnect and cleanup WhatsApp session
+	// Disconnect and cleanup Wameow session
 	if session.IsActive() {
-		if err := s.whatsapp.DisconnectSession(id); err != nil {
+		if err := s.Wameow.DisconnectSession(id); err != nil {
 			// Log error but continue with deletion
 			// We don't want to fail deletion just because disconnect failed
 			_ = err // Explicitly ignore error
@@ -143,14 +143,14 @@ func (s *Service) ConnectSession(ctx context.Context, id string) error {
 
 	// Mark as connecting (will be updated to connected after successful connection)
 
-	// Connect to WhatsApp
-	if err := s.whatsapp.ConnectSession(id); err != nil {
+	// Connect to Wameow
+	if err := s.Wameow.ConnectSession(id); err != nil {
 		session.SetConnectionError(err.Error())
 		if updateErr := s.repo.Update(ctx, session); updateErr != nil {
 			// Log the update error but return the original connection error
 			_ = updateErr // Explicitly ignore update error
 		}
-		return errors.Wrap(err, "failed to connect to WhatsApp")
+		return errors.Wrap(err, "failed to connect to Wameow")
 	}
 
 	// Update status to connected
@@ -176,9 +176,9 @@ func (s *Service) LogoutSession(ctx context.Context, id string) error {
 		return errors.NewWithDetails(400, "Cannot logout session", "Session is not connected")
 	}
 
-	// Logout from WhatsApp
-	if err := s.whatsapp.LogoutSession(id); err != nil {
-		return errors.Wrap(err, "failed to logout from WhatsApp")
+	// Logout from Wameow
+	if err := s.Wameow.LogoutSession(id); err != nil {
+		return errors.Wrap(err, "failed to logout from Wameow")
 	}
 
 	// Update status to disconnected
@@ -200,7 +200,7 @@ func (s *Service) GetQRCode(ctx context.Context, id string) (*QRCodeResponse, er
 		return nil, errors.ErrNotFound
 	}
 
-	qrResponse, err := s.whatsapp.GetQRCode(id)
+	qrResponse, err := s.Wameow.GetQRCode(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get QR code")
 	}
@@ -218,12 +218,12 @@ func (s *Service) PairPhone(ctx context.Context, id string, req *PairPhoneReques
 		return errors.ErrNotFound
 	}
 
-	// Pair phone with WhatsApp
-	if err := s.whatsapp.PairPhone(id, req.PhoneNumber); err != nil {
+	// Pair phone with Wameow
+	if err := s.Wameow.PairPhone(id, req.PhoneNumber); err != nil {
 		return errors.Wrap(err, "failed to pair phone")
 	}
 
-	// Update session with device JID (will be set by WhatsApp manager)
+	// Update session with device JID (will be set by Wameow manager)
 	session.UpdatedAt = time.Now()
 	if err := s.repo.Update(ctx, session); err != nil {
 		return errors.Wrap(err, "failed to update session")
@@ -242,8 +242,8 @@ func (s *Service) SetProxy(ctx context.Context, id string, config *ProxyConfig) 
 		return errors.ErrNotFound
 	}
 
-	// Set proxy in WhatsApp
-	if err := s.whatsapp.SetProxy(id, config); err != nil {
+	// Set proxy in Wameow
+	if err := s.Wameow.SetProxy(id, config); err != nil {
 		return errors.Wrap(err, "failed to set proxy")
 	}
 

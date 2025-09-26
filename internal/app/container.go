@@ -31,7 +31,7 @@ type ContainerConfig struct {
 	ChatwootRepo ports.ChatwootRepository
 
 	// External integrations
-	WhatsAppManager     ports.WhatsAppManager
+	WameowManager       ports.WameowManager
 	ChatwootIntegration ports.ChatwootIntegration
 
 	// Infrastructure
@@ -49,7 +49,7 @@ func NewContainer(config *ContainerConfig) *Container {
 	// Create domain services
 	sessionService := session.NewService(
 		config.SessionRepo,
-		config.WhatsAppManager,
+		config.WameowManager,
 	)
 
 	webhookService := webhook.NewService(
@@ -72,7 +72,7 @@ func NewContainer(config *ContainerConfig) *Container {
 
 	sessionUseCase := NewSessionUseCase(
 		config.SessionRepo,
-		config.WhatsAppManager,
+		config.WameowManager,
 		sessionService,
 	)
 

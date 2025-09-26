@@ -24,24 +24,24 @@ type UseCase interface {
 // useCaseImpl implements the session use case
 type useCaseImpl struct {
 	sessionRepo    ports.SessionRepository
-	whatsappMgr    ports.WhatsAppManager
+	WameowMgr      ports.WameowManager
 	sessionService *session.Service
 }
 
 // NewUseCase creates a new session use case
 func NewUseCase(
 	sessionRepo ports.SessionRepository,
-	whatsappMgr ports.WhatsAppManager,
+	WameowMgr ports.WameowManager,
 	sessionService *session.Service,
 ) UseCase {
 	return &useCaseImpl{
 		sessionRepo:    sessionRepo,
-		whatsappMgr:    whatsappMgr,
+		WameowMgr:      WameowMgr,
 		sessionService: sessionService,
 	}
 }
 
-// CreateSession creates a new WhatsApp session
+// CreateSession creates a new Wameow session
 func (uc *useCaseImpl) CreateSession(ctx context.Context, req *CreateSessionRequest) (*CreateSessionResponse, error) {
 	// Convert DTO to domain request
 	domainReq := req.ToCreateSessionRequest()
@@ -128,12 +128,12 @@ func (uc *useCaseImpl) DeleteSession(ctx context.Context, sessionID string) erro
 	return uc.sessionService.DeleteSession(ctx, sessionID)
 }
 
-// ConnectSession establishes connection with WhatsApp
+// ConnectSession establishes connection with Wameow
 func (uc *useCaseImpl) ConnectSession(ctx context.Context, sessionID string) error {
 	return uc.sessionService.ConnectSession(ctx, sessionID)
 }
 
-// LogoutSession logs out from WhatsApp
+// LogoutSession logs out from Wameow
 func (uc *useCaseImpl) LogoutSession(ctx context.Context, sessionID string) error {
 	return uc.sessionService.LogoutSession(ctx, sessionID)
 }
@@ -153,7 +153,7 @@ func (uc *useCaseImpl) GetQRCode(ctx context.Context, sessionID string) (*QRCode
 
 // PairPhone pairs a phone number with the session
 func (uc *useCaseImpl) PairPhone(ctx context.Context, sessionID string, req *PairPhoneRequest) error {
-	// This would typically use the WhatsApp manager to pair the phone
+	// This would typically use the Wameow manager to pair the phone
 	// For now, just return nil (not implemented)
 	return nil
 }

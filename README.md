@@ -1,11 +1,11 @@
-# zpwoot - WhatsApp Multi-Session API
+# zpwoot - Wameow Multi-Session API
 
-Uma API REST completa para gerenciamento de múltiplas sessões do WhatsApp usando Go, Fiber, SQLx, PostgreSQL, WhatsApp (whatsmeow), integração com Chatwoot e webhooks.
+Uma API REST completa para gerenciamento de múltiplas sessões do Wameow usando Go, Fiber, SQLx, PostgreSQL, Wameow (whatsmeow), integração com Chatwoot e webhooks.
 
 ## Características
 
-- 🚀 **Multi-sessão**: Gerencie múltiplas sessões do WhatsApp simultaneamente
-- 📱 **WhatsApp Web API**: Integração completa com whatsmeow
+- 🚀 **Multi-sessão**: Gerencie múltiplas sessões do Wameow simultaneamente
+- 📱 **Wameow Web API**: Integração completa com whatsmeow
 - 🔄 **Webhooks**: Sistema de webhooks para eventos em tempo real
 - 💬 **Chatwoot**: Integração nativa com Chatwoot para atendimento
 - 🗄️ **PostgreSQL**: Persistência de dados robusta
@@ -18,7 +18,7 @@ Uma API REST completa para gerenciamento de múltiplas sessões do WhatsApp usan
 - **Fiber v2** - Framework web rápido
 - **SQLx** - Extensões SQL para Go
 - **PostgreSQL** - Banco de dados
-- **whatsmeow** - Biblioteca WhatsApp Web API
+- **whatsmeow** - Biblioteca Wameow Web API
 - **Zap** - Logger estruturado
 - **UUID** - Geração de identificadores únicos
 
@@ -61,26 +61,26 @@ go run cmd/zpwoot/main.go
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| `POST` | `/sessions` | Criar uma nova sessão do WhatsApp |
+| `POST` | `/sessions` | Criar uma nova sessão do Wameow |
 | `GET` | `/sessions` | Listar todas as sessões (com filtros opcionais) |
 | `GET` | `/sessions/{id}` | Detalhes de uma sessão específica |
 | `DELETE` | `/sessions/{id}` | Remove permanentemente uma sessão |
-| `POST` | `/sessions/{sessionId}/connect` | Estabelece a conexão da sessão com o WhatsApp |
-| `POST` | `/sessions/{sessionId}/logout` | Faz o logout da sessão do WhatsApp |
+| `POST` | `/sessions/{sessionId}/connect` | Estabelece a conexão da sessão com o Wameow |
+| `POST` | `/sessions/{sessionId}/logout` | Faz o logout da sessão do Wameow |
 | `GET` | `/sessions/{sessionId}/qr` | Recupera o QR Code atual (se existir) |
 | `POST` | `/sessions/{sessionId}/pair` | Emparelha um telefone com a sessão |
 | `POST` | `/sessions/{sessionId}/proxy` | Define proxy para a sessão |
 | `GET` | `/sessions/{sessionId}/proxy` | Obtém configuração de proxy para a sessão |
 
-### WhatsApp Messaging
+### Wameow Messaging
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| `POST` | `/whatsapp/{sessionId}/send/text` | Enviar mensagem de texto |
-| `POST` | `/whatsapp/{sessionId}/send/media` | Enviar mensagem de mídia |
-| `GET` | `/whatsapp/{sessionId}/contacts` | Listar contatos |
-| `GET` | `/whatsapp/{sessionId}/chats` | Listar conversas |
-| `GET` | `/whatsapp/{sessionId}/status` | Status da sessão |
+| `POST` | `/Wameow/{sessionId}/send/text` | Enviar mensagem de texto |
+| `POST` | `/Wameow/{sessionId}/send/media` | Enviar mensagem de mídia |
+| `GET` | `/Wameow/{sessionId}/contacts` | Listar contatos |
+| `GET` | `/Wameow/{sessionId}/chats` | Listar conversas |
+| `GET` | `/Wameow/{sessionId}/status` | Status da sessão |
 
 ### Webhooks
 
@@ -134,7 +134,7 @@ O zpwoot suporta tanto UUID quanto **nomes de sessão legíveis** nas URLs da AP
 
 ### ✅ Nomes Válidos
 - **Formato**: 3-50 caracteres, começar com letra, usar apenas letras, números, hífens e underscores
-- **Exemplos**: `my-whatsapp-session`, `customer-support`, `sales-team-1`
+- **Exemplos**: `my-Wameow-session`, `customer-support`, `sales-team-1`
 
 ### ❌ Nomes Inválidos
 - Palavras reservadas: `create`, `list`, `info`, `delete`, etc.
@@ -153,8 +153,8 @@ curl -X POST http://localhost:8080/sessions/create \
   -H "Content-Type: application/json" \
   -H "Authorization: dev-api-key-12345" \
   -d '{
-    "name": "my-whatsapp-session",
-    "deviceJid": "5511999999999@s.whatsapp.net"
+    "name": "my-Wameow-session",
+    "deviceJid": "5511999999999@s.Wameow.net"
   }'
 ```
 
@@ -163,15 +163,15 @@ curl -X POST http://localhost:8080/sessions/create \
 ```bash
 # Obter informações da sessão usando o nome
 curl -H "Authorization: dev-api-key-12345" \
-  http://localhost:8080/sessions/my-whatsapp-session/info
+  http://localhost:8080/sessions/my-Wameow-session/info
 
 # Conectar sessão usando o nome
 curl -X POST -H "Authorization: dev-api-key-12345" \
-  http://localhost:8080/sessions/my-whatsapp-session/connect
+  http://localhost:8080/sessions/my-Wameow-session/connect
 
 # Obter QR code usando o nome
 curl -H "Authorization: dev-api-key-12345" \
-  http://localhost:8080/sessions/my-whatsapp-session/qr
+  http://localhost:8080/sessions/my-Wameow-session/qr
 ```
 
 ### Listar sessões
@@ -290,7 +290,7 @@ logger.InfoWithFields("Sessão criada", map[string]interface{}{
 // Logger com contexto persistente
 sessionLogger := logger.WithFields(map[string]interface{}{
     "session_id": "sess_123",
-    "component": "whatsapp",
+    "component": "Wameow",
 })
 sessionLogger.Info("Mensagem enviada")
 sessionLogger.Debug("QR code gerado")

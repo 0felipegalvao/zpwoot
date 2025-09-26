@@ -30,7 +30,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Creates a new Chatwoot integration configuration. This enables synchronization between WhatsApp and Chatwoot. Requires API key authentication.",
+                "description": "Creates a new Chatwoot integration configuration. This enables synchronization between Wameow and Chatwoot. Requires API key authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -87,7 +87,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Creates a new WhatsApp session with the provided configuration. Requires API key authentication.",
+                "description": "Creates a new Wameow session with the provided configuration. Requires API key authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -97,7 +97,7 @@ const docTemplate = `{
                 "tags": [
                     "Sessions"
                 ],
-                "summary": "Create a new WhatsApp session",
+                "summary": "Create a new Wameow session",
                 "parameters": [
                     {
                         "description": "Session creation request",
@@ -144,7 +144,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Retrieves a list of all WhatsApp sessions with optional filtering. Requires API key authentication.",
+                "description": "Retrieves a list of all Wameow sessions with optional filtering. Requires API key authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -154,7 +154,7 @@ const docTemplate = `{
                 "tags": [
                     "Sessions"
                 ],
-                "summary": "List all WhatsApp sessions",
+                "summary": "List all Wameow sessions",
                 "parameters": [
                     {
                         "enum": [
@@ -173,7 +173,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "\"5511999999999@s.whatsapp.net\"",
+                        "example": "\"5511999999999@s.Wameow.net\"",
                         "description": "Filter by device JID",
                         "name": "deviceJid",
                         "in": "query"
@@ -233,7 +233,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Establishes connection with WhatsApp for the specified session. Will generate QR code if not paired. You can use either the session UUID or session name. Requires API key authentication.",
+                "description": "Establishes connection with Wameow for the specified session. Will generate QR code if not paired. You can use either the session UUID or session name. Requires API key authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -243,7 +243,7 @@ const docTemplate = `{
                 "tags": [
                     "Sessions"
                 ],
-                "summary": "Connect WhatsApp session",
+                "summary": "Connect Wameow session",
                 "parameters": [
                     {
                         "type": "string",
@@ -295,7 +295,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Permanently removes a WhatsApp session and all associated data. This action cannot be undone. You can use either the session UUID or session name. Requires API key authentication.",
+                "description": "Permanently removes a Wameow session and all associated data. This action cannot be undone. You can use either the session UUID or session name. Requires API key authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -305,7 +305,7 @@ const docTemplate = `{
                 "tags": [
                     "Sessions"
                 ],
-                "summary": "Delete a WhatsApp session",
+                "summary": "Delete a Wameow session",
                 "parameters": [
                     {
                         "type": "string",
@@ -357,7 +357,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Retrieves detailed information about a specific WhatsApp session including connection status and device info. You can use either the session UUID or session name. Requires API key authentication.",
+                "description": "Retrieves detailed information about a specific Wameow session including connection status and device info. You can use either the session UUID or session name. Requires API key authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -419,7 +419,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Logs out from WhatsApp for the specified session. You can use either the session UUID or session name. Requires API key authentication.",
+                "description": "Logs out from Wameow for the specified session. You can use either the session UUID or session name. Requires API key authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -429,7 +429,7 @@ const docTemplate = `{
                 "tags": [
                     "Sessions"
                 ],
-                "summary": "Logout WhatsApp session",
+                "summary": "Logout Wameow session",
                 "parameters": [
                     {
                         "type": "string",
@@ -481,7 +481,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Retrieves the current QR code for pairing a WhatsApp session. The QR code expires after 60 seconds. You can use either the session UUID or session name. Requires API key authentication.",
+                "description": "Retrieves the current QR code for pairing a Wameow session. The QR code expires after 60 seconds. You can use either the session UUID or session name. Requires API key authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -618,7 +618,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Creates a new webhook configuration for a specific session. Webhooks will receive real-time events from WhatsApp. Requires API key authentication.",
+                "description": "Creates a new webhook configuration for a specific session. Webhooks will receive real-time events from Wameow. Requires API key authentication.",
                 "consumes": [
                     "application/json"
                 ],
@@ -857,7 +857,7 @@ const docTemplate = `{
                 },
                 "deviceJid": {
                     "type": "string",
-                    "example": "5511999999999@s.whatsapp.net"
+                    "example": "5511999999999@s.Wameow.net"
                 },
                 "id": {
                     "type": "string",
@@ -869,7 +869,7 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
-                    "example": "my-whatsapp-session"
+                    "example": "my-Wameow-session"
                 },
                 "proxyConfig": {
                     "$ref": "#/definitions/zpwoot_internal_domain_session.ProxyConfig"
@@ -1043,8 +1043,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "zpwoot - WhatsApp Multi-Session API",
-	Description:      "A complete REST API for managing multiple WhatsApp sessions using Go, Fiber, PostgreSQL, and whatsmeow library.\n\n## Authentication\nAll API endpoints (except /health and /swagger/*) require API key authentication.\nProvide your API key in the `Authorization` header.",
+	Title:            "zpwoot - Wameow Multi-Session API",
+	Description:      "A complete REST API for managing multiple Wameow sessions using Go, Fiber, PostgreSQL, and whatsmeow library.\n\n## Authentication\nAll API endpoints (except /health and /swagger/*) require API key authentication.\nProvide your API key in the `Authorization` header.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

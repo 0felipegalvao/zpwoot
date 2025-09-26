@@ -16,7 +16,7 @@ import (
 	"go.mau.fi/whatsmeow"
 )
 
-// ConnectionManager handles WhatsApp client connections
+// ConnectionManager handles Wameow client connections
 type ConnectionManager struct {
 	logger *logger.Logger
 }
@@ -28,7 +28,7 @@ func NewConnectionManager(logger *logger.Logger) *ConnectionManager {
 	}
 }
 
-// SafeConnect safely connects a WhatsApp client
+// SafeConnect safely connects a Wameow client
 func (c *ConnectionManager) SafeConnect(client *whatsmeow.Client, sessionID string) error {
 	if err := ValidateClientAndStore(client, sessionID); err != nil {
 		return newConnectionError(sessionID, "connect", err)
@@ -53,7 +53,7 @@ func (c *ConnectionManager) SafeConnect(client *whatsmeow.Client, sessionID stri
 	return nil
 }
 
-// SafeDisconnect safely disconnects a WhatsApp client
+// SafeDisconnect safely disconnects a Wameow client
 func (c *ConnectionManager) SafeDisconnect(client *whatsmeow.Client, sessionID string) {
 	if client == nil {
 		c.logger.WarnWithFields("Cannot disconnect nil client", map[string]interface{}{

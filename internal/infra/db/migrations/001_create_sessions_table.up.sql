@@ -38,11 +38,11 @@ CREATE TRIGGER update_zp_sessions_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Add comments for documentation
-COMMENT ON TABLE "zpSessions" IS 'WhatsApp sessions management table - optimized with boolean connection status';
+COMMENT ON TABLE "zpSessions" IS 'Wameow sessions management table - optimized with boolean connection status';
 COMMENT ON COLUMN "zpSessions"."id" IS 'Unique session identifier';
 COMMENT ON COLUMN "zpSessions"."name" IS 'Human-readable session name (unique, URL-friendly)';
-COMMENT ON COLUMN "zpSessions"."deviceJid" IS 'WhatsApp device JID identifier';
-COMMENT ON COLUMN "zpSessions"."isConnected" IS 'Boolean indicating if session is currently connected to WhatsApp';
+COMMENT ON COLUMN "zpSessions"."deviceJid" IS 'Wameow device JID identifier';
+COMMENT ON COLUMN "zpSessions"."isConnected" IS 'Boolean indicating if session is currently connected to Wameow';
 COMMENT ON COLUMN "zpSessions"."connectionError" IS 'Last connection error message if any';
 COMMENT ON COLUMN "zpSessions"."qrCode" IS 'Current QR code for session pairing';
 COMMENT ON COLUMN "zpSessions"."qrCodeExpiresAt" IS 'QR code expiration timestamp';

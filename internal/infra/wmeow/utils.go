@@ -35,7 +35,7 @@ func newConnectionError(sessionID, operation string, err error) *ConnectionError
 	}
 }
 
-// ValidateClientAndStore validates WhatsApp client and store
+// ValidateClientAndStore validates Wameow client and store
 func ValidateClientAndStore(client *whatsmeow.Client, sessionID string) error {
 	if client == nil {
 		return fmt.Errorf("client is nil for session %s", sessionID)
@@ -178,7 +178,7 @@ func GetStoreInfo(deviceStore *store.Device) map[string]interface{} {
 	return info
 }
 
-// ConnectionStatus represents the status of a WhatsApp connection
+// ConnectionStatus represents the status of a Wameow connection
 type ConnectionStatus struct {
 	SessionID string                 `json:"session_id"`
 	Connected bool                   `json:"connected"`
@@ -237,7 +237,7 @@ func GetErrorCategory(err error) string {
 		return "none"
 	}
 
-	// Categorize common WhatsApp errors
+	// Categorize common Wameow errors
 	errStr := err.Error()
 
 	if contains(errStr, "connection") {

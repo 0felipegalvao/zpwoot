@@ -34,7 +34,7 @@ make swagger-test
 ### Health Check
 - **GET** `/health` - Verificar status da API
 
-### Sessions (Sessões WhatsApp)
+### Sessions (Sessões Wameow)
 - **POST** `/sessions/create` - Criar nova sessão
 - **GET** `/sessions/list` - Listar sessões
 - **GET** `/sessions/{sessionId}/info` - Informações da sessão
@@ -62,7 +62,7 @@ internal/app/
 ├── common/
 │   └── dto.go          # DTOs comuns (SuccessResponse, ErrorResponse, etc.)
 ├── session/
-│   └── dto.go          # DTOs para sessões WhatsApp
+│   └── dto.go          # DTOs para sessões Wameow
 ├── webhook/
 │   └── dto.go          # DTOs para webhooks
 └── chatwoot/

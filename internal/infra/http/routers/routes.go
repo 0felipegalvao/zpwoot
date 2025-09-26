@@ -5,6 +5,7 @@ import (
 	fiberSwagger "github.com/swaggo/fiber-swagger"
 
 	"zpwoot/internal/app"
+	"zpwoot/internal/app/common"
 	"zpwoot/internal/infra/http/handlers"
 	"zpwoot/internal/infra/wmeow"
 	"zpwoot/platform/db"
@@ -12,7 +13,7 @@ import (
 )
 
 // SetupRoutes configures all application routes
-func SetupRoutes(app *fiber.App, database *db.DB, logger *logger.Logger, whatsappManager *wmeow.Manager, container *app.Container) {
+func SetupRoutes(app *fiber.App, database *db.DB, logger *logger.Logger, WameowManager *wmeow.Manager, container *app.Container) {
 	// Swagger documentation
 	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
@@ -24,57 +25,57 @@ func SetupRoutes(app *fiber.App, database *db.DB, logger *logger.Logger, whatsap
 	// @Success 200 {object} object "API is healthy"
 	// @Router /health [get]
 	app.Get("/health", func(c *fiber.Ctx) error {
-		response := &app.HealthResponse{
+		response := &common.HealthResponse{
 			Status:  "ok",
 			Service: "zpwoot",
 		}
 		return c.JSON(response)
 	})
 
-	// WhatsApp health check
-	// @Summary WhatsApp health check
-	// @Description Check if WhatsApp manager and whatsmeow tables are available
+	// Wameow health check
+	// @Summary Wameow health check
+	// @Description Check if Wameow manager and whatsmeow tables are available
 	// @Tags Health
 	// @Produce json
-	// @Success 200 {object} object "WhatsApp manager is healthy"
-	// @Router /health/whatsapp [get]
-	app.Get("/health/whatsapp", func(c *fiber.Ctx) error {
-		if whatsappManager == nil {
+	// @Success 200 {object} object "Wameow manager is healthy"
+	// @Router /health/Wameow [get]
+	app.Get("/health/Wameow", func(c *fiber.Ctx) error {
+		if WameowManager == nil {
 			return c.Status(503).JSON(fiber.Map{
 				"status":  "error",
-				"service": "whatsapp",
-				"message": "WhatsApp manager not initialized",
+				"service": "Wameow",
+				"message": "Wameow manager not initialized",
 			})
 		}
 
 		// Get health check from manager
-		healthData := whatsappManager.HealthCheck()
-		healthData["service"] = "whatsapp"
-		healthData["message"] = "WhatsApp manager is healthy and whatsmeow tables are available"
+		healthData := WameowManager.HealthCheck()
+		healthData["service"] = "Wameow"
+		healthData["message"] = "Wameow manager is healthy and whatsmeow tables are available"
 
 		return c.JSON(healthData)
 	})
 
 	// Session management routes
-	setupSessionRoutes(app, database, logger, whatsappManager, container)
+	setupSessionRoutes(app, logger, WameowManager, container)
 
 	// Session-specific routes (grouped by session ID)
-	setupSessionSpecificRoutes(app, database, logger, whatsappManager, container)
+	setupSessionSpecificRoutes(app, database, logger, WameowManager, container)
 
 	// Global webhook and chatwoot configuration routes
-	setupGlobalRoutes(app, database, logger, whatsappManager, container)
+	setupGlobalRoutes(app, database, logger, WameowManager, container)
 }
 
 // setupSessionRoutes configures session management routes
-func setupSessionRoutes(app *fiber.App, database *db.DB, appLogger *logger.Logger, whatsappManager *wmeow.Manager, container *app.Container) {
+func setupSessionRoutes(app *fiber.App, appLogger *logger.Logger, WameowManager *wmeow.Manager, container *app.Container) {
 	// Initialize session handler with use case and repository from container
 	sessionHandler := handlers.NewSessionHandler(appLogger, container.GetSessionUseCase(), container.GetSessionRepository())
 
-	// Log WhatsApp manager availability
-	if whatsappManager != nil {
-		appLogger.Info("WhatsApp manager is available for session routes")
+	// Log Wameow manager availability
+	if WameowManager != nil {
+		appLogger.Info("Wameow manager is available for session routes")
 	} else {
-		appLogger.Warn("WhatsApp manager is nil - session functionality will be limited")
+		appLogger.Warn("Wameow manager is nil - session functionality will be limited")
 	}
 
 	sessions := app.Group("/sessions")
@@ -92,7 +93,7 @@ func setupSessionRoutes(app *fiber.App, database *db.DB, appLogger *logger.Logge
 	sessions.Get("/:sessionId/proxy/find", sessionHandler.GetProxy)     // GET /sessions/:sessionId/proxy/find
 
 	// Initialize webhook handler for session-specific routes
-	webhookHandler := handlers.NewWebhookHandler(appLogger)
+	webhookHandler := handlers.NewWebhookHandler(container.WebhookUseCase, appLogger)
 
 	// Session-specific webhook configuration (supports both UUID and session names)
 	sessions.Post("/:sessionId/webhook/set", webhookHandler.SetConfig)  // POST /sessions/:sessionId/webhook/set
@@ -105,13 +106,13 @@ func setupSessionRoutes(app *fiber.App, database *db.DB, appLogger *logger.Logge
 }
 
 // setupSessionSpecificRoutes configures routes grouped by session ID
-func setupSessionSpecificRoutes(app *fiber.App, database *db.DB, appLogger *logger.Logger, whatsappManager *wmeow.Manager, container *app.Container) {
+func setupSessionSpecificRoutes(app *fiber.App, database *db.DB, appLogger *logger.Logger, WameowManager *wmeow.Manager, container *app.Container) {
 	// Placeholder for future session-specific routes if needed
 	// Currently all required routes are in setupSessionRoutes
 }
 
 // setupGlobalRoutes configures global routes (currently none needed)
-func setupGlobalRoutes(app *fiber.App, database *db.DB, appLogger *logger.Logger, whatsappManager *wmeow.Manager, container *app.Container) {
+func setupGlobalRoutes(app *fiber.App, database *db.DB, appLogger *logger.Logger, WameowManager *wmeow.Manager, container *app.Container) {
 	// All configuration routes are now session-specific
 	// This function is kept for future global routes if needed
 }

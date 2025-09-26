@@ -21,7 +21,7 @@ func NewWebhookHandler(webhookUC app.WebhookUseCase, appLogger *logger.Logger) *
 
 // SetConfig creates a new webhook configuration
 // @Summary Create webhook configuration
-// @Description Creates a new webhook configuration for a specific session. Webhooks will receive real-time events from WhatsApp. Requires API key authentication.
+// @Description Creates a new webhook configuration for a specific session. Webhooks will receive real-time events from Wameow. Requires API key authentication.
 // @Tags Webhooks
 // @Accept json
 // @Produce json
@@ -48,11 +48,11 @@ func (h *WebhookHandler) SetConfig(c *fiber.Ctx) error {
 	}
 
 	// Set session ID from URL parameter
-	req.SessionID = sessionID
+	req.SessionID = &sessionID
 
 	// Call use case to create webhook
 	ctx := c.Context()
-	result, err := h.webhookUC.Create(ctx, &req)
+	result, err := h.webhookUC.SetConfig(ctx, &req)
 	if err != nil {
 		h.logger.Error("Failed to create webhook: " + err.Error())
 		return c.Status(500).JSON(app.NewErrorResponse("Failed to create webhook"))
@@ -83,13 +83,13 @@ func (h *WebhookHandler) FindConfig(c *fiber.Ctx) error {
 	})
 	// Get webhook configuration for the session
 	ctx := c.Context()
-	webhooks, err := h.webhookUC.ListBySession(ctx, sessionID)
+	webhook, err := h.webhookUC.FindConfig(ctx, sessionID)
 	if err != nil {
 		h.logger.Error("Failed to get webhook config: " + err.Error())
 		return c.Status(500).JSON(app.NewErrorResponse("Failed to get webhook configuration"))
 	}
 
 	// Return success response
-	response := app.NewSuccessResponse(webhooks, "Webhook configuration retrieved successfully")
+	response := app.NewSuccessResponse(webhook, "Webhook configuration retrieved successfully")
 	return c.JSON(response)
 }

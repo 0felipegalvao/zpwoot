@@ -13,47 +13,47 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
-// WhatsAppLogger wraps our logger to implement whatsmeow's log interface
-type WhatsAppLogger struct {
+// WameowLogger wraps our logger to implement whatsmeow's log interface
+type WameowLogger struct {
 	logger *logger.Logger
 }
 
-// NewWhatsAppLogger creates a new WhatsApp logger wrapper
-func NewWhatsAppLogger(logger *logger.Logger) *WhatsAppLogger {
-	return &WhatsAppLogger{
+// NewWameowLogger creates a new Wameow logger wrapper
+func NewWameowLogger(logger *logger.Logger) *WameowLogger {
+	return &WameowLogger{
 		logger: logger,
 	}
 }
 
 // Errorf implements waLog.Logger
-func (w *WhatsAppLogger) Errorf(msg string, args ...interface{}) {
+func (w *WameowLogger) Errorf(msg string, args ...interface{}) {
 	w.logger.Errorf(msg, args...)
 }
 
 // Warnf implements waLog.Logger
-func (w *WhatsAppLogger) Warnf(msg string, args ...interface{}) {
+func (w *WameowLogger) Warnf(msg string, args ...interface{}) {
 	w.logger.Warnf(msg, args...)
 }
 
 // Infof implements waLog.Logger
-func (w *WhatsAppLogger) Infof(msg string, args ...interface{}) {
+func (w *WameowLogger) Infof(msg string, args ...interface{}) {
 	w.logger.Infof(msg, args...)
 }
 
 // Debugf implements waLog.Logger
-func (w *WhatsAppLogger) Debugf(msg string, args ...interface{}) {
+func (w *WameowLogger) Debugf(msg string, args ...interface{}) {
 	w.logger.Debugf(msg, args...)
 }
 
 // Sub implements waLog.Logger
-func (w *WhatsAppLogger) Sub(module string) waLog.Logger {
+func (w *WameowLogger) Sub(module string) waLog.Logger {
 	// Create a new logger instance for the sub-module
-	return &WhatsAppLogger{
+	return &WameowLogger{
 		logger: w.logger, // Use the same underlying logger
 	}
 }
 
-// Factory creates and configures WhatsApp manager components
+// Factory creates and configures Wameow manager components
 type Factory struct {
 	logger      *logger.Logger
 	sessionRepo ports.SessionRepository
@@ -67,7 +67,7 @@ func NewFactory(logger *logger.Logger, sessionRepo ports.SessionRepository) *Fac
 	}
 }
 
-// CreateManager creates a new WhatsApp manager with all dependencies
+// CreateManager creates a new Wameow manager with all dependencies
 func (f *Factory) CreateManager(db *sql.DB) (*Manager, error) {
 	// Create SQL store container
 	container, err := f.createSQLStoreContainer(db)
@@ -78,14 +78,14 @@ func (f *Factory) CreateManager(db *sql.DB) (*Manager, error) {
 	// Create manager
 	manager := NewManager(container, f.sessionRepo, f.logger)
 
-	f.logger.Info("WhatsApp manager created successfully")
+	f.logger.Info("Wameow manager created successfully")
 	return manager, nil
 }
 
 // createSQLStoreContainer creates and configures the SQL store container
 func (f *Factory) createSQLStoreContainer(db *sql.DB) (*sqlstore.Container, error) {
-	// Create WhatsApp logger
-	waLogger := NewWhatsAppLogger(f.logger)
+	// Create Wameow logger
+	waLogger := NewWameowLogger(f.logger)
 
 	// Create SQL store container
 	container := sqlstore.NewWithDB(db, "postgres", waLogger)
@@ -152,7 +152,7 @@ func (b *ManagerBuilder) Build() (*Manager, error) {
 	return factory.CreateManager(b.db)
 }
 
-// HealthCheck performs a health check on the WhatsApp manager
+// HealthCheck performs a health check on the Wameow manager
 func (m *Manager) HealthCheck() map[string]interface{} {
 	m.clientsMutex.RLock()
 	defer m.clientsMutex.RUnlock()
@@ -186,7 +186,7 @@ func (m *Manager) HealthCheck() map[string]interface{} {
 	}
 }
 
-// GetStats returns statistics about the WhatsApp manager
+// GetStats returns statistics about the Wameow manager
 func (m *Manager) GetStats() map[string]interface{} {
 	return m.HealthCheck()
 }

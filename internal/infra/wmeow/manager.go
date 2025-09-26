@@ -34,7 +34,7 @@ type EventHandlerInfo struct {
 	Handler ports.EventHandler
 }
 
-// Manager implements the WhatsAppManager interface
+// Manager implements the WameowManager interface
 type Manager struct {
 	clients       map[string]*whatsmeow.Client
 	clientsMutex  sync.RWMutex
@@ -53,7 +53,7 @@ type Manager struct {
 	handlersMutex sync.RWMutex
 }
 
-// NewManager creates a new WhatsApp manager
+// NewManager creates a new Wameow manager
 func NewManager(
 	container *sqlstore.Container,
 	sessionRepo ports.SessionRepository,
@@ -71,9 +71,9 @@ func NewManager(
 	}
 }
 
-// CreateSession creates a new WhatsApp session
+// CreateSession creates a new Wameow session
 func (m *Manager) CreateSession(sessionID string, config *session.ProxyConfig) error {
-	m.logger.InfoWithFields("Creating WhatsApp session", map[string]interface{}{
+	m.logger.InfoWithFields("Creating Wameow session", map[string]interface{}{
 		"session_id": sessionID,
 	})
 
@@ -91,13 +91,13 @@ func (m *Manager) CreateSession(sessionID string, config *session.ProxyConfig) e
 		return fmt.Errorf("failed to create device store for session %s", sessionID)
 	}
 
-	// Create WhatsApp logger wrapper
-	waLogger := NewWhatsAppLogger(m.logger)
+	// Create Wameow logger wrapper
+	waLogger := NewWameowLogger(m.logger)
 
-	// Create WhatsApp client
+	// Create Wameow client
 	client := whatsmeow.NewClient(deviceStore, waLogger)
 	if client == nil {
-		return fmt.Errorf("failed to create WhatsApp client for session %s", sessionID)
+		return fmt.Errorf("failed to create Wameow client for session %s", sessionID)
 	}
 
 	// Set up event handlers
@@ -119,22 +119,54 @@ func (m *Manager) CreateSession(sessionID string, config *session.ProxyConfig) e
 	// Initialize session statistics
 	m.initSessionStats(sessionID)
 
-	m.logger.InfoWithFields("WhatsApp session created successfully", map[string]interface{}{
+	m.logger.InfoWithFields("Wameow session created successfully", map[string]interface{}{
 		"session_id": sessionID,
 	})
 
 	return nil
 }
 
-// ConnectSession connects a WhatsApp session
+// ConnectSession connects a Wameow session
 func (m *Manager) ConnectSession(sessionID string) error {
-	m.logger.InfoWithFields("Connecting WhatsApp session", map[string]interface{}{
+	m.logger.InfoWithFields("Connecting Wameow session", map[string]interface{}{
 		"session_id": sessionID,
 	})
 
 	client := m.getClient(sessionID)
 	if client == nil {
-		return fmt.Errorf("session %s not found", sessionID)
+		// Session not found in memory, try to load from database and create client
+		m.logger.InfoWithFields("Session not found in memory, attempting to load from database", map[string]interface{}{
+			"session_id": sessionID,
+		})
+
+		// Get session from database
+		sess, err := m.sessionMgr.GetSession(sessionID)
+		if err != nil {
+			m.logger.ErrorWithFields("Failed to get session from database", map[string]interface{}{
+				"session_id": sessionID,
+				"error":      err.Error(),
+			})
+			return fmt.Errorf("session %s not found", sessionID)
+		}
+
+		// Create Wameow client for the existing session
+		if err := m.CreateSession(sessionID, sess.ProxyConfig); err != nil {
+			m.logger.ErrorWithFields("Failed to create Wameow client for existing session", map[string]interface{}{
+				"session_id": sessionID,
+				"error":      err.Error(),
+			})
+			return fmt.Errorf("failed to initialize Wameow client for session %s: %w", sessionID, err)
+		}
+
+		// Get the newly created client
+		client = m.getClient(sessionID)
+		if client == nil {
+			return fmt.Errorf("failed to create Wameow client for session %s", sessionID)
+		}
+
+		m.logger.InfoWithFields("Successfully loaded session from database and created Wameow client", map[string]interface{}{
+			"session_id": sessionID,
+		})
 	}
 
 	// Update session status to connecting
@@ -155,9 +187,9 @@ func (m *Manager) ConnectSession(sessionID string) error {
 	return nil
 }
 
-// DisconnectSession disconnects a WhatsApp session
+// DisconnectSession disconnects a Wameow session
 func (m *Manager) DisconnectSession(sessionID string) error {
-	m.logger.InfoWithFields("Disconnecting WhatsApp session", map[string]interface{}{
+	m.logger.InfoWithFields("Disconnecting Wameow session", map[string]interface{}{
 		"session_id": sessionID,
 	})
 
@@ -172,9 +204,9 @@ func (m *Manager) DisconnectSession(sessionID string) error {
 	return nil
 }
 
-// LogoutSession logs out a WhatsApp session
+// LogoutSession logs out a Wameow session
 func (m *Manager) LogoutSession(sessionID string) error {
-	m.logger.InfoWithFields("Logging out WhatsApp session", map[string]interface{}{
+	m.logger.InfoWithFields("Logging out Wameow session", map[string]interface{}{
 		"session_id": sessionID,
 	})
 
@@ -183,7 +215,7 @@ func (m *Manager) LogoutSession(sessionID string) error {
 		return fmt.Errorf("session %s not found", sessionID)
 	}
 
-	// Logout from WhatsApp
+	// Logout from Wameow
 	ctx := context.Background()
 	err := client.Logout(ctx)
 	if err != nil {
@@ -265,7 +297,7 @@ func (m *Manager) GetDeviceInfo(sessionID string) (*session.DeviceInfo, error) {
 		return nil, fmt.Errorf("session %s is not logged in", sessionID)
 	}
 
-	// This would get actual device info from WhatsApp
+	// This would get actual device info from Wameow
 	// For now, return placeholder data
 	return &session.DeviceInfo{
 		Platform:    "web",
@@ -373,7 +405,7 @@ func (m *Manager) GetSessionStats(sessionID string) (*ports.SessionStats, error)
 	}, nil
 }
 
-// SendMessage sends a message through WhatsApp
+// SendMessage sends a message through Wameow
 func (m *Manager) SendMessage(sessionID, to, message string) error {
 	client := m.getClient(sessionID)
 	if client == nil {
@@ -523,7 +555,7 @@ func (m *Manager) SendMediaMessage(sessionID, to string, media []byte, mediaType
 	return nil
 }
 
-// RegisterEventHandler registers an event handler for WhatsApp events
+// RegisterEventHandler registers an event handler for Wameow events
 func (m *Manager) RegisterEventHandler(sessionID string, handler ports.EventHandler) error {
 	m.handlersMutex.Lock()
 	defer m.handlersMutex.Unlock()
@@ -550,8 +582,8 @@ func (m *Manager) RegisterEventHandler(sessionID string, handler ports.EventHand
 			switch e := evt.(type) {
 			case *events.Message:
 				m.incrementMessagesReceived(sessionID)
-				// Convert to WhatsAppMessage and call handler
-				msg := &ports.WhatsAppMessage{
+				// Convert to WameowMessage and call handler
+				msg := &ports.WameowMessage{
 					ID:   e.Info.ID,
 					From: e.Info.Sender.String(),
 					To:   e.Info.Chat.String(),
@@ -676,7 +708,7 @@ func (m *Manager) applyProxyConfig(client *whatsmeow.Client, config *session.Pro
 		Timeout:   30 * time.Second,
 	}
 
-	// Apply the HTTP client to the WhatsApp client
+	// Apply the HTTP client to the Wameow client
 	// Note: This is a simplified implementation. In a real scenario,
 	// you might need to modify the whatsmeow client's HTTP client
 	// or use a different approach depending on the library's API
@@ -692,7 +724,7 @@ func (m *Manager) applyProxyConfig(client *whatsmeow.Client, config *session.Pro
 	return nil
 }
 
-// setupEventHandlers sets up event handlers for a WhatsApp client
+// setupEventHandlers sets up event handlers for a Wameow client
 func (m *Manager) setupEventHandlers(client *whatsmeow.Client, sessionID string) {
 	m.logger.InfoWithFields("Setting up event handlers", map[string]interface{}{
 		"session_id": sessionID,
@@ -702,7 +734,7 @@ func (m *Manager) setupEventHandlers(client *whatsmeow.Client, sessionID string)
 	m.SetupEventHandlers(client, sessionID)
 }
 
-// SetupEventHandlers sets up all event handlers for a WhatsApp client
+// SetupEventHandlers sets up all event handlers for a Wameow client
 func (m *Manager) SetupEventHandlers(client *whatsmeow.Client, sessionID string) {
 	eventHandler := NewEventHandler(m, m.sessionMgr, m.qrGenerator, m.logger)
 

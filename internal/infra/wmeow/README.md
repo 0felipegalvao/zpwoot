@@ -1,17 +1,17 @@
-# WMeow - WhatsApp Integration Module
+# WMeow - Wameow Integration Module
 
 ## 📋 Visão Geral
 
-O módulo `wmeow` implementa a integração completa com WhatsApp Web usando a biblioteca `whatsmeow`. Ele fornece uma abstração robusta para gerenciar sessões WhatsApp, conexões, eventos e QR codes.
+O módulo `wmeow` implementa a integração completa com Wameow Web usando a biblioteca `whatsmeow`. Ele fornece uma abstração robusta para gerenciar sessões Wameow, conexões, eventos e QR codes.
 
 ## 🏗️ Arquitetura
 
 ```
 internal/infra/wmeow/
 ├── README.md           # Este arquivo
-├── manager.go          # Manager principal - implementa WhatsAppManager
+├── manager.go          # Manager principal - implementa WameowManager
 ├── connection.go       # Gerenciamento de conexões
-├── events.go           # Manipulação de eventos WhatsApp
+├── events.go           # Manipulação de eventos Wameow
 ├── utils.go            # Utilitários e validações
 └── config.go           # Configuração e factory
 ```
@@ -20,7 +20,7 @@ internal/infra/wmeow/
 
 ### **Manager**
 - **Arquivo**: `manager.go`
-- **Responsabilidade**: Implementa a interface `WhatsAppManager`
+- **Responsabilidade**: Implementa a interface `WameowManager`
 - **Funcionalidades**:
   - Criação e gerenciamento de sessões
   - Conexão/desconexão de clientes
@@ -30,7 +30,7 @@ internal/infra/wmeow/
 
 ### **ConnectionManager**
 - **Arquivo**: `connection.go`
-- **Responsabilidade**: Gerencia conexões WhatsApp
+- **Responsabilidade**: Gerencia conexões Wameow
 - **Funcionalidades**:
   - Conexão segura com retry
   - Desconexão segura
@@ -55,7 +55,7 @@ internal/infra/wmeow/
 
 ### **EventHandler**
 - **Arquivo**: `events.go`
-- **Responsabilidade**: Manipula eventos WhatsApp
+- **Responsabilidade**: Manipula eventos Wameow
 - **Eventos Suportados**:
   - Conexão/desconexão
   - QR code
@@ -83,7 +83,7 @@ manager, err := wmeow.NewManagerBuilder().
     Build()
 
 if err != nil {
-    log.Fatal("Failed to create WhatsApp manager:", err)
+    log.Fatal("Failed to create Wameow manager:", err)
 }
 ```
 
@@ -155,7 +155,7 @@ config.RetryAttempts = 5
 config.SessionTimeout = 60 * time.Minute
 ```
 
-## 📊 Eventos WhatsApp
+## 📊 Eventos Wameow
 
 ### **Eventos Suportados**
 
@@ -186,7 +186,7 @@ config.SessionTimeout = 60 * time.Minute
 err := wmeow.ValidateClientAndStore(client, sessionID)
 
 // Validar JID
-isValid := wmeow.IsValidJID("5511999999999@s.whatsapp.net")
+isValid := wmeow.IsValidJID("5511999999999@s.Wameow.net")
 
 // Validar session ID
 err := wmeow.ValidateSessionID("session-123")
@@ -290,7 +290,7 @@ go test -tags=integration ./internal/infra/wmeow/...
 
 ### **Principais**
 
-- `go.mau.fi/whatsmeow` - Cliente WhatsApp Web
+- `go.mau.fi/whatsmeow` - Cliente Wameow Web
 - `github.com/skip2/go-qrcode` - Geração de QR codes
 - `github.com/mdp/qrterminal/v3` - QR codes no terminal
 

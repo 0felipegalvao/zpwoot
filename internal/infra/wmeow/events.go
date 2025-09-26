@@ -9,7 +9,7 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-// EventHandler handles WhatsApp events
+// EventHandler handles Wameow events
 type EventHandler struct {
 	manager    *Manager
 	sessionMgr *SessionManager
@@ -29,7 +29,7 @@ func NewEventHandler(manager *Manager, sessionMgr *SessionManager, qrGen *QRCode
 
 // SetupEventHandlers is now defined in manager.go to avoid circular imports
 
-// HandleEvent handles all WhatsApp events
+// HandleEvent handles all Wameow events
 func (h *EventHandler) HandleEvent(evt interface{}, sessionID string) {
 	switch v := evt.(type) {
 	case *events.Connected:
@@ -64,7 +64,7 @@ func (h *EventHandler) HandleEvent(evt interface{}, sessionID string) {
 
 // handleConnected handles connection events
 func (h *EventHandler) handleConnected(evt *events.Connected, sessionID string) {
-	h.logger.InfoWithFields("WhatsApp connected", map[string]interface{}{
+	h.logger.InfoWithFields("Wameow connected", map[string]interface{}{
 		"session_id":   sessionID,
 		"event_type":   "Connected",
 		"connected_at": time.Now().Unix(),
@@ -78,7 +78,7 @@ func (h *EventHandler) handleConnected(evt *events.Connected, sessionID string) 
 
 // handleDisconnected handles disconnection events
 func (h *EventHandler) handleDisconnected(evt *events.Disconnected, sessionID string) {
-	h.logger.InfoWithFields("WhatsApp disconnected", map[string]interface{}{
+	h.logger.InfoWithFields("Wameow disconnected", map[string]interface{}{
 		"session_id":      sessionID,
 		"event_type":      "Disconnected",
 		"disconnected_at": time.Now().Unix(),
@@ -92,7 +92,7 @@ func (h *EventHandler) handleDisconnected(evt *events.Disconnected, sessionID st
 
 // handleLoggedOut handles logout events
 func (h *EventHandler) handleLoggedOut(evt *events.LoggedOut, sessionID string) {
-	h.logger.InfoWithFields("WhatsApp logged out", map[string]interface{}{
+	h.logger.InfoWithFields("Wameow logged out", map[string]interface{}{
 		"session_id": sessionID,
 		"reason":     evt.Reason,
 	})

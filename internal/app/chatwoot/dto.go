@@ -83,7 +83,7 @@ type SyncConversationResponse struct {
 // SendMessageToChatwootRequest represents the request to send a message to Chatwoot
 type SendMessageToChatwootRequest struct {
 	ConversationID int                    `json:"conversation_id" validate:"required" example:"456"`
-	Content        string                 `json:"content" validate:"required" example:"Hello from WhatsApp!"`
+	Content        string                 `json:"content" validate:"required" example:"Hello from Wameow!"`
 	MessageType    string                 `json:"message_type" validate:"required,oneof=incoming outgoing" example:"incoming"`
 	ContentType    string                 `json:"content_type,omitempty" example:"text"`
 	Attachments    []ChatwootAttachment   `json:"attachments,omitempty"`
@@ -101,7 +101,7 @@ type ChatwootAttachment struct {
 type SendMessageToChatwootResponse struct {
 	ID             int                    `json:"id" example:"789"`
 	ConversationID int                    `json:"conversation_id" example:"456"`
-	Content        string                 `json:"content" example:"Hello from WhatsApp!"`
+	Content        string                 `json:"content" example:"Hello from Wameow!"`
 	MessageType    string                 `json:"message_type" example:"incoming"`
 	ContentType    string                 `json:"content_type" example:"text"`
 	Metadata       map[string]interface{} `json:"metadata,omitempty"`
@@ -141,7 +141,7 @@ type ChatwootMessage struct {
 type TestChatwootConnectionResponse struct {
 	Success     bool   `json:"success" example:"true"`
 	AccountName string `json:"account_name,omitempty" example:"My Company"`
-	InboxName   string `json:"inbox_name,omitempty" example:"WhatsApp Inbox"`
+	InboxName   string `json:"inbox_name,omitempty" example:"Wameow Inbox"`
 	Error       string `json:"error,omitempty"`
 } // @name TestChatwootConnectionResponse
 

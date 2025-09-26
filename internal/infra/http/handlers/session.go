@@ -35,26 +35,6 @@ func NewSessionHandlerWithoutUseCase(appLogger *logger.Logger, sessionRepo helpe
 	}
 }
 
-// resolveSessionIdentifier resolves session ID or name from URL parameter
-func (h *SessionHandler) resolveSessionIdentifier(c *fiber.Ctx) (identifierType string, value string, error *fiber.Error) {
-	// Try both parameter names for backward compatibility
-	idOrName := c.Params("idOrName")
-	if idOrName == "" {
-		idOrName = c.Params("id")
-	}
-
-	identifierType, value, isValid := h.sessionResolver.ResolveSessionIdentifier(idOrName)
-	if !isValid {
-		h.logger.WarnWithFields("Invalid session identifier in URL", map[string]interface{}{
-			"identifier": idOrName,
-			"path":       c.Path(),
-		})
-		return "", "", fiber.NewError(400, "Invalid session identifier. Must be a valid UUID or session name.")
-	}
-
-	return identifierType, value, nil
-}
-
 // resolveSession resolves a session by identifier (UUID or name) and returns the session
 func (h *SessionHandler) resolveSession(c *fiber.Ctx) (*session.Session, *fiber.Error) {
 	// Get the identifier from the path parameter (accepts both UUID and name)
@@ -80,9 +60,9 @@ func (h *SessionHandler) resolveSession(c *fiber.Ctx) (*session.Session, *fiber.
 	return sess, nil
 }
 
-// CreateSession creates a new WhatsApp session
-// @Summary Create a new WhatsApp session
-// @Description Creates a new WhatsApp session with the provided configuration. Requires API key authentication.
+// CreateSession creates a new Wameow session
+// @Summary Create a new Wameow session
+// @Description Creates a new Wameow session with the provided configuration. Requires API key authentication.
 // @Tags Sessions
 // @Accept json
 // @Produce json
@@ -157,14 +137,14 @@ func (h *SessionHandler) CreateSession(c *fiber.Ctx) error {
 }
 
 // ListSessions lists all sessions with optional filters
-// @Summary List all WhatsApp sessions
-// @Description Retrieves a list of all WhatsApp sessions with optional filtering. Requires API key authentication.
+// @Summary List all Wameow sessions
+// @Description Retrieves a list of all Wameow sessions with optional filtering. Requires API key authentication.
 // @Tags Sessions
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
 // @Param status query string false "Filter by session status" Enums(created,connecting,connected,disconnected,error,logged_out) example("connected")
-// @Param deviceJid query string false "Filter by device JID" example("5511999999999@s.whatsapp.net")
+// @Param deviceJid query string false "Filter by device JID" example("5511999999999@s.Wameow.net")
 // @Param limit query int false "Limit number of results" minimum(1) maximum(100) default(20) example(20)
 // @Param offset query int false "Offset for pagination" minimum(0) default(0) example(0)
 // @Success 200 {object} zpwoot_internal_app_session.ListSessionsResponse "Sessions retrieved successfully"
@@ -184,10 +164,11 @@ func (h *SessionHandler) ListSessions(c *fiber.Ctx) error {
 
 	// Parse isConnected filter
 	if isConnectedStr := c.Query("isConnected"); isConnectedStr != "" {
-		if isConnectedStr == "true" {
+		switch isConnectedStr {
+		case "true":
 			isConnected := true
 			req.IsConnected = &isConnected
-		} else if isConnectedStr == "false" {
+		case "false":
 			isConnected := false
 			req.IsConnected = &isConnected
 		}
@@ -223,7 +204,7 @@ func (h *SessionHandler) ListSessions(c *fiber.Ctx) error {
 
 // GetSessionInfo gets details of a specific session
 // @Summary Get session information
-// @Description Retrieves detailed information about a specific WhatsApp session including connection status and device info. You can use either the session UUID or session name. Requires API key authentication.
+// @Description Retrieves detailed information about a specific Wameow session including connection status and device info. You can use either the session UUID or session name. Requires API key authentication.
 // @Tags Sessions
 // @Accept json
 // @Produce json
@@ -268,8 +249,8 @@ func (h *SessionHandler) GetSessionInfo(c *fiber.Ctx) error {
 }
 
 // DeleteSession removes a session permanently
-// @Summary Delete a WhatsApp session
-// @Description Permanently removes a WhatsApp session and all associated data. This action cannot be undone. You can use either the session UUID or session name. Requires API key authentication.
+// @Summary Delete a Wameow session
+// @Description Permanently removes a Wameow session and all associated data. This action cannot be undone. You can use either the session UUID or session name. Requires API key authentication.
 // @Tags Sessions
 // @Accept json
 // @Produce json
@@ -313,9 +294,9 @@ func (h *SessionHandler) DeleteSession(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
-// ConnectSession establishes connection with WhatsApp
-// @Summary Connect WhatsApp session
-// @Description Establishes connection with WhatsApp for the specified session. Will generate QR code if not paired. You can use either the session UUID or session name. Requires API key authentication.
+// ConnectSession establishes connection with Wameow
+// @Summary Connect Wameow session
+// @Description Establishes connection with Wameow for the specified session. Will generate QR code if not paired. You can use either the session UUID or session name. Requires API key authentication.
 // @Tags Sessions
 // @Accept json
 // @Produce json
@@ -359,9 +340,9 @@ func (h *SessionHandler) ConnectSession(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
-// LogoutSession logs out from WhatsApp
-// @Summary Logout WhatsApp session
-// @Description Logs out from WhatsApp for the specified session. You can use either the session UUID or session name. Requires API key authentication.
+// LogoutSession logs out from Wameow
+// @Summary Logout Wameow session
+// @Description Logs out from Wameow for the specified session. You can use either the session UUID or session name. Requires API key authentication.
 // @Tags Sessions
 // @Accept json
 // @Produce json
@@ -407,7 +388,7 @@ func (h *SessionHandler) LogoutSession(c *fiber.Ctx) error {
 
 // GetQRCode retrieves the current QR code
 // @Summary Get QR code for session pairing
-// @Description Retrieves the current QR code for pairing a WhatsApp session. The QR code expires after 60 seconds. You can use either the session UUID or session name. Requires API key authentication.
+// @Description Retrieves the current QR code for pairing a Wameow session. The QR code expires after 60 seconds. You can use either the session UUID or session name. Requires API key authentication.
 // @Tags Sessions
 // @Accept json
 // @Produce json

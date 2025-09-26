@@ -35,7 +35,7 @@ func NewChatwootHandler(chatwootUC app.ChatwootUseCase, logger *logger.Logger) *
 
 // CreateConfig creates Chatwoot configuration
 // @Summary Create Chatwoot configuration
-// @Description Creates a new Chatwoot integration configuration. This enables synchronization between WhatsApp and Chatwoot. Requires API key authentication.
+// @Description Creates a new Chatwoot integration configuration. This enables synchronization between Wameow and Chatwoot. Requires API key authentication.
 // @Tags Chatwoot
 // @Accept json
 // @Produce json

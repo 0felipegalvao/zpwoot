@@ -55,12 +55,12 @@ type ChatwootRepository interface {
 	GetStatsForPeriod(ctx context.Context, from, to int64) (*ChatwootStats, error)
 }
 
-// SyncRecord represents a synchronization record between WhatsApp and Chatwoot
+// SyncRecord represents a synchronization record between Wameow and Chatwoot
 type SyncRecord struct {
 	ID           string `json:"id" db:"id"`
 	SessionID    string `json:"session_id" db:"session_id"`
 	RecordType   string `json:"record_type" db:"record_type"` // contact, conversation, message
-	ExternalID   string `json:"external_id" db:"external_id"` // WhatsApp ID
+	ExternalID   string `json:"external_id" db:"external_id"` // Wameow ID
 	ChatwootID   int    `json:"chatwoot_id" db:"chatwoot_id"` // Chatwoot ID
 	PhoneNumber  string `json:"phone_number,omitempty" db:"phone_number"`
 	LastSyncAt   int64  `json:"last_sync_at" db:"last_sync_at"`
