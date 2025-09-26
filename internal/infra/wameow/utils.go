@@ -52,11 +52,15 @@ func ValidateClientAndStore(client *whatsmeow.Client, sessionID string) error {
 	return nil
 }
 
+
+
 // GetDeviceStoreForSession gets or creates a device store for a session
 func GetDeviceStoreForSession(sessionID, expectedDeviceJID string, container *sqlstore.Container) *store.Device {
 	var deviceStore *store.Device
 
 	if expectedDeviceJID != "" {
+		fmt.Printf("Loading existing device store for session %s with JID %s\n", sessionID, expectedDeviceJID)
+
 		jid, err := waTypes.ParseJID(expectedDeviceJID)
 		if err != nil {
 			fmt.Printf("Failed to parse expected JID %s: %v, creating new device\n", expectedDeviceJID, err)
@@ -65,14 +69,18 @@ func GetDeviceStoreForSession(sessionID, expectedDeviceJID string, container *sq
 			deviceStore, err = container.GetDevice(ctx, jid)
 			if err != nil {
 				fmt.Printf("Failed to get device store for expected JID %s: %v, creating new device\n", expectedDeviceJID, err)
+			} else if deviceStore != nil {
+				fmt.Printf("Successfully loaded existing device store for session %s with JID %s\n", sessionID, expectedDeviceJID)
+				return deviceStore
 			}
 		}
 
 		if deviceStore == nil {
-			fmt.Printf("Device store not found for expected JID %s, creating new device\n", expectedDeviceJID)
+			fmt.Printf("Device store not found for expected JID %s, creating new device for session %s\n", expectedDeviceJID, sessionID)
 			deviceStore = container.NewDevice()
 		}
 	} else {
+		fmt.Printf("Creating new device store for session %s (no existing JID)\n", sessionID)
 		deviceStore = container.NewDevice()
 	}
 
@@ -81,6 +89,7 @@ func GetDeviceStoreForSession(sessionID, expectedDeviceJID string, container *sq
 		return nil
 	}
 
+	fmt.Printf("Device store ready for session %s\n", sessionID)
 	return deviceStore
 }
 

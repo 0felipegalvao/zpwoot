@@ -137,13 +137,15 @@ func (s *Service) ConnectSession(ctx context.Context, id string) error {
 		return errors.ErrNotFound
 	}
 
-	if !session.CanConnect() {
-		return errors.NewWithDetails(400, "Cannot connect session", "Session is already connected")
+	// Always allow connection attempts to enable QR code restart
+	// Mark as connecting (will be updated to connected after successful QR scan)
+	session.SetConnected(false) // Ensure it starts as disconnected during QR process
+	session.ConnectionError = nil // Clear any previous errors
+	if err := s.repo.Update(ctx, session); err != nil {
+		return errors.Wrap(err, "failed to update session status to connecting")
 	}
 
-	// Mark as connecting (will be updated to connected after successful connection)
-
-	// Connect to Wameow
+	// Connect to Wameow (this will start QR code process if needed)
 	if err := s.Wameow.ConnectSession(id); err != nil {
 		session.SetConnectionError(err.Error())
 		if updateErr := s.repo.Update(ctx, session); updateErr != nil {
@@ -153,11 +155,7 @@ func (s *Service) ConnectSession(ctx context.Context, id string) error {
 		return errors.Wrap(err, "failed to connect to Wameow")
 	}
 
-	// Update status to connected
-	session.SetConnected(true)
-	if err := s.repo.Update(ctx, session); err != nil {
-		return errors.Wrap(err, "failed to update session status")
-	}
+	// Don't mark as connected here - let the QR code success event handle that
 
 	return nil
 }

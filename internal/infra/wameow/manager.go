@@ -36,7 +36,7 @@ type EventHandlerInfo struct {
 
 // Manager implements the WameowManager interface
 type Manager struct {
-	clients       map[string]*whatsmeow.Client
+	clients       map[string]*WameowClient
 	clientsMutex  sync.RWMutex
 	container     *sqlstore.Container
 	connectionMgr *ConnectionManager
@@ -60,7 +60,7 @@ func NewManager(
 	logger *logger.Logger,
 ) *Manager {
 	return &Manager{
-		clients:       make(map[string]*whatsmeow.Client),
+		clients:       make(map[string]*WameowClient),
 		container:     container,
 		connectionMgr: NewConnectionManager(logger),
 		qrGenerator:   NewQRCodeGenerator(logger),
@@ -85,27 +85,18 @@ func (m *Manager) CreateSession(sessionID string, config *session.ProxyConfig) e
 		return fmt.Errorf("session %s already exists", sessionID)
 	}
 
-	// Get device store for session
-	deviceStore := GetDeviceStoreForSession(sessionID, "", m.container)
-	if deviceStore == nil {
-		return fmt.Errorf("failed to create device store for session %s", sessionID)
-	}
-
-	// Create Wameow logger wrapper
-	waLogger := NewWameowLogger(m.logger)
-
-	// Create Wameow client
-	client := whatsmeow.NewClient(deviceStore, waLogger)
-	if client == nil {
-		return fmt.Errorf("failed to create Wameow client for session %s", sessionID)
+	// Create WameowClient (for new sessions, deviceJid is empty)
+	client, err := NewWameowClient(sessionID, m.container, m.sessionMgr.sessionRepo, m.logger, "")
+	if err != nil {
+		return fmt.Errorf("failed to create WameowClient for session %s: %w", sessionID, err)
 	}
 
 	// Set up event handlers
-	m.setupEventHandlers(client, sessionID)
+	m.setupEventHandlers(client.GetClient(), sessionID)
 
 	// Apply proxy configuration if provided
 	if config != nil {
-		if err := m.applyProxyConfig(client, config); err != nil {
+		if err := m.applyProxyConfig(client.GetClient(), config); err != nil {
 			m.logger.WarnWithFields("Failed to apply proxy config", map[string]interface{}{
 				"session_id": sessionID,
 				"error":      err.Error(),
@@ -121,6 +112,54 @@ func (m *Manager) CreateSession(sessionID string, config *session.ProxyConfig) e
 
 	m.logger.InfoWithFields("Wameow session created successfully", map[string]interface{}{
 		"session_id": sessionID,
+	})
+
+	return nil
+}
+
+// CreateSessionWithDeviceJid creates a new Wameow session with existing device credentials
+func (m *Manager) CreateSessionWithDeviceJid(sessionID string, config *session.ProxyConfig, deviceJid string) error {
+	m.logger.InfoWithFields("Creating Wameow session with existing device", map[string]interface{}{
+		"session_id": sessionID,
+		"device_jid": deviceJid,
+	})
+
+	m.clientsMutex.Lock()
+	defer m.clientsMutex.Unlock()
+
+	// Check if session already exists
+	if _, exists := m.clients[sessionID]; exists {
+		return fmt.Errorf("session %s already exists", sessionID)
+	}
+
+	// Create WameowClient with existing deviceJid
+	client, err := NewWameowClient(sessionID, m.container, m.sessionMgr.sessionRepo, m.logger, deviceJid)
+	if err != nil {
+		return fmt.Errorf("failed to create WameowClient for session %s: %w", sessionID, err)
+	}
+
+	// Set up event handlers
+	m.setupEventHandlers(client.GetClient(), sessionID)
+
+	// Apply proxy configuration if provided
+	if config != nil {
+		if err := m.applyProxyConfig(client.GetClient(), config); err != nil {
+			m.logger.WarnWithFields("Failed to apply proxy config", map[string]interface{}{
+				"session_id": sessionID,
+				"error":      err.Error(),
+			})
+		}
+	}
+
+	// Store client
+	m.clients[sessionID] = client
+
+	// Initialize session statistics
+	m.initSessionStats(sessionID)
+
+	m.logger.InfoWithFields("Wameow session created successfully with existing device", map[string]interface{}{
+		"session_id": sessionID,
+		"device_jid": deviceJid,
 	})
 
 	return nil
@@ -150,12 +189,24 @@ func (m *Manager) ConnectSession(sessionID string) error {
 		}
 
 		// Create Wameow client for the existing session
-		if err := m.CreateSession(sessionID, sess.ProxyConfig); err != nil {
-			m.logger.ErrorWithFields("Failed to create Wameow client for existing session", map[string]interface{}{
-				"session_id": sessionID,
-				"error":      err.Error(),
-			})
-			return fmt.Errorf("failed to initialize Wameow client for session %s: %w", sessionID, err)
+		// Use CreateSessionWithDeviceJid if session has existing credentials
+		if sess.DeviceJid != "" {
+			if err := m.CreateSessionWithDeviceJid(sessionID, sess.ProxyConfig, sess.DeviceJid); err != nil {
+				m.logger.ErrorWithFields("Failed to create Wameow client with existing device", map[string]interface{}{
+					"session_id": sessionID,
+					"device_jid": sess.DeviceJid,
+					"error":      err.Error(),
+				})
+				return fmt.Errorf("failed to initialize Wameow client for session %s: %w", sessionID, err)
+			}
+		} else {
+			if err := m.CreateSession(sessionID, sess.ProxyConfig); err != nil {
+				m.logger.ErrorWithFields("Failed to create Wameow client for new session", map[string]interface{}{
+					"session_id": sessionID,
+					"error":      err.Error(),
+				})
+				return fmt.Errorf("failed to initialize Wameow client for session %s: %w", sessionID, err)
+			}
 		}
 
 		// Get the newly created client
@@ -172,13 +223,8 @@ func (m *Manager) ConnectSession(sessionID string) error {
 	// Update session status to connecting
 	// Connection status will be updated by event handlers
 
-	// Connect with retry
-	config := &RetryConfig{
-		MaxRetries:    3,
-		RetryInterval: 10 * time.Second,
-	}
-
-	err := m.connectionMgr.ConnectWithRetry(client, sessionID, config)
+	// Start connection process (will handle QR code if needed)
+	err := client.Connect()
 	if err != nil {
 		m.sessionMgr.UpdateConnectionStatus(sessionID, false)
 		return fmt.Errorf("failed to connect session %s: %w", sessionID, err)
@@ -198,7 +244,11 @@ func (m *Manager) DisconnectSession(sessionID string) error {
 		return fmt.Errorf("session %s not found", sessionID)
 	}
 
-	m.connectionMgr.SafeDisconnect(client, sessionID)
+	err := client.Disconnect()
+	if err != nil {
+		return fmt.Errorf("failed to disconnect session %s: %w", sessionID, err)
+	}
+
 	m.sessionMgr.UpdateConnectionStatus(sessionID, false)
 
 	return nil
@@ -216,8 +266,7 @@ func (m *Manager) LogoutSession(sessionID string) error {
 	}
 
 	// Logout from Wameow
-	ctx := context.Background()
-	err := client.Logout(ctx)
+	err := client.Logout()
 	if err != nil {
 		m.logger.WarnWithFields("Error during logout", map[string]interface{}{
 			"session_id": sessionID,
@@ -251,10 +300,13 @@ func (m *Manager) GetQRCode(sessionID string) (*session.QRCodeResponse, error) {
 		return nil, fmt.Errorf("session %s is already logged in", sessionID)
 	}
 
-	// This would typically be handled by the QR event handler
-	// For now, return a placeholder response
+	qrCode, err := client.GetQRCode()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get QR code for session %s: %w", sessionID, err)
+	}
+
 	return &session.QRCodeResponse{
-		QRCode:    "placeholder_qr_code",
+		QRCode:    qrCode,
 		ExpiresAt: time.Now().Add(2 * time.Minute),
 		Timeout:   120,
 	}, nil
@@ -320,7 +372,7 @@ func (m *Manager) SetProxy(sessionID string, config *session.ProxyConfig) error 
 		return fmt.Errorf("session %s not found", sessionID)
 	}
 
-	return m.applyProxyConfig(client, config)
+	return m.applyProxyConfig(client.GetClient(), config)
 }
 
 // initSessionStats initializes statistics for a session
@@ -427,7 +479,7 @@ func (m *Manager) SendMessage(sessionID, to, message string) error {
 		Conversation: &message,
 	}
 
-	_, err = client.SendMessage(context.Background(), recipientJID, msg)
+	_, err = client.GetClient().SendMessage(context.Background(), recipientJID, msg)
 	if err != nil {
 		m.logger.ErrorWithFields("Failed to send message", map[string]interface{}{
 			"session_id": sessionID,
@@ -466,7 +518,7 @@ func (m *Manager) SendMediaMessage(sessionID, to string, media []byte, mediaType
 	}
 
 	// Upload the media
-	uploaded, err := client.Upload(context.Background(), media, whatsmeow.MediaType(mediaType))
+	uploaded, err := client.GetClient().Upload(context.Background(), media, whatsmeow.MediaType(mediaType))
 	if err != nil {
 		m.logger.ErrorWithFields("Failed to upload media", map[string]interface{}{
 			"session_id": sessionID,
@@ -532,7 +584,7 @@ func (m *Manager) SendMediaMessage(sessionID, to string, media []byte, mediaType
 	}
 
 	// Send the message
-	_, err = client.SendMessage(context.Background(), recipientJID, msg)
+	_, err = client.GetClient().SendMessage(context.Background(), recipientJID, msg)
 	if err != nil {
 		m.logger.ErrorWithFields("Failed to send media message", map[string]interface{}{
 			"session_id": sessionID,
@@ -577,7 +629,7 @@ func (m *Manager) RegisterEventHandler(sessionID string, handler ports.EventHand
 	// Get the client and register the actual event handler
 	client := m.getClient(sessionID)
 	if client != nil {
-		client.AddEventHandler(func(evt interface{}) {
+		client.GetClient().AddEventHandler(func(evt interface{}) {
 			// Handle different event types and call appropriate handler methods
 			switch e := evt.(type) {
 			case *events.Message:
@@ -644,7 +696,7 @@ func (m *Manager) UnregisterEventHandler(sessionID string, handlerID string) err
 }
 
 // getClient safely gets a client by session ID
-func (m *Manager) getClient(sessionID string) *whatsmeow.Client {
+func (m *Manager) getClient(sessionID string) *WameowClient {
 	m.clientsMutex.RLock()
 	defer m.clientsMutex.RUnlock()
 	return m.clients[sessionID]

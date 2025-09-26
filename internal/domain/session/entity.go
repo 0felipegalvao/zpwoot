@@ -132,8 +132,9 @@ func (s *Session) IsActive() bool {
 }
 
 // CanConnect returns true if the session can be connected
+// Always allow connection attempts to enable QR code restart
 func (s *Session) CanConnect() bool {
-	return !s.IsConnected
+	return true
 }
 
 // CanLogout returns true if the session can be logged out

@@ -152,7 +152,7 @@ func (q *QRCodeGenerator) DisplayQRCodeInTerminal(qrCode, sessionID string) {
 		return
 	}
 
-	q.logger.InfoWithFields("Displaying QR Code in terminal", map[string]interface{}{
+	q.logger.InfoWithFields("Displaying compact QR code in terminal", map[string]interface{}{
 		"session_id": sessionID,
 	})
 
@@ -164,19 +164,13 @@ func (q *QRCodeGenerator) DisplayQRCodeInTerminal(qrCode, sessionID string) {
 				"panic":      r,
 			})
 		}
+		q.logger.InfoWithFields("QR code display completed", map[string]interface{}{
+			"session_id": sessionID,
+		})
 	}()
 
-	// Generate compact QR code in terminal (half size like wuzapi)
-	q.logger.InfoWithFields("Generating compact QR code in terminal", map[string]interface{}{
-		"session_id": sessionID,
-	})
-
-	// Use GenerateHalfBlock for half-size QR code
+	// Use GenerateHalfBlock for compact half-size QR code
 	qrterminal.GenerateHalfBlock(qrCode, qrterminal.L, os.Stdout)
-
-	q.logger.InfoWithFields("QR code generation completed", map[string]interface{}{
-		"session_id": sessionID,
-	})
 }
 
 // SessionManager handles session state management

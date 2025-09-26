@@ -54,8 +54,46 @@ func (h *EventHandler) HandleEvent(evt interface{}, sessionID string) {
 		h.handleChatPresence(v, sessionID)
 	case *events.HistorySync:
 		h.handleHistorySync(v, sessionID)
+	// Add more common event types to reduce noise
+	case *events.AppState:
+		h.handleAppState(v, sessionID)
+	case *events.AppStateSyncComplete:
+		h.handleAppStateSyncComplete(v, sessionID)
+	case *events.KeepAliveTimeout:
+		h.handleKeepAliveTimeout(v, sessionID)
+	case *events.KeepAliveRestored:
+		h.handleKeepAliveRestored(v, sessionID)
+	case *events.Contact:
+		h.handleContact(v, sessionID)
+	case *events.GroupInfo:
+		h.handleGroupInfo(v, sessionID)
+	case *events.Picture:
+		h.handlePicture(v, sessionID)
+	case *events.BusinessName:
+		h.handleBusinessName(v, sessionID)
+	case *events.PushName:
+		h.handlePushName(v, sessionID)
+	case *events.Archive:
+		h.handleArchive(v, sessionID)
+	case *events.Pin:
+		h.handlePin(v, sessionID)
+	case *events.Mute:
+		h.handleMute(v, sessionID)
+	case *events.Star:
+		h.handleStar(v, sessionID)
+	case *events.DeleteForMe:
+		h.handleDeleteForMe(v, sessionID)
+	case *events.MarkChatAsRead:
+		h.handleMarkChatAsRead(v, sessionID)
+	case *events.UndecryptableMessage:
+		h.handleUndecryptableMessage(v, sessionID)
+	case *events.OfflineSyncPreview:
+		h.handleOfflineSyncPreview(v, sessionID)
+	case *events.OfflineSyncCompleted:
+		h.handleOfflineSyncCompleted(v, sessionID)
 	default:
-		h.logger.InfoWithFields("Unhandled event", map[string]interface{}{
+		// Use DEBUG level instead of INFO to reduce noise for truly unknown events
+		h.logger.DebugWithFields("Unhandled event", map[string]interface{}{
 			"session_id": sessionID,
 			"event_type": getEventType(evt),
 		})
@@ -113,8 +151,7 @@ func (h *EventHandler) handleQR(evt *events.QR, sessionID string) {
 	// Update session with QR code
 	h.updateSessionQRCode(sessionID, qrImage)
 
-	// Display QR code in terminal
-	h.qrGen.DisplayQRCodeInTerminal(evt.Codes[0], sessionID)
+	// Note: QR code display is handled in client.go to avoid duplication
 }
 
 // handlePairSuccess handles successful pairing
@@ -193,6 +230,150 @@ func (h *EventHandler) handleHistorySync(evt *events.HistorySync, sessionID stri
 	h.logger.InfoWithFields("History sync", map[string]interface{}{
 		"session_id": sessionID,
 		"data_size":  len(evt.Data.String()), // Just log the data size for now
+	})
+}
+
+// handleAppState handles app state events
+func (h *EventHandler) handleAppState(evt *events.AppState, sessionID string) {
+	h.logger.DebugWithFields("App state update", map[string]interface{}{
+		"session_id": sessionID,
+	})
+	_ = evt // Avoid unused parameter warning
+}
+
+// handleAppStateSyncComplete handles app state sync completion
+func (h *EventHandler) handleAppStateSyncComplete(evt *events.AppStateSyncComplete, sessionID string) {
+	h.logger.DebugWithFields("App state sync complete", map[string]interface{}{
+		"session_id": sessionID,
+		"name":       evt.Name,
+	})
+}
+
+// handleKeepAliveTimeout handles keep alive timeout events
+func (h *EventHandler) handleKeepAliveTimeout(evt *events.KeepAliveTimeout, sessionID string) {
+	h.logger.DebugWithFields("Keep alive timeout", map[string]interface{}{
+		"session_id": sessionID,
+	})
+	_ = evt // Avoid unused parameter warning
+}
+
+// handleKeepAliveRestored handles keep alive restored events
+func (h *EventHandler) handleKeepAliveRestored(evt *events.KeepAliveRestored, sessionID string) {
+	h.logger.DebugWithFields("Keep alive restored", map[string]interface{}{
+		"session_id": sessionID,
+	})
+	_ = evt // Avoid unused parameter warning
+}
+
+// handleContact handles contact events
+func (h *EventHandler) handleContact(evt *events.Contact, sessionID string) {
+	h.logger.DebugWithFields("Contact update", map[string]interface{}{
+		"session_id": sessionID,
+		"jid":        evt.JID.String(),
+	})
+}
+
+// handleGroupInfo handles group info events
+func (h *EventHandler) handleGroupInfo(evt *events.GroupInfo, sessionID string) {
+	h.logger.DebugWithFields("Group info update", map[string]interface{}{
+		"session_id": sessionID,
+		"jid":        evt.JID.String(),
+	})
+}
+
+// handlePicture handles picture events
+func (h *EventHandler) handlePicture(evt *events.Picture, sessionID string) {
+	h.logger.DebugWithFields("Picture update", map[string]interface{}{
+		"session_id": sessionID,
+		"jid":        evt.JID.String(),
+	})
+}
+
+// handleBusinessName handles business name events
+func (h *EventHandler) handleBusinessName(evt *events.BusinessName, sessionID string) {
+	h.logger.DebugWithFields("Business name update", map[string]interface{}{
+		"session_id": sessionID,
+		"jid":        evt.JID.String(),
+	})
+}
+
+// handlePushName handles push name events
+func (h *EventHandler) handlePushName(evt *events.PushName, sessionID string) {
+	h.logger.DebugWithFields("Push name update", map[string]interface{}{
+		"session_id": sessionID,
+		"jid":        evt.JID.String(),
+	})
+}
+
+// handleArchive handles archive events
+func (h *EventHandler) handleArchive(evt *events.Archive, sessionID string) {
+	h.logger.DebugWithFields("Archive update", map[string]interface{}{
+		"session_id": sessionID,
+		"jid":        evt.JID.String(),
+	})
+}
+
+// handlePin handles pin events
+func (h *EventHandler) handlePin(evt *events.Pin, sessionID string) {
+	h.logger.DebugWithFields("Pin update", map[string]interface{}{
+		"session_id": sessionID,
+		"jid":        evt.JID.String(),
+	})
+}
+
+// handleMute handles mute events
+func (h *EventHandler) handleMute(evt *events.Mute, sessionID string) {
+	h.logger.DebugWithFields("Mute update", map[string]interface{}{
+		"session_id": sessionID,
+		"jid":        evt.JID.String(),
+	})
+}
+
+// handleStar handles star events
+func (h *EventHandler) handleStar(evt *events.Star, sessionID string) {
+	h.logger.DebugWithFields("Star update", map[string]interface{}{
+		"session_id": sessionID,
+	})
+	_ = evt // Avoid unused parameter warning
+}
+
+// handleDeleteForMe handles delete for me events
+func (h *EventHandler) handleDeleteForMe(evt *events.DeleteForMe, sessionID string) {
+	h.logger.DebugWithFields("Delete for me", map[string]interface{}{
+		"session_id": sessionID,
+		"chat":       evt.ChatJID.String(),
+	})
+}
+
+// handleMarkChatAsRead handles mark chat as read events
+func (h *EventHandler) handleMarkChatAsRead(evt *events.MarkChatAsRead, sessionID string) {
+	h.logger.DebugWithFields("Mark chat as read", map[string]interface{}{
+		"session_id": sessionID,
+		"chat":       evt.JID.String(),
+	})
+}
+
+// handleUndecryptableMessage handles undecryptable message events
+func (h *EventHandler) handleUndecryptableMessage(evt *events.UndecryptableMessage, sessionID string) {
+	h.logger.DebugWithFields("Undecryptable message", map[string]interface{}{
+		"session_id": sessionID,
+		"from":       evt.Info.Sender.String(),
+	})
+}
+
+// handleOfflineSyncPreview handles offline sync preview events
+func (h *EventHandler) handleOfflineSyncPreview(evt *events.OfflineSyncPreview, sessionID string) {
+	h.logger.DebugWithFields("Offline sync preview", map[string]interface{}{
+		"session_id": sessionID,
+		"messages":   evt.Messages,
+	})
+}
+
+// handleOfflineSyncCompleted handles offline sync completed events
+func (h *EventHandler) handleOfflineSyncCompleted(evt *events.OfflineSyncCompleted, sessionID string) {
+	h.logger.DebugWithFields("Offline sync completed", map[string]interface{}{
+		"session_id": sessionID,
+		"count":      evt.Count,
 	})
 }
 
@@ -298,6 +479,42 @@ func getEventType(evt interface{}) string {
 		return "ChatPresence"
 	case *events.HistorySync:
 		return "HistorySync"
+	case *events.AppState:
+		return "AppState"
+	case *events.AppStateSyncComplete:
+		return "AppStateSyncComplete"
+	case *events.KeepAliveTimeout:
+		return "KeepAliveTimeout"
+	case *events.KeepAliveRestored:
+		return "KeepAliveRestored"
+	case *events.Contact:
+		return "Contact"
+	case *events.GroupInfo:
+		return "GroupInfo"
+	case *events.Picture:
+		return "Picture"
+	case *events.BusinessName:
+		return "BusinessName"
+	case *events.PushName:
+		return "PushName"
+	case *events.Archive:
+		return "Archive"
+	case *events.Pin:
+		return "Pin"
+	case *events.Mute:
+		return "Mute"
+	case *events.Star:
+		return "Star"
+	case *events.DeleteForMe:
+		return "DeleteForMe"
+	case *events.MarkChatAsRead:
+		return "MarkChatAsRead"
+	case *events.UndecryptableMessage:
+		return "UndecryptableMessage"
+	case *events.OfflineSyncPreview:
+		return "OfflineSyncPreview"
+	case *events.OfflineSyncCompleted:
+		return "OfflineSyncCompleted"
 	default:
 		return "Unknown"
 	}

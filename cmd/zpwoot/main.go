@@ -25,6 +25,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -39,6 +40,7 @@ import (
 
 	_ "zpwoot/docs/swagger" // Import generated swagger docs
 	"zpwoot/internal/app"
+	"zpwoot/internal/domain/session"
 	"zpwoot/internal/infra/db"
 	"zpwoot/internal/infra/http/middleware"
 	"zpwoot/internal/infra/http/routers"
@@ -191,6 +193,9 @@ func main() {
 	// Setup routes with dependencies
 	routers.SetupRoutes(app, database, appLogger, whatsappManager, container)
 
+	// Connect existing sessions on startup
+	go connectOnStartup(container, appLogger)
+
 	// Graceful shutdown
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -333,4 +338,110 @@ func seedDatabase(database *platformDB.DB, logger *logger.Logger) error {
 	})
 
 	return nil
+}
+
+// connectOnStartup automatically connects all existing sessions that have been previously paired
+func connectOnStartup(container *app.Container, logger *logger.Logger) {
+	logger.Info("Starting connection process for all sessions on startup")
+
+	// Wait a bit for the server to fully start
+	time.Sleep(3 * time.Second)
+
+	// Get session use case from container
+	sessionUC := container.GetSessionUseCase()
+	if sessionUC == nil {
+		logger.Error("Session use case not available, skipping auto-connect")
+		return
+	}
+
+	// Get session repository from container
+	sessionRepo := container.GetSessionRepository()
+	if sessionRepo == nil {
+		logger.Error("Session repository not available, skipping auto-connect")
+		return
+	}
+
+	// Create context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	// Get all sessions from repository
+	sessions, _, err := sessionRepo.List(ctx, &session.ListSessionsRequest{
+		Limit:  100, // Get up to 100 sessions
+		Offset: 0,
+	})
+	if err != nil {
+		logger.ErrorWithFields("Failed to get sessions for auto-connect", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if len(sessions) == 0 {
+		logger.Info("No existing sessions found, skipping auto-connect")
+		return
+	}
+
+	logger.InfoWithFields("Found sessions for auto-connect", map[string]interface{}{
+		"total_sessions": len(sessions),
+	})
+
+	// Connect sessions that have been previously paired (have deviceJid)
+	connectedCount := 0
+	skippedCount := 0
+
+	for _, sess := range sessions {
+		sessionID := sess.ID.String()
+
+		// Only try to connect sessions that have been previously paired
+		if sess.DeviceJid == "" {
+			logger.InfoWithFields("Skipping session without device JID (never paired)", map[string]interface{}{
+				"session_id":   sessionID,
+				"session_name": sess.Name,
+			})
+			skippedCount++
+			continue
+		}
+
+		// Skip if already connected
+		if sess.IsConnected {
+			logger.InfoWithFields("Session already connected, skipping", map[string]interface{}{
+				"session_id":   sessionID,
+				"session_name": sess.Name,
+			})
+			continue
+		}
+
+		logger.InfoWithFields("Attempting to auto-connect session", map[string]interface{}{
+			"session_id":   sessionID,
+			"session_name": sess.Name,
+			"device_jid":   sess.DeviceJid,
+		})
+
+		// Try to connect the session using session use case
+		err := sessionUC.ConnectSession(ctx, sessionID)
+		if err != nil {
+			logger.ErrorWithFields("Failed to auto-connect session", map[string]interface{}{
+				"session_id":   sessionID,
+				"session_name": sess.Name,
+				"error":        err.Error(),
+			})
+			continue
+		}
+
+		connectedCount++
+		logger.InfoWithFields("Successfully initiated auto-connect for session", map[string]interface{}{
+			"session_id":   sessionID,
+			"session_name": sess.Name,
+		})
+
+		// Add a small delay between connections to avoid overwhelming the system
+		time.Sleep(1 * time.Second)
+	}
+
+	logger.InfoWithFields("Auto-connect process completed", map[string]interface{}{
+		"total_sessions":     len(sessions),
+		"connected_sessions": connectedCount,
+		"skipped_sessions":   skippedCount,
+	})
 }
