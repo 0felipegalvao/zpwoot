@@ -29,7 +29,7 @@ func NewWebhookHandler(appLogger *logger.Logger) *WebhookHandler {
 // @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
 // @Failure 404 {object} object "Session not found"
 // @Failure 500 {object} object "Internal server error"
-// @Router /sessions/{id}/webhook/config [post]
+// @Router /sessions/{sessionId}/webhook/config [post]
 func (h *WebhookHandler) CreateWebhook(c *fiber.Ctx) error {
 	sessionID := c.Params("id")
 	h.logger.InfoWithFields("Creating webhook config", map[string]interface{}{
@@ -54,7 +54,7 @@ func (h *WebhookHandler) CreateWebhook(c *fiber.Ctx) error {
 // @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
 // @Failure 404 {object} object "Session or webhook configuration not found"
 // @Failure 500 {object} object "Internal server error"
-// @Router /sessions/{id}/webhook/config [get]
+// @Router /sessions/{sessionId}/webhook/config [get]
 func (h *WebhookHandler) GetWebhookConfig(c *fiber.Ctx) error {
 	sessionID := c.Params("id")
 	h.logger.InfoWithFields("Getting webhook config", map[string]interface{}{

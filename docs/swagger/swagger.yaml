@@ -100,7 +100,7 @@ definitions:
   SessionCreateRequest:
     properties:
       name:
-        example: customer-support-team
+        example: mySession
         maxLength: 50
         minLength: 3
         type: string
@@ -121,7 +121,7 @@ definitions:
         example: false
         type: boolean
       name:
-        example: customer-support-team
+        example: mySession
         type: string
       proxyConfig:
         $ref: '#/definitions/zpwoot_internal_domain_session.ProxyConfig'
@@ -299,7 +299,7 @@ paths:
       summary: Create Chatwoot configuration
       tags:
       - Chatwoot
-  /sessions/{id}/qr:
+  /sessions/{sessionId}/qr:
     get:
       consumes:
       - application/json
@@ -314,7 +314,7 @@ paths:
         required: true
         type: string
       - description: Session ID or Name
-        example: '"customer-support-team"'
+        example: '"mySession"'
         in: path
         name: id
         required: true
@@ -352,7 +352,7 @@ paths:
       summary: Get QR code for session pairing
       tags:
       - Sessions
-  /sessions/{id}/webhook/config:
+  /sessions/{sessionId}/webhook/config:
     get:
       consumes:
       - application/json
@@ -446,7 +446,7 @@ paths:
         session name. Requires API key authentication.
       parameters:
       - description: Session ID or Name
-        example: '"customer-support-team"'
+        example: '"mySession"'
         in: path
         name: sessionId
         required: true
@@ -488,7 +488,7 @@ paths:
         name. Requires API key authentication.
       parameters:
       - description: Session ID or Name
-        example: '"customer-support-team"'
+        example: '"mySession"'
         in: path
         name: sessionId
         required: true
@@ -530,7 +530,7 @@ paths:
         UUID or session name. Requires API key authentication.
       parameters:
       - description: Session ID or Name
-        example: '"customer-support-team"'
+        example: '"mySession"'
         in: path
         name: sessionId
         required: true
@@ -571,7 +571,7 @@ paths:
         the session UUID or session name. Requires API key authentication.
       parameters:
       - description: Session ID or Name
-        example: '"customer-support-team"'
+        example: '"mySession"'
         in: path
         name: sessionId
         required: true

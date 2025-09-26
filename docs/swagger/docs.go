@@ -226,7 +226,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/sessions/{id}/qr": {
+        "/sessions/{sessionId}/qr": {
             "get": {
                 "security": [
                     {
@@ -255,7 +255,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "\"customer-support-team\"",
+                        "example": "\"mySession\"",
                         "description": "Session ID or Name",
                         "name": "id",
                         "in": "path",
@@ -308,7 +308,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/sessions/{id}/webhook/config": {
+        "/sessions/{sessionId}/webhook/config": {
             "get": {
                 "security": [
                     {
@@ -456,7 +456,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"customer-support-team\"",
+                        "example": "\"mySession\"",
                         "description": "Session ID or Name",
                         "name": "sessionId",
                         "in": "path",
@@ -518,7 +518,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"customer-support-team\"",
+                        "example": "\"mySession\"",
                         "description": "Session ID or Name",
                         "name": "sessionId",
                         "in": "path",
@@ -580,7 +580,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"customer-support-team\"",
+                        "example": "\"mySession\"",
                         "description": "Session ID or Name",
                         "name": "sessionId",
                         "in": "path",
@@ -642,7 +642,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"customer-support-team\"",
+                        "example": "\"mySession\"",
                         "description": "Session ID or Name",
                         "name": "sessionId",
                         "in": "path",
@@ -830,7 +830,7 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 3,
-                    "example": "customer-support-team"
+                    "example": "mySession"
                 },
                 "proxyConfig": {
                     "$ref": "#/definitions/zpwoot_internal_domain_session.ProxyConfig"
@@ -854,7 +854,7 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
-                    "example": "customer-support-team"
+                    "example": "mySession"
                 },
                 "proxyConfig": {
                     "$ref": "#/definitions/zpwoot_internal_domain_session.ProxyConfig"

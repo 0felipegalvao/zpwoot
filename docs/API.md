@@ -37,20 +37,20 @@ make swagger-test
 ### Sessions (Sessões WhatsApp)
 - **POST** `/sessions/create` - Criar nova sessão
 - **GET** `/sessions/list` - Listar sessões
-- **GET** `/sessions/{id}/info` - Informações da sessão
-- **DELETE** `/sessions/{id}/delete` - Deletar sessão
-- **POST** `/sessions/{id}/connect` - Conectar sessão
-- **POST** `/sessions/{id}/logout` - Desconectar sessão
-- **GET** `/sessions/{id}/qr` - Obter QR Code
-- **POST** `/sessions/{id}/pair` - Parear telefone
+- **GET** `/sessions/{sessionId}/info` - Informações da sessão
+- **DELETE** `/sessions/{sessionId}/delete` - Deletar sessão
+- **POST** `/sessions/{sessionId}/connect` - Conectar sessão
+- **POST** `/sessions/{sessionId}/logout` - Desconectar sessão
+- **GET** `/sessions/{sessionId}/qr` - Obter QR Code
+- **POST** `/sessions/{sessionId}/pair` - Parear telefone
 
 ### Webhooks
-- **POST** `/sessions/{id}/webhook/config` - Configurar webhook
-- **GET** `/sessions/{id}/webhook/config` - Obter configuração webhook
+- **POST** `/sessions/{sessionId}/webhook/config` - Configurar webhook
+- **GET** `/sessions/{sessionId}/webhook/config` - Obter configuração webhook
 
 ### Chatwoot Integration
-- **POST** `/sessions/{id}/chatwoot/config` - Configurar Chatwoot
-- **GET** `/sessions/{id}/chatwoot/config` - Obter configuração Chatwoot
+- **POST** `/sessions/{sessionId}/chatwoot/config` - Configurar Chatwoot
+- **GET** `/sessions/{sessionId}/chatwoot/config` - Obter configuração Chatwoot
 
 ## 🏗️ Estrutura de DTOs
 

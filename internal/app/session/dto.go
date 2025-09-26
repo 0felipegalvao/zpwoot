@@ -8,14 +8,14 @@ import (
 
 // CreateSessionRequest represents the request to create a new session
 type CreateSessionRequest struct {
-	Name        string               `json:"name" validate:"required,min=3,max=50" example:"customer-support-team"`
+	Name        string               `json:"name" validate:"required,min=3,max=50" example:"mySession"`
 	ProxyConfig *session.ProxyConfig `json:"proxyConfig,omitempty"`
 } // @name SessionCreateRequest
 
 // CreateSessionResponse represents the response after creating a session
 type CreateSessionResponse struct {
 	ID          string               `json:"id" example:"session-123"`
-	Name        string               `json:"name" example:"customer-support-team"`
+	Name        string               `json:"name" example:"mySession"`
 	IsConnected bool                 `json:"isConnected" example:"false"`
 	ProxyConfig *session.ProxyConfig `json:"proxyConfig,omitempty"`
 	CreatedAt   time.Time            `json:"createdAt" example:"2024-01-01T00:00:00Z"`

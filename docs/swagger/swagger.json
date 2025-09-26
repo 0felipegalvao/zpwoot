@@ -220,7 +220,7 @@
                 }
             }
         },
-        "/sessions/{id}/qr": {
+        "/sessions/{sessionId}/qr": {
             "get": {
                 "security": [
                     {
@@ -249,7 +249,7 @@
                     },
                     {
                         "type": "string",
-                        "example": "\"customer-support-team\"",
+                        "example": "\"mySession\"",
                         "description": "Session ID or Name",
                         "name": "id",
                         "in": "path",
@@ -302,7 +302,7 @@
                 }
             }
         },
-        "/sessions/{id}/webhook/config": {
+        "/sessions/{sessionId}/webhook/config": {
             "get": {
                 "security": [
                     {
@@ -450,7 +450,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"customer-support-team\"",
+                        "example": "\"mySession\"",
                         "description": "Session ID or Name",
                         "name": "sessionId",
                         "in": "path",
@@ -512,7 +512,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"customer-support-team\"",
+                        "example": "\"mySession\"",
                         "description": "Session ID or Name",
                         "name": "sessionId",
                         "in": "path",
@@ -574,7 +574,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"customer-support-team\"",
+                        "example": "\"mySession\"",
                         "description": "Session ID or Name",
                         "name": "sessionId",
                         "in": "path",
@@ -636,7 +636,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"customer-support-team\"",
+                        "example": "\"mySession\"",
                         "description": "Session ID or Name",
                         "name": "sessionId",
                         "in": "path",
@@ -824,7 +824,7 @@
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 3,
-                    "example": "customer-support-team"
+                    "example": "mySession"
                 },
                 "proxyConfig": {
                     "$ref": "#/definitions/zpwoot_internal_domain_session.ProxyConfig"
@@ -848,7 +848,7 @@
                 },
                 "name": {
                     "type": "string",
-                    "example": "customer-support-team"
+                    "example": "mySession"
                 },
                 "proxyConfig": {
                     "$ref": "#/definitions/zpwoot_internal_domain_session.ProxyConfig"

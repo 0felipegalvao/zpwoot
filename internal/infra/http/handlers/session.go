@@ -211,7 +211,7 @@ func (h *SessionHandler) ListSessions(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param sessionId path string true "Session ID or Name" example("customer-support-team")
+// @Param sessionId path string true "Session ID or Name" example("mySession")
 // @Success 200 {object} zpwoot_internal_app_session.SessionInfoResponse "Session info retrieved successfully"
 // @Failure 400 {object} object "Invalid session identifier"
 // @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
@@ -257,7 +257,7 @@ func (h *SessionHandler) GetSessionInfo(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param sessionId path string true "Session ID or Name" example("customer-support-team")
+// @Param sessionId path string true "Session ID or Name" example("mySession")
 // @Success 200 {object} object "Session deleted successfully"
 // @Failure 400 {object} object "Invalid session identifier"
 // @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
@@ -303,7 +303,7 @@ func (h *SessionHandler) DeleteSession(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param sessionId path string true "Session ID or Name" example("customer-support-team")
+// @Param sessionId path string true "Session ID or Name" example("mySession")
 // @Success 200 {object} object "Connection initiated successfully"
 // @Failure 400 {object} object "Invalid session identifier"
 // @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
@@ -349,7 +349,7 @@ func (h *SessionHandler) ConnectSession(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param sessionId path string true "Session ID or Name" example("customer-support-team")
+// @Param sessionId path string true "Session ID or Name" example("mySession")
 // @Success 200 {object} object "Session logged out successfully"
 // @Failure 400 {object} object "Invalid session identifier"
 // @Failure 401 {object} object "Unauthorized - Invalid or missing API key"
@@ -396,13 +396,13 @@ func (h *SessionHandler) LogoutSession(c *fiber.Ctx) error {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param X-API-Key header string true "API Key for authentication" example("your-api-key-here")
-// @Param id path string true "Session ID or Name" example("customer-support-team")
+// @Param id path string true "Session ID or Name" example("mySession")
 // @Success 200 {object} appdto.SuccessResponse{data=appdto.QRCodeResponse} "QR code retrieved successfully"
 // @Failure 400 {object} appdto.ErrorResponse "Invalid session identifier"
 // @Failure 401 {object} appdto.ErrorResponse "Unauthorized - Invalid or missing API key"
 // @Failure 404 {object} appdto.ErrorResponse "Session not found or no QR code available"
 // @Failure 500 {object} appdto.ErrorResponse "Internal server error"
-// @Router /sessions/{id}/qr [get]
+// @Router /sessions/{sessionId}/qr [get]
 func (h *SessionHandler) GetQRCode(c *fiber.Ctx) error {
 	if h.sessionUC == nil {
 		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
@@ -436,7 +436,7 @@ func (h *SessionHandler) GetQRCode(c *fiber.Ctx) error {
 }
 
 // PairPhone pairs a phone with the session
-// POST /sessions/{id}/pair
+// POST /sessions/{sessionId}/pair
 func (h *SessionHandler) PairPhone(c *fiber.Ctx) error {
 	id := c.Params("id")
 	h.logger.InfoWithFields("Pairing phone", map[string]interface{}{
@@ -450,7 +450,7 @@ func (h *SessionHandler) PairPhone(c *fiber.Ctx) error {
 }
 
 // SetProxy sets proxy configuration for the session
-// POST /sessions/{id}/proxy/set
+// POST /sessions/{sessionId}/proxy/set
 func (h *SessionHandler) SetProxy(c *fiber.Ctx) error {
 	if h.sessionUC == nil {
 		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
@@ -491,7 +491,7 @@ func (h *SessionHandler) SetProxy(c *fiber.Ctx) error {
 }
 
 // GetProxy gets proxy configuration for the session
-// GET /sessions/{id}/proxy/find
+// GET /sessions/{sessionId}/proxy/find
 func (h *SessionHandler) GetProxy(c *fiber.Ctx) error {
 	if h.sessionUC == nil {
 		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))

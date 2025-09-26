@@ -57,12 +57,12 @@ go run cmd/zpwoot/main.go
 | `GET` | `/api/v1/sessions` | Listar todas as sessões (com filtros opcionais) |
 | `GET` | `/api/v1/sessions/{id}` | Detalhes de uma sessão específica |
 | `DELETE` | `/api/v1/sessions/{id}` | Remove permanentemente uma sessão |
-| `POST` | `/api/v1/sessions/{id}/connect` | Estabelece a conexão da sessão com o WhatsApp |
-| `POST` | `/api/v1/sessions/{id}/logout` | Faz o logout da sessão do WhatsApp |
-| `GET` | `/api/v1/sessions/{id}/qr` | Recupera o QR Code atual (se existir) |
-| `POST` | `/api/v1/sessions/{id}/pair` | Emparelha um telefone com a sessão |
-| `POST` | `/api/v1/sessions/{id}/proxy` | Define proxy para a sessão |
-| `GET` | `/api/v1/sessions/{id}/proxy` | Obtém configuração de proxy para a sessão |
+| `POST` | `/api/v1/sessions/{sessionId}/connect` | Estabelece a conexão da sessão com o WhatsApp |
+| `POST` | `/api/v1/sessions/{sessionId}/logout` | Faz o logout da sessão do WhatsApp |
+| `GET` | `/api/v1/sessions/{sessionId}/qr` | Recupera o QR Code atual (se existir) |
+| `POST` | `/api/v1/sessions/{sessionId}/pair` | Emparelha um telefone com a sessão |
+| `POST` | `/api/v1/sessions/{sessionId}/proxy` | Define proxy para a sessão |
+| `GET` | `/api/v1/sessions/{sessionId}/proxy` | Obtém configuração de proxy para a sessão |
 
 ### WhatsApp Messaging
 
