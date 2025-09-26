@@ -1,8 +1,10 @@
 package handlers
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"zpwoot/internal/app"
 	"zpwoot/platform/logger"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type WebhookHandler struct {
@@ -37,10 +39,10 @@ func (h *WebhookHandler) SetConfig(c *fiber.Ctx) error {
 	})
 
 	// Parse request body
-	var req appdto.SetConfigRequest
+	var req app.SetConfigRequest
 	if err := c.BodyParser(&req); err != nil {
 		h.logger.Error("Failed to parse webhook request: " + err.Error())
-		return c.Status(400).JSON(appdto.NewErrorResponse("Invalid request body"))
+		return c.Status(400).JSON(app.NewErrorResponse("Invalid request body"))
 	}
 
 	// Set session ID from URL parameter
@@ -51,11 +53,11 @@ func (h *WebhookHandler) SetConfig(c *fiber.Ctx) error {
 	result, err := h.webhookUC.Create(ctx, &req)
 	if err != nil {
 		h.logger.Error("Failed to create webhook: " + err.Error())
-		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to create webhook"))
+		return c.Status(500).JSON(app.NewErrorResponse("Failed to create webhook"))
 	}
 
 	// Return success response
-	response := appdto.NewSuccessResponse(result, "Webhook configuration created successfully")
+	response := app.NewSuccessResponse(result, "Webhook configuration created successfully")
 	return c.Status(201).JSON(response)
 }
 
@@ -82,10 +84,10 @@ func (h *WebhookHandler) FindConfig(c *fiber.Ctx) error {
 	webhooks, err := h.webhookUC.ListBySession(ctx, sessionID)
 	if err != nil {
 		h.logger.Error("Failed to get webhook config: " + err.Error())
-		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to get webhook configuration"))
+		return c.Status(500).JSON(app.NewErrorResponse("Failed to get webhook configuration"))
 	}
 
 	// Return success response
-	response := appdto.NewSuccessResponse(webhooks, "Webhook configuration retrieved successfully")
+	response := app.NewSuccessResponse(webhooks, "Webhook configuration retrieved successfully")
 	return c.JSON(response)
 }

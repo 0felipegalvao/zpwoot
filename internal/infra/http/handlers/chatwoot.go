@@ -5,12 +5,15 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	app "zpwoot/internal/app"
 	"zpwoot/internal/domain/chatwoot"
 	"zpwoot/pkg/errors"
+	"zpwoot/platform/logger"
 )
 
 type ChatwootHandler struct {
-	chatwootService ChatwootService
+	chatwootUC app.ChatwootUseCase
+	logger     *logger.Logger
 }
 
 type ChatwootService interface {
@@ -23,9 +26,10 @@ type ChatwootService interface {
 	ProcessWebhook(ctx context.Context, payload *chatwoot.ChatwootWebhookPayload) error
 }
 
-func NewChatwootHandler(chatwootService ChatwootService) *ChatwootHandler {
+func NewChatwootHandler(chatwootUC app.ChatwootUseCase, logger *logger.Logger) *ChatwootHandler {
 	return &ChatwootHandler{
-		chatwootService: chatwootService,
+		chatwootUC: chatwootUC,
+		logger:     logger,
 	}
 }
 
@@ -251,15 +255,7 @@ func (h *ChatwootHandler) ReceiveWebhook(c *fiber.Ctx) error {
 func (h *ChatwootHandler) TestConnection(c *fiber.Ctx) error {
 	ctx := c.Context()
 
-	// Get current Chatwoot configuration
-	config, err := h.chatwootUC.GetConfig(ctx)
-	if err != nil {
-		return c.Status(404).JSON(fiber.Map{
-			"success": false,
-			"message": "No Chatwoot configuration found",
-			"error":   err.Error(),
-		})
-	}
+	// Test the connection directly without getting config first
 
 	// Test the connection using the use case
 	result, err := h.chatwootUC.TestConnection(ctx)
@@ -315,8 +311,7 @@ func (h *ChatwootHandler) SetConfig(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set session ID from URL parameter
-	req.SessionID = sessionID
+	// Note: SessionID is handled internally, not part of the request
 
 	ctx := c.Context()
 
@@ -343,11 +338,10 @@ func (h *ChatwootHandler) SetConfig(c *fiber.Ctx) error {
 
 	// Config exists, update it
 	updateReq := chatwoot.UpdateChatwootConfigRequest{
-		BaseURL:     req.BaseURL,
-		AccessToken: req.AccessToken,
-		AccountID:   req.AccountID,
-		InboxID:     req.InboxID,
-		Enabled:     req.Enabled,
+		URL:       &req.URL,
+		APIKey:    &req.APIKey,
+		AccountID: &req.AccountID,
+		InboxID:   req.InboxID,
 	}
 
 	result, updateErr := h.chatwootUC.Update(ctx, &updateReq)
@@ -376,8 +370,8 @@ func (h *ChatwootHandler) FindConfig(c *fiber.Ctx) error {
 
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{
-			"success": false,
-			"message": "Chatwoot configuration not found for this session",
+			"success":    false,
+			"message":    "Chatwoot configuration not found for this session",
 			"session_id": sessionID,
 		})
 	}

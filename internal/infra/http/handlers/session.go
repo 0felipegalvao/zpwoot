@@ -4,20 +4,21 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
-	appdto "zpwoot/internal/app"
+	"zpwoot/internal/app"
 	"zpwoot/internal/domain/session"
 	"zpwoot/internal/infra/http/helpers"
 	"zpwoot/platform/logger"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type SessionHandler struct {
 	logger          *logger.Logger
-	sessionUC       appdto.SessionUseCase
+	sessionUC       app.SessionUseCase
 	sessionResolver *helpers.SessionResolver
 }
 
-func NewSessionHandler(appLogger *logger.Logger, sessionUC appdto.SessionUseCase, sessionRepo helpers.SessionRepository) *SessionHandler {
+func NewSessionHandler(appLogger *logger.Logger, sessionUC app.SessionUseCase, sessionRepo helpers.SessionRepository) *SessionHandler {
 	return &SessionHandler{
 		logger:          appLogger,
 		sessionUC:       sessionUC,
@@ -105,10 +106,10 @@ func (h *SessionHandler) CreateSession(c *fiber.Ctx) error {
 	}
 
 	// Parse request body
-	var req appdto.CreateSessionRequest
+	var req app.CreateSessionRequest
 	if err := c.BodyParser(&req); err != nil {
 		h.logger.Error("Failed to parse request body: " + err.Error())
-		return c.Status(400).JSON(appdto.NewErrorResponse("Invalid request body"))
+		return c.Status(400).JSON(app.NewErrorResponse("Invalid request body"))
 	}
 
 	// Validate session name
@@ -147,11 +148,11 @@ func (h *SessionHandler) CreateSession(c *fiber.Ctx) error {
 			})
 		}
 
-		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to create session"))
+		return c.Status(500).JSON(app.NewErrorResponse("Failed to create session"))
 	}
 
 	// Return success response
-	response := appdto.NewSuccessResponse(result, "Session created successfully")
+	response := app.NewSuccessResponse(result, "Session created successfully")
 	return c.Status(201).JSON(response)
 }
 
@@ -175,11 +176,11 @@ func (h *SessionHandler) ListSessions(c *fiber.Ctx) error {
 	h.logger.Info("Listing sessions")
 
 	if h.sessionUC == nil {
-		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+		return c.Status(500).JSON(app.NewErrorResponse("Session use case not initialized"))
 	}
 
 	// Parse query parameters
-	var req appdto.ListSessionsRequest
+	var req app.ListSessionsRequest
 
 	// Parse isConnected filter
 	if isConnectedStr := c.Query("isConnected"); isConnectedStr != "" {
@@ -212,11 +213,11 @@ func (h *SessionHandler) ListSessions(c *fiber.Ctx) error {
 	result, err := h.sessionUC.ListSessions(c.Context(), &req)
 	if err != nil {
 		h.logger.Error("Failed to list sessions: " + err.Error())
-		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to list sessions"))
+		return c.Status(500).JSON(app.NewErrorResponse("Failed to list sessions"))
 	}
 
 	// Return success response
-	response := appdto.NewSuccessResponse(result, "Sessions retrieved successfully")
+	response := app.NewSuccessResponse(result, "Sessions retrieved successfully")
 	return c.JSON(response)
 }
 
@@ -236,13 +237,13 @@ func (h *SessionHandler) ListSessions(c *fiber.Ctx) error {
 // @Router /sessions/{sessionId}/info [get]
 func (h *SessionHandler) GetSessionInfo(c *fiber.Ctx) error {
 	if h.sessionUC == nil {
-		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+		return c.Status(500).JSON(app.NewErrorResponse("Session use case not initialized"))
 	}
 
 	// Resolve session using SessionResolver
 	sess, fiberErr := h.resolveSession(c)
 	if fiberErr != nil {
-		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+		return c.Status(fiberErr.Code).JSON(app.NewErrorResponse(fiberErr.Message))
 	}
 
 	h.logger.InfoWithFields("Getting session info", map[string]interface{}{
@@ -256,13 +257,13 @@ func (h *SessionHandler) GetSessionInfo(c *fiber.Ctx) error {
 		h.logger.Error("Failed to get session info: " + err.Error())
 		// Check if it's a not found error
 		if err.Error() == "session not found" {
-			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+			return c.Status(404).JSON(app.NewErrorResponse("Session not found"))
 		}
-		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to get session info"))
+		return c.Status(500).JSON(app.NewErrorResponse("Failed to get session info"))
 	}
 
 	// Return success response
-	response := appdto.NewSuccessResponse(result, "Session info retrieved successfully")
+	response := app.NewSuccessResponse(result, "Session info retrieved successfully")
 	return c.JSON(response)
 }
 
@@ -282,13 +283,13 @@ func (h *SessionHandler) GetSessionInfo(c *fiber.Ctx) error {
 // @Router /sessions/{sessionId}/delete [delete]
 func (h *SessionHandler) DeleteSession(c *fiber.Ctx) error {
 	if h.sessionUC == nil {
-		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+		return c.Status(500).JSON(app.NewErrorResponse("Session use case not initialized"))
 	}
 
 	// Resolve session using SessionResolver
 	sess, fiberErr := h.resolveSession(c)
 	if fiberErr != nil {
-		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+		return c.Status(fiberErr.Code).JSON(app.NewErrorResponse(fiberErr.Message))
 	}
 
 	h.logger.InfoWithFields("Deleting session", map[string]interface{}{
@@ -302,13 +303,13 @@ func (h *SessionHandler) DeleteSession(c *fiber.Ctx) error {
 		h.logger.Error("Failed to delete session: " + err.Error())
 		// Check if it's a not found error
 		if err.Error() == "session not found" {
-			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+			return c.Status(404).JSON(app.NewErrorResponse("Session not found"))
 		}
-		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to delete session"))
+		return c.Status(500).JSON(app.NewErrorResponse("Failed to delete session"))
 	}
 
 	// Return success response
-	response := appdto.NewSuccessResponse(nil, "Session deleted successfully")
+	response := app.NewSuccessResponse(nil, "Session deleted successfully")
 	return c.JSON(response)
 }
 
@@ -328,13 +329,13 @@ func (h *SessionHandler) DeleteSession(c *fiber.Ctx) error {
 // @Router /sessions/{sessionId}/connect [post]
 func (h *SessionHandler) ConnectSession(c *fiber.Ctx) error {
 	if h.sessionUC == nil {
-		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+		return c.Status(500).JSON(app.NewErrorResponse("Session use case not initialized"))
 	}
 
 	// Resolve session using SessionResolver
 	sess, fiberErr := h.resolveSession(c)
 	if fiberErr != nil {
-		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+		return c.Status(fiberErr.Code).JSON(app.NewErrorResponse(fiberErr.Message))
 	}
 
 	h.logger.InfoWithFields("Connecting session", map[string]interface{}{
@@ -348,13 +349,13 @@ func (h *SessionHandler) ConnectSession(c *fiber.Ctx) error {
 		h.logger.Error("Failed to connect session: " + err.Error())
 		// Check if it's a not found error
 		if err.Error() == "session not found" {
-			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+			return c.Status(404).JSON(app.NewErrorResponse("Session not found"))
 		}
-		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to connect session"))
+		return c.Status(500).JSON(app.NewErrorResponse("Failed to connect session"))
 	}
 
 	// Return success response
-	response := appdto.NewSuccessResponse(nil, "Session connection initiated successfully")
+	response := app.NewSuccessResponse(nil, "Session connection initiated successfully")
 	return c.JSON(response)
 }
 
@@ -374,13 +375,13 @@ func (h *SessionHandler) ConnectSession(c *fiber.Ctx) error {
 // @Router /sessions/{sessionId}/logout [post]
 func (h *SessionHandler) LogoutSession(c *fiber.Ctx) error {
 	if h.sessionUC == nil {
-		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+		return c.Status(500).JSON(app.NewErrorResponse("Session use case not initialized"))
 	}
 
 	// Resolve session using SessionResolver
 	sess, fiberErr := h.resolveSession(c)
 	if fiberErr != nil {
-		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+		return c.Status(fiberErr.Code).JSON(app.NewErrorResponse(fiberErr.Message))
 	}
 
 	h.logger.InfoWithFields("Logging out session", map[string]interface{}{
@@ -394,13 +395,13 @@ func (h *SessionHandler) LogoutSession(c *fiber.Ctx) error {
 		h.logger.Error("Failed to logout session: " + err.Error())
 		// Check if it's a not found error
 		if err.Error() == "session not found" {
-			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+			return c.Status(404).JSON(app.NewErrorResponse("Session not found"))
 		}
-		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to logout session"))
+		return c.Status(500).JSON(app.NewErrorResponse("Failed to logout session"))
 	}
 
 	// Return success response
-	response := appdto.NewSuccessResponse(nil, "Session logged out successfully")
+	response := app.NewSuccessResponse(nil, "Session logged out successfully")
 	return c.JSON(response)
 }
 
@@ -413,21 +414,21 @@ func (h *SessionHandler) LogoutSession(c *fiber.Ctx) error {
 // @Security ApiKeyAuth
 // @Param X-API-Key header string true "API Key for authentication" example("your-api-key-here")
 // @Param id path string true "Session ID or Name" example("mySession")
-// @Success 200 {object} appdto.SuccessResponse{data=appdto.QRCodeResponse} "QR code retrieved successfully"
-// @Failure 400 {object} appdto.ErrorResponse "Invalid session identifier"
-// @Failure 401 {object} appdto.ErrorResponse "Unauthorized - Invalid or missing API key"
-// @Failure 404 {object} appdto.ErrorResponse "Session not found or no QR code available"
-// @Failure 500 {object} appdto.ErrorResponse "Internal server error"
+// @Success 200 {object} app.SuccessResponse{data=app.QRCodeResponse} "QR code retrieved successfully"
+// @Failure 400 {object} app.ErrorResponse "Invalid session identifier"
+// @Failure 401 {object} app.ErrorResponse "Unauthorized - Invalid or missing API key"
+// @Failure 404 {object} app.ErrorResponse "Session not found or no QR code available"
+// @Failure 500 {object} app.ErrorResponse "Internal server error"
 // @Router /sessions/{sessionId}/qr [get]
 func (h *SessionHandler) GetQRCode(c *fiber.Ctx) error {
 	if h.sessionUC == nil {
-		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+		return c.Status(500).JSON(app.NewErrorResponse("Session use case not initialized"))
 	}
 
 	// Resolve session using SessionResolver
 	sess, fiberErr := h.resolveSession(c)
 	if fiberErr != nil {
-		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+		return c.Status(fiberErr.Code).JSON(app.NewErrorResponse(fiberErr.Message))
 	}
 
 	h.logger.InfoWithFields("Getting QR code", map[string]interface{}{
@@ -441,13 +442,13 @@ func (h *SessionHandler) GetQRCode(c *fiber.Ctx) error {
 		h.logger.Error("Failed to get QR code: " + err.Error())
 		// Check if it's a not found error
 		if err.Error() == "session not found" {
-			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+			return c.Status(404).JSON(app.NewErrorResponse("Session not found"))
 		}
-		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to get QR code"))
+		return c.Status(500).JSON(app.NewErrorResponse("Failed to get QR code"))
 	}
 
 	// Return success response
-	response := appdto.NewSuccessResponse(result, "QR code retrieved successfully")
+	response := app.NewSuccessResponse(result, "QR code retrieved successfully")
 	return c.JSON(response)
 }
 
@@ -455,20 +456,20 @@ func (h *SessionHandler) GetQRCode(c *fiber.Ctx) error {
 // POST /sessions/{sessionId}/pair
 func (h *SessionHandler) PairPhone(c *fiber.Ctx) error {
 	if h.sessionUC == nil {
-		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+		return c.Status(500).JSON(app.NewErrorResponse("Session use case not initialized"))
 	}
 
 	// Resolve session using SessionResolver
 	sess, fiberErr := h.resolveSession(c)
 	if fiberErr != nil {
-		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+		return c.Status(fiberErr.Code).JSON(app.NewErrorResponse(fiberErr.Message))
 	}
 
 	// Parse request body
-	var req appdto.PairPhoneRequest
+	var req app.PairPhoneRequest
 	if err := c.BodyParser(&req); err != nil {
 		h.logger.Error("Failed to parse pair phone request: " + err.Error())
-		return c.Status(400).JSON(appdto.NewErrorResponse("Invalid request body"))
+		return c.Status(400).JSON(app.NewErrorResponse("Invalid request body"))
 	}
 
 	// Call use case to pair phone
@@ -476,11 +477,11 @@ func (h *SessionHandler) PairPhone(c *fiber.Ctx) error {
 	result, err := h.sessionUC.PairPhone(ctx, sess.ID, &req)
 	if err != nil {
 		h.logger.Error("Failed to pair phone: " + err.Error())
-		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to pair phone"))
+		return c.Status(500).JSON(app.NewErrorResponse("Failed to pair phone"))
 	}
 
 	// Return success response
-	response := appdto.NewSuccessResponse(result, "Phone pairing initiated successfully")
+	response := app.NewSuccessResponse(result, "Phone pairing initiated successfully")
 	return c.JSON(response)
 }
 
@@ -488,13 +489,13 @@ func (h *SessionHandler) PairPhone(c *fiber.Ctx) error {
 // POST /sessions/{sessionId}/proxy/set
 func (h *SessionHandler) SetProxy(c *fiber.Ctx) error {
 	if h.sessionUC == nil {
-		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+		return c.Status(500).JSON(app.NewErrorResponse("Session use case not initialized"))
 	}
 
 	// Resolve session using SessionResolver
 	sess, fiberErr := h.resolveSession(c)
 	if fiberErr != nil {
-		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+		return c.Status(fiberErr.Code).JSON(app.NewErrorResponse(fiberErr.Message))
 	}
 
 	h.logger.InfoWithFields("Setting proxy", map[string]interface{}{
@@ -503,10 +504,10 @@ func (h *SessionHandler) SetProxy(c *fiber.Ctx) error {
 	})
 
 	// Parse request body
-	var req appdto.SetProxyRequest
+	var req app.SetProxyRequest
 	if err := c.BodyParser(&req); err != nil {
 		h.logger.Error("Failed to parse request body: " + err.Error())
-		return c.Status(400).JSON(appdto.NewErrorResponse("Invalid request body"))
+		return c.Status(400).JSON(app.NewErrorResponse("Invalid request body"))
 	}
 
 	// Call use case with resolved session ID
@@ -515,13 +516,13 @@ func (h *SessionHandler) SetProxy(c *fiber.Ctx) error {
 		h.logger.Error("Failed to set proxy: " + err.Error())
 		// Check if it's a not found error
 		if err.Error() == "session not found" {
-			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+			return c.Status(404).JSON(app.NewErrorResponse("Session not found"))
 		}
-		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to set proxy"))
+		return c.Status(500).JSON(app.NewErrorResponse("Failed to set proxy"))
 	}
 
 	// Return success response
-	response := appdto.NewSuccessResponse(nil, "Proxy configuration updated successfully")
+	response := app.NewSuccessResponse(nil, "Proxy configuration updated successfully")
 	return c.JSON(response)
 }
 
@@ -529,13 +530,13 @@ func (h *SessionHandler) SetProxy(c *fiber.Ctx) error {
 // GET /sessions/{sessionId}/proxy/find
 func (h *SessionHandler) GetProxy(c *fiber.Ctx) error {
 	if h.sessionUC == nil {
-		return c.Status(500).JSON(appdto.NewErrorResponse("Session use case not initialized"))
+		return c.Status(500).JSON(app.NewErrorResponse("Session use case not initialized"))
 	}
 
 	// Resolve session using SessionResolver
 	sess, fiberErr := h.resolveSession(c)
 	if fiberErr != nil {
-		return c.Status(fiberErr.Code).JSON(appdto.NewErrorResponse(fiberErr.Message))
+		return c.Status(fiberErr.Code).JSON(app.NewErrorResponse(fiberErr.Message))
 	}
 
 	h.logger.InfoWithFields("Getting proxy config", map[string]interface{}{
@@ -549,12 +550,12 @@ func (h *SessionHandler) GetProxy(c *fiber.Ctx) error {
 		h.logger.Error("Failed to get proxy: " + err.Error())
 		// Check if it's a not found error
 		if err.Error() == "session not found" {
-			return c.Status(404).JSON(appdto.NewErrorResponse("Session not found"))
+			return c.Status(404).JSON(app.NewErrorResponse("Session not found"))
 		}
-		return c.Status(500).JSON(appdto.NewErrorResponse("Failed to get proxy"))
+		return c.Status(500).JSON(app.NewErrorResponse("Failed to get proxy"))
 	}
 
 	// Return success response
-	response := appdto.NewSuccessResponse(result, "Proxy configuration retrieved successfully")
+	response := app.NewSuccessResponse(result, "Proxy configuration retrieved successfully")
 	return c.JSON(response)
 }
