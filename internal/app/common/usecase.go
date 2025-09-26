@@ -206,19 +206,12 @@ func (uc *useCaseImpl) getActiveWebhooksCount(ctx context.Context) int {
 	countCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	// Try to get webhooks count
-	webhooks, err := uc.webhookRepo.List(countCtx, 1, 0) // Get just one to check if repo works
+	// Try to get active webhooks count using GetActiveWebhooks
+	webhooks, err := uc.webhookRepo.GetActiveWebhooks(countCtx)
 	if err != nil {
 		return 0
 	}
 
-	// Count only enabled webhooks
-	activeCount := 0
-	for _, webhook := range webhooks {
-		if webhook.Enabled {
-			activeCount++
-		}
-	}
-
-	return activeCount
+	// Return the count of active webhooks
+	return len(webhooks)
 }
