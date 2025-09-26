@@ -43,7 +43,7 @@ import (
 	"zpwoot/internal/infra/http/middleware"
 	"zpwoot/internal/infra/http/routers"
 	"zpwoot/internal/infra/repository"
-	"zpwoot/internal/infra/wmeow"
+	"zpwoot/internal/infra/wameow"
 	"zpwoot/internal/ports"
 	"zpwoot/platform/config"
 	platformDB "zpwoot/platform/db"
@@ -157,7 +157,7 @@ func main() {
 		SessionRepo:         repositories.GetSessionRepository(),
 		WebhookRepo:         repositories.GetWebhookRepository(),
 		ChatwootRepo:        repositories.GetChatwootRepository(),
-		WhatsAppManager:     whatsappManager,
+		WameowManager:       whatsappManager,
 		ChatwootIntegration: nil, // Will be implemented when Chatwoot integration is needed
 		Logger:              appLogger,
 		DB:                  database.GetDB().DB,
@@ -217,12 +217,11 @@ func main() {
 
 // initializeWhatsAppManager creates and initializes the WhatsApp manager
 // This will automatically create the whatsmeow tables in the database
-func initializeWhatsAppManager(database *platformDB.DB, appLogger *logger.Logger) (*wmeow.Manager, error) {
+func initializeWhatsAppManager(database *platformDB.DB, sessionRepo ports.SessionRepository, appLogger *logger.Logger) (*wameow.Manager, error) {
 	appLogger.Info("Creating WhatsApp manager factory...")
 
-	// For now, we'll pass nil for sessionRepo since it's not fully implemented yet
-	// In a complete implementation, you would initialize the session repository here
-	factory := wmeow.NewFactory(appLogger, nil)
+	// Create factory with the session repository
+	factory := wameow.NewFactory(appLogger, sessionRepo)
 
 	appLogger.Info("Creating WhatsApp manager with database connection...")
 	manager, err := factory.CreateManager(database.GetDB().DB)

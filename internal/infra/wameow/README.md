@@ -1,13 +1,13 @@
-# WMeow - Wameow Integration Module
+# wameow - Wameow Integration Module
 
 ## 📋 Visão Geral
 
-O módulo `wmeow` implementa a integração completa com Wameow Web usando a biblioteca `whatsmeow`. Ele fornece uma abstração robusta para gerenciar sessões Wameow, conexões, eventos e QR codes.
+O módulo `wameow` implementa a integração completa com Wameow Web usando a biblioteca `whatsmeow`. Ele fornece uma abstração robusta para gerenciar sessões Wameow, conexões, eventos e QR codes.
 
 ## 🏗️ Arquitetura
 
 ```
-internal/infra/wmeow/
+internal/infra/wameow/
 ├── README.md           # Este arquivo
 ├── manager.go          # Manager principal - implementa WameowManager
 ├── connection.go       # Gerenciamento de conexões
@@ -70,12 +70,12 @@ internal/infra/wmeow/
 
 ```go
 import (
-    "zpwoot/internal/infra/wmeow"
+    "zpwoot/internal/infra/wameow"
     "zpwoot/platform/logger"
 )
 
 // Usando o builder pattern
-manager, err := wmeow.NewManagerBuilder().
+manager, err := wameow.NewManagerBuilder().
     WithLogger(logger).
     WithSessionRepository(sessionRepo).
     WithDatabase(db).
@@ -149,7 +149,7 @@ type Config struct {
 ### **Configuração Padrão**
 
 ```go
-config := wmeow.DefaultConfig()
+config := wameow.DefaultConfig()
 // Personalizar conforme necessário
 config.RetryAttempts = 5
 config.SessionTimeout = 60 * time.Minute
@@ -183,23 +183,23 @@ config.SessionTimeout = 60 * time.Minute
 
 ```go
 // Validar cliente
-err := wmeow.ValidateClientAndStore(client, sessionID)
+err := wameow.ValidateClientAndStore(client, sessionID)
 
 // Validar JID
-isValid := wmeow.IsValidJID("5511999999999@s.Wameow.net")
+isValid := wameow.IsValidJID("5511999999999@s.Wameow.net")
 
 // Validar session ID
-err := wmeow.ValidateSessionID("session-123")
+err := wameow.ValidateSessionID("session-123")
 ```
 
 ### **Informações**
 
 ```go
 // Status da conexão
-status := wmeow.GetConnectionStatus(client, sessionID)
+status := wameow.GetConnectionStatus(client, sessionID)
 
 // Informações do cliente
-info := wmeow.GetClientInfo(client)
+info := wameow.GetClientInfo(client)
 
 // Health check
 health := manager.HealthCheck()
@@ -218,7 +218,7 @@ type ConnectionError struct {
 }
 
 // Verificar tipo de erro
-if connErr, ok := err.(*wmeow.ConnectionError); ok {
+if connErr, ok := err.(*wameow.ConnectionError); ok {
     log.Printf("Connection error for session %s: %v", 
                connErr.SessionID, connErr.Err)
 }
@@ -255,7 +255,7 @@ stats := manager.GetStats()
 ### **Configuração de Retry**
 
 ```go
-retryConfig := &wmeow.RetryConfig{
+retryConfig := &wameow.RetryConfig{
     MaxRetries:    5,
     RetryInterval: 30 * time.Second,
 }
@@ -273,17 +273,17 @@ O módulo implementa reconexão automática através dos event handlers. Quando 
 
 ```bash
 # Executar testes do módulo
-go test ./internal/infra/wmeow/...
+go test ./internal/infra/wameow/...
 
 # Com cobertura
-go test -cover ./internal/infra/wmeow/...
+go test -cover ./internal/infra/wameow/...
 ```
 
 ### **Testes de Integração**
 
 ```bash
 # Testes com banco real
-go test -tags=integration ./internal/infra/wmeow/...
+go test -tags=integration ./internal/infra/wameow/...
 ```
 
 ## 📚 Dependências

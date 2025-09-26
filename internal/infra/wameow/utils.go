@@ -1,4 +1,4 @@
-package wmeow
+package wameow
 
 import (
 	"context"

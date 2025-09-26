@@ -7,13 +7,13 @@ import (
 	"zpwoot/internal/app"
 	"zpwoot/internal/app/common"
 	"zpwoot/internal/infra/http/handlers"
-	"zpwoot/internal/infra/wmeow"
+	"zpwoot/internal/infra/wameow"
 	"zpwoot/platform/db"
 	"zpwoot/platform/logger"
 )
 
 // SetupRoutes configures all application routes
-func SetupRoutes(app *fiber.App, database *db.DB, logger *logger.Logger, WameowManager *wmeow.Manager, container *app.Container) {
+func SetupRoutes(app *fiber.App, database *db.DB, logger *logger.Logger, WameowManager *wameow.Manager, container *app.Container) {
 	// Swagger documentation
 	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
@@ -67,7 +67,7 @@ func SetupRoutes(app *fiber.App, database *db.DB, logger *logger.Logger, WameowM
 }
 
 // setupSessionRoutes configures session management routes
-func setupSessionRoutes(app *fiber.App, appLogger *logger.Logger, WameowManager *wmeow.Manager, container *app.Container) {
+func setupSessionRoutes(app *fiber.App, appLogger *logger.Logger, WameowManager *wameow.Manager, container *app.Container) {
 	// Initialize session handler with use case and repository from container
 	sessionHandler := handlers.NewSessionHandler(appLogger, container.GetSessionUseCase(), container.GetSessionRepository())
 
@@ -106,13 +106,13 @@ func setupSessionRoutes(app *fiber.App, appLogger *logger.Logger, WameowManager 
 }
 
 // setupSessionSpecificRoutes configures routes grouped by session ID
-func setupSessionSpecificRoutes(app *fiber.App, database *db.DB, appLogger *logger.Logger, WameowManager *wmeow.Manager, container *app.Container) {
+func setupSessionSpecificRoutes(app *fiber.App, database *db.DB, appLogger *logger.Logger, WameowManager *wameow.Manager, container *app.Container) {
 	// Placeholder for future session-specific routes if needed
 	// Currently all required routes are in setupSessionRoutes
 }
 
 // setupGlobalRoutes configures global routes (currently none needed)
-func setupGlobalRoutes(app *fiber.App, database *db.DB, appLogger *logger.Logger, WameowManager *wmeow.Manager, container *app.Container) {
+func setupGlobalRoutes(app *fiber.App, database *db.DB, appLogger *logger.Logger, WameowManager *wameow.Manager, container *app.Container) {
 	// All configuration routes are now session-specific
 	// This function is kept for future global routes if needed
 }
