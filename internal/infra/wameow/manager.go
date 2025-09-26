@@ -85,8 +85,8 @@ func (m *Manager) CreateSession(sessionID string, config *session.ProxyConfig) e
 		return fmt.Errorf("session %s already exists", sessionID)
 	}
 
-	// Create WameowClient (for new sessions, deviceJid is empty)
-	client, err := NewWameowClient(sessionID, m.container, m.sessionMgr.sessionRepo, m.logger, "")
+	// Create WameowClient
+	client, err := NewWameowClient(sessionID, m.container, m.sessionMgr.sessionRepo, m.logger)
 	if err != nil {
 		return fmt.Errorf("failed to create WameowClient for session %s: %w", sessionID, err)
 	}
@@ -117,53 +117,7 @@ func (m *Manager) CreateSession(sessionID string, config *session.ProxyConfig) e
 	return nil
 }
 
-// CreateSessionWithDeviceJid creates a new Wameow session with existing device credentials
-func (m *Manager) CreateSessionWithDeviceJid(sessionID string, config *session.ProxyConfig, deviceJid string) error {
-	m.logger.InfoWithFields("Creating Wameow session with existing device", map[string]interface{}{
-		"session_id": sessionID,
-		"device_jid": deviceJid,
-	})
 
-	m.clientsMutex.Lock()
-	defer m.clientsMutex.Unlock()
-
-	// Check if session already exists
-	if _, exists := m.clients[sessionID]; exists {
-		return fmt.Errorf("session %s already exists", sessionID)
-	}
-
-	// Create WameowClient with existing deviceJid
-	client, err := NewWameowClient(sessionID, m.container, m.sessionMgr.sessionRepo, m.logger, deviceJid)
-	if err != nil {
-		return fmt.Errorf("failed to create WameowClient for session %s: %w", sessionID, err)
-	}
-
-	// Set up event handlers
-	m.setupEventHandlers(client.GetClient(), sessionID)
-
-	// Apply proxy configuration if provided
-	if config != nil {
-		if err := m.applyProxyConfig(client.GetClient(), config); err != nil {
-			m.logger.WarnWithFields("Failed to apply proxy config", map[string]interface{}{
-				"session_id": sessionID,
-				"error":      err.Error(),
-			})
-		}
-	}
-
-	// Store client
-	m.clients[sessionID] = client
-
-	// Initialize session statistics
-	m.initSessionStats(sessionID)
-
-	m.logger.InfoWithFields("Wameow session created successfully with existing device", map[string]interface{}{
-		"session_id": sessionID,
-		"device_jid": deviceJid,
-	})
-
-	return nil
-}
 
 // ConnectSession connects a Wameow session
 func (m *Manager) ConnectSession(sessionID string) error {
@@ -189,24 +143,14 @@ func (m *Manager) ConnectSession(sessionID string) error {
 		}
 
 		// Create Wameow client for the existing session
-		// Use CreateSessionWithDeviceJid if session has existing credentials
-		if sess.DeviceJid != "" {
-			if err := m.CreateSessionWithDeviceJid(sessionID, sess.ProxyConfig, sess.DeviceJid); err != nil {
-				m.logger.ErrorWithFields("Failed to create Wameow client with existing device", map[string]interface{}{
-					"session_id": sessionID,
-					"device_jid": sess.DeviceJid,
-					"error":      err.Error(),
-				})
-				return fmt.Errorf("failed to initialize Wameow client for session %s: %w", sessionID, err)
-			}
-		} else {
-			if err := m.CreateSession(sessionID, sess.ProxyConfig); err != nil {
-				m.logger.ErrorWithFields("Failed to create Wameow client for new session", map[string]interface{}{
-					"session_id": sessionID,
-					"error":      err.Error(),
-				})
-				return fmt.Errorf("failed to initialize Wameow client for session %s: %w", sessionID, err)
-			}
+		// NewWameowClient will automatically detect existing deviceJid
+		if err := m.CreateSession(sessionID, sess.ProxyConfig); err != nil {
+			m.logger.ErrorWithFields("Failed to create Wameow client for session", map[string]interface{}{
+				"session_id": sessionID,
+				"device_jid": sess.DeviceJid,
+				"error":      err.Error(),
+			})
+			return fmt.Errorf("failed to initialize Wameow client for session %s: %w", sessionID, err)
 		}
 
 		// Get the newly created client

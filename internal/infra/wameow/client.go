@@ -16,11 +16,11 @@ import (
 
 // WameowClient wraps whatsmeow.Client with additional functionality
 type WameowClient struct {
-	sessionID    string
-	client       *whatsmeow.Client
-	logger       *logger.Logger
-	sessionMgr   *SessionManager
-	qrGenerator  *QRCodeGenerator
+	sessionID   string
+	client      *whatsmeow.Client
+	logger      *logger.Logger
+	sessionMgr  *SessionManager
+	qrGenerator *QRCodeGenerator
 
 	mu           sync.RWMutex
 	status       string
@@ -41,8 +41,23 @@ func NewWameowClient(
 	container *sqlstore.Container,
 	sessionRepo ports.SessionRepository,
 	logger *logger.Logger,
-	deviceJid string,
 ) (*WameowClient, error) {
+	// Get session from repository to check for existing deviceJid
+	ctx := context.Background()
+	sess, err := sessionRepo.GetByID(ctx, sessionID)
+	var deviceJid string
+	if err == nil && sess != nil {
+		deviceJid = sess.DeviceJid
+		logger.InfoWithFields("Found existing session", map[string]interface{}{
+			"session_id": sessionID,
+			"device_jid": deviceJid,
+		})
+	} else {
+		logger.InfoWithFields("Creating new session", map[string]interface{}{
+			"session_id": sessionID,
+		})
+	}
+
 	// Get device store for session with the correct deviceJid
 	deviceStore := GetDeviceStoreForSession(sessionID, deviceJid, container)
 	if deviceStore == nil {
