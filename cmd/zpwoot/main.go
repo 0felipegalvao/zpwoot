@@ -403,19 +403,13 @@ func connectOnStartup(container *app.Container, logger *logger.Logger) {
 			continue
 		}
 
-		// Skip if already connected
-		if sess.IsConnected {
-			logger.InfoWithFields("Session already connected, skipping", map[string]interface{}{
-				"session_id":   sessionID,
-				"session_name": sess.Name,
-			})
-			continue
-		}
-
-		logger.InfoWithFields("Attempting to auto-connect session", map[string]interface{}{
-			"session_id":   sessionID,
-			"session_name": sess.Name,
-			"device_jid":   sess.DeviceJid,
+		// Always attempt to reconnect sessions with device JID, regardless of stored connection status
+		// The IsConnected flag in database may be stale after server restart
+		logger.InfoWithFields("Attempting to reconnect session with saved credentials", map[string]interface{}{
+			"session_id":     sessionID,
+			"session_name":   sess.Name,
+			"device_jid":     sess.DeviceJid,
+			"was_connected":  sess.IsConnected,
 		})
 
 		// Try to connect the session using session use case
@@ -430,7 +424,7 @@ func connectOnStartup(container *app.Container, logger *logger.Logger) {
 		}
 
 		connectedCount++
-		logger.InfoWithFields("Successfully initiated auto-connect for session", map[string]interface{}{
+		logger.InfoWithFields("Successfully initiated reconnection for session", map[string]interface{}{
 			"session_id":   sessionID,
 			"session_name": sess.Name,
 		})
@@ -439,9 +433,9 @@ func connectOnStartup(container *app.Container, logger *logger.Logger) {
 		time.Sleep(1 * time.Second)
 	}
 
-	logger.InfoWithFields("Auto-connect process completed", map[string]interface{}{
-		"total_sessions":     len(sessions),
-		"connected_sessions": connectedCount,
-		"skipped_sessions":   skippedCount,
+	logger.InfoWithFields("Auto-reconnect process completed", map[string]interface{}{
+		"total_sessions":        len(sessions),
+		"reconnection_attempts": connectedCount,
+		"skipped_sessions":      skippedCount,
 	})
 }
