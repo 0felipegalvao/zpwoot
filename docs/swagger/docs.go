@@ -226,215 +226,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/sessions/{sessionId}/qr": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Retrieves the current QR code for pairing a WhatsApp session. The QR code expires after 60 seconds. You can use either the session UUID or session name. Requires API key authentication.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Sessions"
-                ],
-                "summary": "Get QR code for session pairing",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "example": "\"your-api-key-here\"",
-                        "description": "API Key for authentication",
-                        "name": "X-API-Key",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"mySession\"",
-                        "description": "Session ID or Name",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "QR code retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/zpwoot_internal_app.SuccessResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/zpwoot_internal_app.QRCodeResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid session identifier",
-                        "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_app.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized - Invalid or missing API key",
-                        "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_app.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Session not found or no QR code available",
-                        "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_app.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_app.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/sessions/{sessionId}/webhook/config": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Retrieves the current webhook configuration for a specific session. Requires API key authentication.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Webhooks"
-                ],
-                "summary": "Get webhook configuration",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "uuid",
-                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
-                        "description": "Session ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Webhook configuration retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/WebhookResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized - Invalid or missing API key",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "404": {
-                        "description": "Session or webhook configuration not found",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Creates a new webhook configuration for a specific session. Webhooks will receive real-time events from WhatsApp. Requires API key authentication.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Webhooks"
-                ],
-                "summary": "Create webhook configuration",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "format": "uuid",
-                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
-                        "description": "Session ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Webhook configuration request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/SetConfigRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Webhook created successfully",
-                        "schema": {
-                            "$ref": "#/definitions/WebhookResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request body or parameters",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized - Invalid or missing API key",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "404": {
-                        "description": "Session not found",
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                }
-            }
-        },
         "/sessions/{sessionId}/connect": {
             "post": {
                 "security": [
@@ -682,6 +473,215 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/sessions/{sessionId}/qr": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves the current QR code for pairing a WhatsApp session. The QR code expires after 60 seconds. You can use either the session UUID or session name. Requires API key authentication.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Get QR code for session pairing",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"your-api-key-here\"",
+                        "description": "API Key for authentication",
+                        "name": "X-API-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"mySession\"",
+                        "description": "Session ID or Name",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "QR code retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/zpwoot_internal_app.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/zpwoot_internal_app.QRCodeResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid session identifier",
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_app.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing API key",
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_app.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Session not found or no QR code available",
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_app.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_app.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/sessions/{sessionId}/webhook/config": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves the current webhook configuration for a specific session. Requires API key authentication.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "Get webhook configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Webhook configuration retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/WebhookResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing API key",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Session or webhook configuration not found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Creates a new webhook configuration for a specific session. Webhooks will receive real-time events from WhatsApp. Requires API key authentication.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "Create webhook configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "\"123e4567-e89b-12d3-a456-426614174000\"",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Webhook configuration request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/SetConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Webhook created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/WebhookResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or parameters",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Invalid or missing API key",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Session not found",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -741,38 +741,6 @@ const docTemplate = `{
                 "url": {
                     "type": "string",
                     "example": "https://chatwoot.example.com"
-                }
-            }
-        },
-        "SetConfigRequest": {
-            "type": "object",
-            "required": [
-                "events",
-                "url"
-            ],
-            "properties": {
-                "events": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "message",
-                        "status"
-                    ]
-                },
-                "secret": {
-                    "type": "string",
-                    "example": "webhook-secret-key"
-                },
-                "sessionId": {
-                    "type": "string",
-                    "example": "session-123"
-                },
-                "url": {
-                    "type": "string",
-                    "example": "https://example.com/webhook"
                 }
             }
         },
@@ -909,6 +877,38 @@ const docTemplate = `{
                 "updatedAt": {
                     "type": "string",
                     "example": "2024-01-01T00:00:00Z"
+                }
+            }
+        },
+        "SetConfigRequest": {
+            "type": "object",
+            "required": [
+                "events",
+                "url"
+            ],
+            "properties": {
+                "events": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "message",
+                        "status"
+                    ]
+                },
+                "secret": {
+                    "type": "string",
+                    "example": "webhook-secret-key"
+                },
+                "sessionId": {
+                    "type": "string",
+                    "example": "session-123"
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://example.com/webhook"
                 }
             }
         },

@@ -3,7 +3,10 @@ package wmeow
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"zpwoot/internal/domain/session"
@@ -12,7 +15,23 @@ import (
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store/sqlstore"
+	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types/events"
 )
+
+// SessionStats tracks statistics for a session
+type SessionStats struct {
+	MessagesSent     int64
+	MessagesReceived int64
+	LastActivity     int64
+	StartTime        int64
+}
+
+// EventHandlerInfo stores information about registered event handlers
+type EventHandlerInfo struct {
+	ID      string
+	Handler ports.EventHandler
+}
 
 // Manager implements the WhatsAppManager interface
 type Manager struct {
@@ -23,6 +42,14 @@ type Manager struct {
 	qrGenerator   *QRCodeGenerator
 	sessionMgr    *SessionManager
 	logger        *logger.Logger
+
+	// Statistics tracking
+	sessionStats map[string]*SessionStats
+	statsMutex   sync.RWMutex
+
+	// Event handlers
+	eventHandlers map[string]map[string]*EventHandlerInfo // sessionID -> handlerID -> handler
+	handlersMutex sync.RWMutex
 }
 
 // NewManager creates a new WhatsApp manager
