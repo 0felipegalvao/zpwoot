@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
 	"zpwoot/platform/logger"
+
+	"github.com/google/uuid"
 )
 
 // Service provides chatwoot domain operations

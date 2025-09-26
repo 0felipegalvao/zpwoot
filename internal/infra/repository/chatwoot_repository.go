@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
-	"zpwoot/internal/domain/chatwoot"
+	chatwootdomain "zpwoot/internal/domain/chatwoot"
 	"zpwoot/internal/ports"
 	"zpwoot/platform/logger"
 )
@@ -46,7 +46,7 @@ type chatwootConfigModel struct {
 // Config operations
 
 // CreateConfig creates a new chatwoot configuration
-func (r *chatwootRepository) CreateConfig(ctx context.Context, config *chatwoot.ChatwootConfig) error {
+func (r *chatwootRepository) CreateConfig(ctx context.Context, config *chatwootdomain.ChatwootConfig) error {
 	r.logger.InfoWithFields("Creating chatwoot config", map[string]interface{}{
 		"config_id": config.ID.String(),
 		"url":       config.URL,
@@ -72,7 +72,7 @@ func (r *chatwootRepository) CreateConfig(ctx context.Context, config *chatwoot.
 }
 
 // GetConfig retrieves the chatwoot configuration
-func (r *chatwootRepository) GetConfig(ctx context.Context) (*chatwoot.ChatwootConfig, error) {
+func (r *chatwootRepository) GetConfig(ctx context.Context) (*chatwootdomain.ChatwootConfig, error) {
 	r.logger.Info("Getting chatwoot config")
 
 	var model chatwootConfigModel
@@ -81,7 +81,7 @@ func (r *chatwootRepository) GetConfig(ctx context.Context) (*chatwoot.ChatwootC
 	err := r.db.GetContext(ctx, &model, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, chatwoot.ErrConfigNotFound
+			return nil, chatwootdomain.ErrConfigNotFound
 		}
 		r.logger.ErrorWithFields("Failed to get chatwoot config", map[string]interface{}{
 			"error": err.Error(),
@@ -98,7 +98,7 @@ func (r *chatwootRepository) GetConfig(ctx context.Context) (*chatwoot.ChatwootC
 }
 
 // UpdateConfig updates the chatwoot configuration
-func (r *chatwootRepository) UpdateConfig(ctx context.Context, config *chatwoot.ChatwootConfig) error {
+func (r *chatwootRepository) UpdateConfig(ctx context.Context, config *chatwootdomain.ChatwootConfig) error {
 	r.logger.InfoWithFields("Updating chatwoot config", map[string]interface{}{
 		"config_id": config.ID.String(),
 	})
@@ -128,7 +128,7 @@ func (r *chatwootRepository) UpdateConfig(ctx context.Context, config *chatwoot.
 	}
 
 	if rowsAffected == 0 {
-		return chatwoot.ErrConfigNotFound
+		return chatwootdomain.ErrConfigNotFound
 	}
 
 	return nil
@@ -154,7 +154,7 @@ func (r *chatwootRepository) DeleteConfig(ctx context.Context) error {
 // Contact operations - These are handled via Chatwoot API, not stored locally
 
 // CreateContact creates a new chatwoot contact via API
-func (r *chatwootRepository) CreateContact(ctx context.Context, contact *chatwoot.ChatwootContact) error {
+func (r *chatwootRepository) CreateContact(ctx context.Context, contact *chatwootdomain.ChatwootContact) error {
 	r.logger.InfoWithFields("Contact operations handled via Chatwoot API", map[string]interface{}{
 		"chatwoot_id":  contact.ID,
 		"phone_number": contact.PhoneNumber,
@@ -166,29 +166,29 @@ func (r *chatwootRepository) CreateContact(ctx context.Context, contact *chatwoo
 }
 
 // GetContactByID retrieves a contact by its ID via API
-func (r *chatwootRepository) GetContactByID(ctx context.Context, id int) (*chatwoot.ChatwootContact, error) {
+func (r *chatwootRepository) GetContactByID(ctx context.Context, id int) (*chatwootdomain.ChatwootContact, error) {
 	r.logger.InfoWithFields("Getting contact via Chatwoot API", map[string]interface{}{
 		"contact_id": id,
 	})
 
 	// This would typically make an API call to Chatwoot
 	// For now, return not found as contacts are managed via API
-	return nil, chatwoot.ErrContactNotFound
+	return nil, chatwootdomain.ErrContactNotFound
 }
 
 // GetContactByPhone retrieves a contact by phone number via API
-func (r *chatwootRepository) GetContactByPhone(ctx context.Context, phoneNumber string) (*chatwoot.ChatwootContact, error) {
+func (r *chatwootRepository) GetContactByPhone(ctx context.Context, phoneNumber string) (*chatwootdomain.ChatwootContact, error) {
 	r.logger.InfoWithFields("Getting contact by phone via Chatwoot API", map[string]interface{}{
 		"phone_number": phoneNumber,
 	})
 
 	// This would typically make an API call to Chatwoot
 	// For now, return not found as contacts are managed via API
-	return nil, chatwoot.ErrContactNotFound
+	return nil, chatwootdomain.ErrContactNotFound
 }
 
 // UpdateContact updates an existing contact via API
-func (r *chatwootRepository) UpdateContact(ctx context.Context, contact *chatwoot.ChatwootContact) error {
+func (r *chatwootRepository) UpdateContact(ctx context.Context, contact *chatwootdomain.ChatwootContact) error {
 	r.logger.InfoWithFields("Updating contact via Chatwoot API", map[string]interface{}{
 		"contact_id": contact.ID,
 	})
@@ -210,7 +210,7 @@ func (r *chatwootRepository) DeleteContact(ctx context.Context, id int) error {
 }
 
 // ListContacts retrieves contacts with pagination via API
-func (r *chatwootRepository) ListContacts(ctx context.Context, limit, offset int) ([]*chatwoot.ChatwootContact, int, error) {
+func (r *chatwootRepository) ListContacts(ctx context.Context, limit, offset int) ([]*chatwootdomain.ChatwootContact, int, error) {
 	r.logger.InfoWithFields("Listing contacts via Chatwoot API", map[string]interface{}{
 		"limit":  limit,
 		"offset": offset,
@@ -218,7 +218,7 @@ func (r *chatwootRepository) ListContacts(ctx context.Context, limit, offset int
 
 	// This would typically make an API call to Chatwoot
 	// For now, return empty list as contacts are managed via API
-	return []*chatwoot.ChatwootContact{}, 0, nil
+	return []*chatwootdomain.ChatwootContact{}, 0, nil
 }
 
 // Statistics operations - These would typically come from Chatwoot API
@@ -285,23 +285,23 @@ func (r *chatwootRepository) GetStatsForPeriod(ctx context.Context, from, to int
 }
 
 // Placeholder implementations for other methods
-func (r *chatwootRepository) CreateConversation(ctx context.Context, conversation *chatwoot.ChatwootConversation) error {
+func (r *chatwootRepository) CreateConversation(ctx context.Context, conversation *chatwootdomain.ChatwootConversation) error {
 	return fmt.Errorf("not implemented")
 }
 
-func (r *chatwootRepository) GetConversationByID(ctx context.Context, id int) (*chatwoot.ChatwootConversation, error) {
+func (r *chatwootRepository) GetConversationByID(ctx context.Context, id int) (*chatwootdomain.ChatwootConversation, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (r *chatwootRepository) GetConversationByContactID(ctx context.Context, contactID int) (*chatwoot.ChatwootConversation, error) {
+func (r *chatwootRepository) GetConversationByContactID(ctx context.Context, contactID int) (*chatwootdomain.ChatwootConversation, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (r *chatwootRepository) GetConversationBySessionID(ctx context.Context, sessionID string) (*chatwoot.ChatwootConversation, error) {
+func (r *chatwootRepository) GetConversationBySessionID(ctx context.Context, sessionID string) (*chatwootdomain.ChatwootConversation, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (r *chatwootRepository) UpdateConversation(ctx context.Context, conversation *chatwoot.ChatwootConversation) error {
+func (r *chatwootRepository) UpdateConversation(ctx context.Context, conversation *chatwootdomain.ChatwootConversation) error {
 	return fmt.Errorf("not implemented")
 }
 
@@ -309,27 +309,27 @@ func (r *chatwootRepository) DeleteConversation(ctx context.Context, id int) err
 	return fmt.Errorf("not implemented")
 }
 
-func (r *chatwootRepository) ListConversations(ctx context.Context, limit, offset int) ([]*chatwoot.ChatwootConversation, int, error) {
+func (r *chatwootRepository) ListConversations(ctx context.Context, limit, offset int) ([]*chatwootdomain.ChatwootConversation, int, error) {
 	return nil, 0, fmt.Errorf("not implemented")
 }
 
-func (r *chatwootRepository) GetActiveConversations(ctx context.Context) ([]*chatwoot.ChatwootConversation, error) {
+func (r *chatwootRepository) GetActiveConversations(ctx context.Context) ([]*chatwootdomain.ChatwootConversation, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (r *chatwootRepository) CreateMessage(ctx context.Context, message *chatwoot.ChatwootMessage) error {
+func (r *chatwootRepository) CreateMessage(ctx context.Context, message *chatwootdomain.ChatwootMessage) error {
 	return fmt.Errorf("not implemented")
 }
 
-func (r *chatwootRepository) GetMessageByID(ctx context.Context, id int) (*chatwoot.ChatwootMessage, error) {
+func (r *chatwootRepository) GetMessageByID(ctx context.Context, id int) (*chatwootdomain.ChatwootMessage, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (r *chatwootRepository) GetMessagesByConversationID(ctx context.Context, conversationID int, limit, offset int) ([]*chatwoot.ChatwootMessage, error) {
+func (r *chatwootRepository) GetMessagesByConversationID(ctx context.Context, conversationID int, limit, offset int) ([]*chatwootdomain.ChatwootMessage, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (r *chatwootRepository) UpdateMessage(ctx context.Context, message *chatwoot.ChatwootMessage) error {
+func (r *chatwootRepository) UpdateMessage(ctx context.Context, message *chatwootdomain.ChatwootMessage) error {
 	return fmt.Errorf("not implemented")
 }
 
@@ -360,7 +360,7 @@ func (r *chatwootRepository) GetSyncRecordsBySession(ctx context.Context, sessio
 // Helper methods
 
 // configToModel converts domain config to database model
-func (r *chatwootRepository) configToModel(config *chatwoot.ChatwootConfig) *chatwootConfigModel {
+func (r *chatwootRepository) configToModel(config *chatwootdomain.ChatwootConfig) *chatwootConfigModel {
 	model := &chatwootConfigModel{
 		ID:        config.ID.String(),
 		URL:       config.URL,
@@ -379,13 +379,13 @@ func (r *chatwootRepository) configToModel(config *chatwoot.ChatwootConfig) *cha
 }
 
 // configFromModel converts database model to domain config
-func (r *chatwootRepository) configFromModel(model *chatwootConfigModel) (*chatwoot.ChatwootConfig, error) {
+func (r *chatwootRepository) configFromModel(model *chatwootConfigModel) (*chatwootdomain.ChatwootConfig, error) {
 	id, err := uuid.Parse(model.ID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid config ID: %w", err)
 	}
 
-	config := &chatwoot.ChatwootConfig{
+	config := &chatwootdomain.ChatwootConfig{
 		ID:        id,
 		URL:       model.URL,
 		APIKey:    model.Token, // token field maps to APIKey

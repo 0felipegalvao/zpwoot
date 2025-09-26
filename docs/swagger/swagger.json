@@ -17,7 +17,7 @@
     "host": "localhost:8080",
     "basePath": "/",
     "paths": {
-        "/api/v1/chatwoot/config": {
+        "/chatwoot/config": {
             "post": {
                 "security": [
                     {

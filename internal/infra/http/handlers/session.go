@@ -474,14 +474,14 @@ func (h *SessionHandler) PairPhone(c *fiber.Ctx) error {
 
 	// Call use case to pair phone
 	ctx := c.Context()
-	result, err := h.sessionUC.PairPhone(ctx, sess.ID, &req)
+	err := h.sessionUC.PairPhone(ctx, sess.ID.String(), &req)
 	if err != nil {
 		h.logger.Error("Failed to pair phone: " + err.Error())
 		return c.Status(500).JSON(app.NewErrorResponse("Failed to pair phone"))
 	}
 
 	// Return success response
-	response := app.NewSuccessResponse(result, "Phone pairing initiated successfully")
+	response := app.NewSuccessResponse(nil, "Phone pairing initiated successfully")
 	return c.JSON(response)
 }
 

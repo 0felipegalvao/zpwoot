@@ -61,38 +61,38 @@ go run cmd/zpwoot/main.go
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| `POST` | `/api/v1/sessions` | Criar uma nova sessão do WhatsApp |
-| `GET` | `/api/v1/sessions` | Listar todas as sessões (com filtros opcionais) |
-| `GET` | `/api/v1/sessions/{id}` | Detalhes de uma sessão específica |
-| `DELETE` | `/api/v1/sessions/{id}` | Remove permanentemente uma sessão |
-| `POST` | `/api/v1/sessions/{sessionId}/connect` | Estabelece a conexão da sessão com o WhatsApp |
-| `POST` | `/api/v1/sessions/{sessionId}/logout` | Faz o logout da sessão do WhatsApp |
-| `GET` | `/api/v1/sessions/{sessionId}/qr` | Recupera o QR Code atual (se existir) |
-| `POST` | `/api/v1/sessions/{sessionId}/pair` | Emparelha um telefone com a sessão |
-| `POST` | `/api/v1/sessions/{sessionId}/proxy` | Define proxy para a sessão |
-| `GET` | `/api/v1/sessions/{sessionId}/proxy` | Obtém configuração de proxy para a sessão |
+| `POST` | `/sessions` | Criar uma nova sessão do WhatsApp |
+| `GET` | `/sessions` | Listar todas as sessões (com filtros opcionais) |
+| `GET` | `/sessions/{id}` | Detalhes de uma sessão específica |
+| `DELETE` | `/sessions/{id}` | Remove permanentemente uma sessão |
+| `POST` | `/sessions/{sessionId}/connect` | Estabelece a conexão da sessão com o WhatsApp |
+| `POST` | `/sessions/{sessionId}/logout` | Faz o logout da sessão do WhatsApp |
+| `GET` | `/sessions/{sessionId}/qr` | Recupera o QR Code atual (se existir) |
+| `POST` | `/sessions/{sessionId}/pair` | Emparelha um telefone com a sessão |
+| `POST` | `/sessions/{sessionId}/proxy` | Define proxy para a sessão |
+| `GET` | `/sessions/{sessionId}/proxy` | Obtém configuração de proxy para a sessão |
 
 ### WhatsApp Messaging
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| `POST` | `/api/v1/whatsapp/{sessionId}/send/text` | Enviar mensagem de texto |
-| `POST` | `/api/v1/whatsapp/{sessionId}/send/media` | Enviar mensagem de mídia |
-| `GET` | `/api/v1/whatsapp/{sessionId}/contacts` | Listar contatos |
-| `GET` | `/api/v1/whatsapp/{sessionId}/chats` | Listar conversas |
-| `GET` | `/api/v1/whatsapp/{sessionId}/status` | Status da sessão |
+| `POST` | `/whatsapp/{sessionId}/send/text` | Enviar mensagem de texto |
+| `POST` | `/whatsapp/{sessionId}/send/media` | Enviar mensagem de mídia |
+| `GET` | `/whatsapp/{sessionId}/contacts` | Listar contatos |
+| `GET` | `/whatsapp/{sessionId}/chats` | Listar conversas |
+| `GET` | `/whatsapp/{sessionId}/status` | Status da sessão |
 
 ### Webhooks
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| `POST` | `/api/v1/webhooks/config` | Criar configuração de webhook |
-| `GET` | `/api/v1/webhooks/config` | Listar configurações de webhook |
-| `PUT` | `/api/v1/webhooks/config/{id}` | Atualizar configuração de webhook |
-| `DELETE` | `/api/v1/webhooks/config/{id}` | Remover configuração de webhook |
-| `GET` | `/api/v1/webhooks/events` | Listar eventos suportados |
-| `POST` | `/api/v1/webhooks/test/{id}` | Testar webhook |
-| `POST` | `/api/v1/webhooks/incoming/{sessionId}` | Webhook de entrada |
+| `POST` | `/webhooks/config` | Criar configuração de webhook |
+| `GET` | `/webhooks/config` | Listar configurações de webhook |
+| `PUT` | `/webhooks/config/{id}` | Atualizar configuração de webhook |
+| `DELETE` | `/webhooks/config/{id}` | Remover configuração de webhook |
+| `GET` | `/webhooks/events` | Listar eventos suportados |
+| `POST` | `/webhooks/test/{id}` | Testar webhook |
+| `POST` | `/webhooks/incoming/{sessionId}` | Webhook de entrada |
 
 ### Integração Chatwoot
 
@@ -100,11 +100,11 @@ go run cmd/zpwoot/main.go
 |--------|------|-----------|
 | `POST` | `/sessions/{sessionId}/chatwoot/set` | Configurar Chatwoot (criar/atualizar) |
 | `GET` | `/sessions/{sessionId}/chatwoot/find` | Buscar configuração Chatwoot |
-| `POST` | `/api/v1/chatwoot/sync/contacts` | Sincronizar contatos |
-| `POST` | `/api/v1/chatwoot/sync/conversations` | Sincronizar conversas |
-| `POST` | `/api/v1/chatwoot/webhook` | Webhook do Chatwoot |
-| `POST` | `/api/v1/chatwoot/test` | Testar conexão Chatwoot |
-| `GET` | `/api/v1/chatwoot/stats` | Estatísticas da integração |
+| `POST` | `/chatwoot/sync/contacts` | Sincronizar contatos |
+| `POST` | `/chatwoot/sync/conversations` | Sincronizar conversas |
+| `POST` | `/chatwoot/webhook` | Webhook do Chatwoot |
+| `POST` | `/chatwoot/test` | Testar conexão Chatwoot |
+| `GET` | `/chatwoot/stats` | Estatísticas da integração |
 
 **Nota:** A configuração do Chatwoot agora é específica por sessão e simplificada em apenas 2 endpoints:
 - `set`: Cria ou atualiza a configuração (apenas uma configuração por sessão)
@@ -177,25 +177,25 @@ curl -H "Authorization: dev-api-key-12345" \
 ### Listar sessões
 
 ```bash
-curl http://localhost:8080/api/v1/sessions/list?status=connected&limit=10
+curl http://localhost:8080/sessions/list?status=connected&limit=10
 ```
 
 ### Conectar uma sessão
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/sessions/{session-id}/connect
+curl -X POST http://localhost:8080/sessions/{session-id}/connect
 ```
 
 ### Obter QR Code
 
 ```bash
-curl http://localhost:8080/api/v1/sessions/{session-id}/qr
+curl http://localhost:8080/sessions/{session-id}/qr
 ```
 
 ### Configurar Proxy
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/sessions/{session-id}/proxy/set \
+curl -X POST http://localhost:8080/sessions/{session-id}/proxy/set \
   -H "Content-Type: application/json" \
   -d '{
     "type": "http",

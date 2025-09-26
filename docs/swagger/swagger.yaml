@@ -262,7 +262,7 @@ info:
   title: zpwoot - WhatsApp Multi-Session API
   version: "1.0"
 paths:
-  /api/v1/chatwoot/config:
+  /chatwoot/config:
     post:
       consumes:
       - application/json

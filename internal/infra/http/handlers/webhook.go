@@ -8,12 +8,14 @@ import (
 )
 
 type WebhookHandler struct {
-	logger *logger.Logger
+	webhookUC app.WebhookUseCase
+	logger    *logger.Logger
 }
 
-func NewWebhookHandler(appLogger *logger.Logger) *WebhookHandler {
+func NewWebhookHandler(webhookUC app.WebhookUseCase, appLogger *logger.Logger) *WebhookHandler {
 	return &WebhookHandler{
-		logger: appLogger,
+		webhookUC: webhookUC,
+		logger:    appLogger,
 	}
 }
 

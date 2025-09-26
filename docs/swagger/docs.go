@@ -23,7 +23,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/chatwoot/config": {
+        "/chatwoot/config": {
             "post": {
                 "security": [
                     {

@@ -216,7 +216,7 @@ func main() {
 
 // initializeWhatsAppManager creates and initializes the WhatsApp manager
 // This will automatically create the whatsmeow tables in the database
-func initializeWhatsAppManager(database *db.DB, appLogger *logger.Logger) (*wmeow.Manager, error) {
+func initializeWhatsAppManager(database *platformDB.DB, appLogger *logger.Logger) (*wmeow.Manager, error) {
 	appLogger.Info("Creating WhatsApp manager factory...")
 
 	// For now, we'll pass nil for sessionRepo since it's not fully implemented yet
@@ -275,25 +275,25 @@ func seedDatabase(database *platformDB.DB, logger *logger.Logger) error {
 	// Sample session data
 	sampleSessions := []map[string]interface{}{
 		{
-			"id":          "sample-session-1",
-			"name":        "Sample WhatsApp Session",
-			"device_jid":  "5511999999999@s.whatsapp.net",
-			"status":      "created",
-			"created_at":  time.Now(),
-			"updated_at":  time.Now(),
+			"id":         "sample-session-1",
+			"name":       "Sample WhatsApp Session",
+			"device_jid": "5511999999999@s.whatsapp.net",
+			"status":     "created",
+			"created_at": time.Now(),
+			"updated_at": time.Now(),
 		},
 	}
 
 	// Sample webhook data
 	sampleWebhooks := []map[string]interface{}{
 		{
-			"id":          "sample-webhook-1",
-			"session_id":  "sample-session-1",
-			"url":         "https://example.com/webhook",
-			"events":      []string{"message", "status"},
-			"enabled":     true,
-			"created_at":  time.Now(),
-			"updated_at":  time.Now(),
+			"id":         "sample-webhook-1",
+			"session_id": "sample-session-1",
+			"url":        "https://example.com/webhook",
+			"events":     []string{"message", "status"},
+			"enabled":    true,
+			"created_at": time.Now(),
+			"updated_at": time.Now(),
 		},
 	}
 

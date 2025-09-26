@@ -169,7 +169,7 @@ func (c *ChatwootConfig) IsConfigured() bool {
 
 // GetBaseURL returns the base URL for API calls
 func (c *ChatwootConfig) GetBaseURL() string {
-	return c.URL + "/api/v1/accounts/" + c.AccountID
+	return c.URL + "/accounts/" + c.AccountID
 }
 
 // ChatwootEventType represents the type of Chatwoot webhook event
