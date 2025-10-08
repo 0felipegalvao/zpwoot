@@ -10,6 +10,7 @@ import (
 
 	"zpwoot/internal/core/application/dto"
 	"zpwoot/internal/core/application/utils"
+	"zpwoot/internal/core/application/validator"
 	"zpwoot/internal/core/ports/input"
 	"zpwoot/internal/core/ports/output"
 
@@ -81,13 +82,9 @@ func (h *MessageHandler) SendText(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Phone == "" {
-		h.writeError(w, http.StatusBadRequest, "validation_error", "phone is required")
-		return
-	}
-
-	if req.Text == "" {
-		h.writeError(w, http.StatusBadRequest, "validation_error", "text is required")
+	// Validate request using validator
+	if err := validator.Validate(&req); err != nil {
+		validator.WriteValidationError(w, err)
 		return
 	}
 

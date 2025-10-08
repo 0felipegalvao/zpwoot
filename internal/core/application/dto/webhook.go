@@ -3,9 +3,9 @@ package dto
 import "time"
 
 type CreateWebhookRequest struct {
-	URL    string   `json:"url" validate:"required,url"`
-	Secret *string  `json:"secret,omitempty"`
-	Events []string `json:"events,omitempty"`
+	URL    string   `json:"url" validate:"required,whatsapp_url"`
+	Secret *string  `json:"secret,omitempty" validate:"omitempty,min=8,max=256"`
+	Events []string `json:"events,omitempty" validate:"omitempty,dive,webhook_event"`
 } // @name CreateWebhookRequest
 type WebhookResponse struct {
 	ID        string    `json:"id"`

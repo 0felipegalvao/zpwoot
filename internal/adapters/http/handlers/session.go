@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"zpwoot/internal/core/application/dto"
+	"zpwoot/internal/core/application/validator"
 	"zpwoot/internal/core/ports/input"
 	"zpwoot/internal/core/ports/output"
 
@@ -45,18 +46,9 @@ func (h *SessionHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Name == "" {
-		h.writeErrorResponse(w, http.StatusBadRequest, dto.ErrorCodeValidation, "Session name is required")
-		return
-	}
-
-	if len(req.Name) < 3 {
-		h.writeErrorResponse(w, http.StatusBadRequest, dto.ErrorCodeValidation, "Session name must be at least 3 characters")
-		return
-	}
-
-	if len(req.Name) > 50 {
-		h.writeErrorResponse(w, http.StatusBadRequest, dto.ErrorCodeValidation, "Session name must be less than 50 characters")
+	// Validate request using validator
+	if err := validator.Validate(&req); err != nil {
+		validator.WriteValidationError(w, err)
 		return
 	}
 

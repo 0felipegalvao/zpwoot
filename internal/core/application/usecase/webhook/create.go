@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"zpwoot/internal/core/application/dto"
+	"zpwoot/internal/core/application/validator"
 	"zpwoot/internal/core/domain/webhook"
 )
 
@@ -29,6 +30,12 @@ func (uc *CreateUseCase) Execute(
 	sessionID string,
 	request *dto.CreateWebhookRequest,
 ) (*dto.WebhookResponse, error) {
+	// Validate using validator
+	if err := validator.Validate(request); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
+	// Additional domain validation
 	if err := uc.webhookService.ValidateURL(request.URL); err != nil {
 		return nil, fmt.Errorf("invalid webhook URL: %w", err)
 	}

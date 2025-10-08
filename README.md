@@ -10,6 +10,7 @@ A comprehensive WhatsApp Business API built with Go, following Clean Architectur
 ## ✨ Features
 
 - 🚀 **Clean Architecture** - Maintainable and testable codebase
+- ✅ **Robust Validation** - Comprehensive input validation with go-playground/validator
 - 🔄 **Automatic Migrations** - Database schema managed automatically
 - 📊 **PostgreSQL Integration** - Robust data persistence
 - 🐳 **Docker Ready** - Full containerization support
@@ -252,6 +253,7 @@ go test ./internal/domain/session/...
 ## 📚 Documentation
 
 - [Architecture Guide](ARCHITECTURE.md) - Detailed architecture documentation
+- [Validation Guide](docs/VALIDATION.md) - Input validation documentation
 - [API Documentation](docs/api.md) - API reference (planned)
 - [Deployment Guide](docs/deployment.md) - Production deployment (planned)
 

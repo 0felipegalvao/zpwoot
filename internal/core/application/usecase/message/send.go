@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"zpwoot/internal/core/application/dto"
+	"zpwoot/internal/core/application/validator"
 	"zpwoot/internal/core/domain/session"
 	"zpwoot/internal/core/domain/shared"
 	"zpwoot/internal/core/ports/output"
@@ -96,6 +97,12 @@ func (uc *SendUseCase) validateSendRequest(sessionID string, req *dto.SendMessag
 		return fmt.Errorf("session ID is required")
 	}
 
+	// Validate using validator
+	if err := validator.Validate(req); err != nil {
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
+	// Additional custom validation
 	if err := req.Validate(); err != nil {
 		return fmt.Errorf("validation failed: %w", err)
 	}

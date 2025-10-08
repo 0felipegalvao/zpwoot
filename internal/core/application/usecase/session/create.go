@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"zpwoot/internal/core/application/dto"
+	"zpwoot/internal/core/application/validator"
 	"zpwoot/internal/core/domain/session"
 	"zpwoot/internal/core/domain/shared"
 	"zpwoot/internal/core/ports/output"
@@ -30,6 +31,12 @@ func NewCreateUseCase(
 }
 
 func (uc *CreateUseCase) Execute(ctx context.Context, req *dto.CreateRequest) (*dto.CreateSessionResponse, error) {
+	// Validate request using validator
+	if err := validator.Validate(req); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
+	// Additional custom validation
 	if err := req.Validate(); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}

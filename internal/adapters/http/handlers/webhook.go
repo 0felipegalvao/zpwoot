@@ -6,6 +6,7 @@ import (
 
 	"zpwoot/internal/adapters/logger"
 	"zpwoot/internal/core/application/dto"
+	"zpwoot/internal/core/application/validator"
 	"zpwoot/internal/core/ports/input"
 
 	"github.com/go-chi/chi/v5"
@@ -47,6 +48,12 @@ func (h *WebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) {
 		h.logger.Error().Err(err).Msg("Failed to decode webhook request")
 		h.writeError(w, http.StatusBadRequest, dto.ErrorCodeBadRequest, "Invalid JSON body")
 
+		return
+	}
+
+	// Validate request using validator
+	if err := validator.Validate(&req); err != nil {
+		validator.WriteValidationError(w, err)
 		return
 	}
 

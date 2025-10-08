@@ -11,33 +11,33 @@ import (
 )
 
 type SendMessageRequest struct {
-	To       string       `json:"to" validate:"required"`
-	Type     string       `json:"type" validate:"required,oneof=text media location contact"`
-	Text     string       `json:"text,omitempty"`
-	Media    *MediaData   `json:"media,omitempty"`
-	Location *Location    `json:"location,omitempty"`
-	Contact  *ContactInfo `json:"contact,omitempty"`
+	To       string       `json:"to" validate:"required,jid"`
+	Type     string       `json:"type" validate:"required,message_type"`
+	Text     string       `json:"text,omitempty" validate:"required_if=Type text,omitempty,min=1,max=65536"`
+	Media    *MediaData   `json:"media,omitempty" validate:"required_if=Type media,omitempty,dive"`
+	Location *Location    `json:"location,omitempty" validate:"required_if=Type location,omitempty,dive"`
+	Contact  *ContactInfo `json:"contact,omitempty" validate:"required_if=Type contact,omitempty,dive"`
 }
 
 type MediaData struct {
-	URL      string `json:"url,omitempty" example:"https://example.com/image.jpg"`
-	Base64   string `json:"base64,omitempty" example:"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="`
-	FileName string `json:"fileName,omitempty" example:"image.jpg"`
-	MimeType string `json:"mimeType,omitempty" example:"image/jpeg"`
-	Caption  string `json:"caption,omitempty" example:"Check out this image!"`
+	URL      string `json:"url,omitempty" validate:"required_without=Base64,omitempty,url" example:"https://example.com/image.jpg"`
+	Base64   string `json:"base64,omitempty" validate:"required_without=URL,omitempty,base64" example:"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="`
+	FileName string `json:"fileName,omitempty" validate:"omitempty,min=1,max=255" example:"image.jpg"`
+	MimeType string `json:"mimeType,omitempty" validate:"omitempty,min=1,max=100" example:"image/jpeg"`
+	Caption  string `json:"caption,omitempty" validate:"omitempty,max=1024" example:"Check out this image!"`
 } // @name MediaData
 
 type Location struct {
 	Latitude  float64 `json:"latitude" validate:"required,min=-90,max=90" example:"-23.550520"`
 	Longitude float64 `json:"longitude" validate:"required,min=-180,max=180" example:"-46.633308"`
-	Name      string  `json:"name,omitempty" example:"São Paulo"`
-	Address   string  `json:"address,omitempty" example:"Av. Paulista, 1578 - Bela Vista, São Paulo - SP"`
+	Name      string  `json:"name,omitempty" validate:"omitempty,max=255" example:"São Paulo"`
+	Address   string  `json:"address,omitempty" validate:"omitempty,max=500" example:"Av. Paulista, 1578 - Bela Vista, São Paulo - SP"`
 } // @name Location
 
 type ContactInfo struct {
-	Name  string `json:"name" validate:"required" example:"John Doe"`
-	Phone string `json:"phone" validate:"required" example:"5511999999999"`
-	VCard string `json:"vcard,omitempty" example:"BEGIN:VCARD\nVERSION:3.0\nFN:John Doe\nTEL:+5511999999999\nEND:VCARD"`
+	Name  string `json:"name" validate:"required,min=1,max=255" example:"John Doe"`
+	Phone string `json:"phone" validate:"required,phone" example:"5511999999999"`
+	VCard string `json:"vcard,omitempty" validate:"omitempty,max=4096" example:"BEGIN:VCARD\nVERSION:3.0\nFN:John Doe\nTEL:+5511999999999\nEND:VCARD"`
 } // @name ContactInfo
 
 type SendMessageResponse struct {
@@ -58,43 +58,43 @@ type ContextInfo struct {
 } // @name ContextInfo
 
 type SendTextMessageRequest struct {
-	Phone       string              `json:"phone" validate:"required" example:"5511999999999"`
-	Text        string              `json:"text" validate:"required" example:"Hello! This is a test message from zpwoot API."`
-	ContextInfo *ContextInfoRequest `json:"contextInfo,omitempty"`
+	Phone       string              `json:"phone" validate:"required,phone" example:"5511999999999"`
+	Text        string              `json:"text" validate:"required,min=1,max=65536" example:"Hello! This is a test message from zpwoot API."`
+	ContextInfo *ContextInfoRequest `json:"contextInfo,omitempty" validate:"omitempty,dive"`
 } // @name SendTextMessageRequest
 
 type ContextInfoRequest struct {
-	StanzaID    string `json:"stanzaId" example:"3EB0A9253FA64269E11C9D"`
-	Participant string `json:"participant,omitempty" example:"5511888888888@s.whatsapp.net"`
+	StanzaID    string `json:"stanzaId" validate:"omitempty,min=1,max=100" example:"3EB0A9253FA64269E11C9D"`
+	Participant string `json:"participant,omitempty" validate:"omitempty,jid" example:"5511888888888@s.whatsapp.net"`
 } // @name ContextInfoRequest
 
 type SendImageMessageRequest struct {
-	Phone       string              `json:"phone" validate:"required" example:"5511999999999"`
-	File        string              `json:"file" validate:"required" example:"https://example.com/image.jpg"`
-	MimeType    string              `json:"mimeType,omitempty" example:"image/jpeg"`
-	FileName    string              `json:"fileName,omitempty" example:"image.jpg"`
-	Caption     string              `json:"caption,omitempty" example:"Check out this beautiful image!"`
+	Phone       string              `json:"phone" validate:"required,phone" example:"5511999999999"`
+	File        string              `json:"file" validate:"required,url" example:"https://example.com/image.jpg"`
+	MimeType    string              `json:"mimeType,omitempty" validate:"omitempty,min=1,max=100" example:"image/jpeg"`
+	FileName    string              `json:"fileName,omitempty" validate:"omitempty,min=1,max=255" example:"image.jpg"`
+	Caption     string              `json:"caption,omitempty" validate:"omitempty,max=1024" example:"Check out this beautiful image!"`
 	ViewOnce    bool                `json:"viewOnce,omitempty" example:"false"`
-	ContextInfo *ContextInfoRequest `json:"contextInfo,omitempty"`
+	ContextInfo *ContextInfoRequest `json:"contextInfo,omitempty" validate:"omitempty,dive"`
 } // @name SendImageMessageRequest
 
 type SendAudioMessageRequest struct {
-	Phone       string              `json:"phone" validate:"required" example:"5511999999999"`
-	File        string              `json:"file" validate:"required" example:"https://example.com/audio.mp3"`
-	MimeType    string              `json:"mimeType,omitempty" example:"audio/mpeg"`
-	FileName    string              `json:"fileName,omitempty" example:"audio.mp3"`
+	Phone       string              `json:"phone" validate:"required,phone" example:"5511999999999"`
+	File        string              `json:"file" validate:"required,url" example:"https://example.com/audio.mp3"`
+	MimeType    string              `json:"mimeType,omitempty" validate:"omitempty,min=1,max=100" example:"audio/mpeg"`
+	FileName    string              `json:"fileName,omitempty" validate:"omitempty,min=1,max=255" example:"audio.mp3"`
 	ViewOnce    bool                `json:"viewOnce,omitempty" example:"false"`
-	ContextInfo *ContextInfoRequest `json:"contextInfo,omitempty"`
+	ContextInfo *ContextInfoRequest `json:"contextInfo,omitempty" validate:"omitempty,dive"`
 } // @name SendAudioMessageRequest
 
 type SendVideoMessageRequest struct {
-	Phone       string              `json:"phone" validate:"required" example:"5511999999999"`
-	File        string              `json:"file" validate:"required" example:"https://example.com/video.mp4"`
-	MimeType    string              `json:"mimeType,omitempty" example:"video/mp4"`
-	FileName    string              `json:"fileName,omitempty" example:"video.mp4"`
-	Caption     string              `json:"caption,omitempty" example:"Watch this amazing video!"`
+	Phone       string              `json:"phone" validate:"required,phone" example:"5511999999999"`
+	File        string              `json:"file" validate:"required,url" example:"https://example.com/video.mp4"`
+	MimeType    string              `json:"mimeType,omitempty" validate:"omitempty,min=1,max=100" example:"video/mp4"`
+	FileName    string              `json:"fileName,omitempty" validate:"omitempty,min=1,max=255" example:"video.mp4"`
+	Caption     string              `json:"caption,omitempty" validate:"omitempty,max=1024" example:"Watch this amazing video!"`
 	ViewOnce    bool                `json:"viewOnce,omitempty" example:"false"`
-	ContextInfo *ContextInfoRequest `json:"contextInfo,omitempty"`
+	ContextInfo *ContextInfoRequest `json:"contextInfo,omitempty" validate:"omitempty,dive"`
 } // @name SendVideoMessageRequest
 
 type SendDocumentMessageRequest struct {

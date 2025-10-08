@@ -13,34 +13,34 @@ import (
 
 type ProxySettings struct {
 	Enabled bool   `json:"enabled" example:"true" description:"Enable proxy"`
-	Type    string `json:"type,omitempty" example:"http" enums:"http,https,socks5" description:"Proxy type (http, https, socks5)"`
-	Host    string `json:"host,omitempty" example:"proxy.example.com" description:"Proxy host"`
-	Port    string `json:"port,omitempty" example:"8080" description:"Proxy port"`
-	User    string `json:"user,omitempty" example:"proxyUser123" description:"Proxy username (optional)"`
-	Pass    string `json:"pass,omitempty" example:"proxyPass123" description:"Proxy password (optional)"`
+	Type    string `json:"type,omitempty" validate:"omitempty,oneof=http https socks5" example:"http" enums:"http,https,socks5" description:"Proxy type (http, https, socks5)"`
+	Host    string `json:"host,omitempty" validate:"required_if=Enabled true" example:"proxy.example.com" description:"Proxy host"`
+	Port    string `json:"port,omitempty" validate:"required_if=Enabled true,omitempty,numeric" example:"8080" description:"Proxy port"`
+	User    string `json:"user,omitempty" validate:"omitempty,min=1,max=100" example:"proxyUser123" description:"Proxy username (optional)"`
+	Pass    string `json:"pass,omitempty" validate:"omitempty,min=1,max=100" example:"proxyPass123" description:"Proxy password (optional)"`
 } // @name ProxySettings
 
 type WebhookSettings struct {
 	Enabled bool     `json:"enabled" example:"true" description:"Enable webhook"`
-	URL     string   `json:"url,omitempty" example:"https://api.example.com/webhook" validate:"omitempty,url" description:"Webhook URL"`
-	Events  []string `json:"events,omitempty" example:"Message,Receipt,Connected" description:"Events to subscribe (Message, Receipt, Connected, Disconnected, CallOffer, Presence, NewsletterJoin, All)"`
-	Secret  string   `json:"secret,omitempty" example:"supersecrettoken123" description:"Webhook secret for validation (optional)"`
+	URL     string   `json:"url,omitempty" validate:"required_if=Enabled true,omitempty,whatsapp_url" example:"https://api.example.com/webhook" description:"Webhook URL"`
+	Events  []string `json:"events,omitempty" validate:"omitempty,dive,webhook_event" example:"Message,Receipt,Connected" description:"Events to subscribe (Message, Receipt, Connected, Disconnected, CallOffer, Presence, NewsletterJoin, All)"`
+	Secret  string   `json:"secret,omitempty" validate:"omitempty,min=8,max=256" example:"supersecrettoken123" description:"Webhook secret for validation (optional)"`
 } // @name WebhookSettings
 
 type SessionSettings struct {
-	Proxy   *ProxySettings   `json:"proxy,omitempty" description:"Proxy configuration"`
-	Webhook *WebhookSettings `json:"webhook,omitempty" description:"Webhook configuration"`
+	Proxy   *ProxySettings   `json:"proxy,omitempty" validate:"omitempty,dive" description:"Proxy configuration"`
+	Webhook *WebhookSettings `json:"webhook,omitempty" validate:"omitempty,dive" description:"Webhook configuration"`
 } // @name SessionSettings
 
 type CreateRequest struct {
-	Name     string           `json:"name" example:"my-session" validate:"required,min=1,max=100" description:"Session name for identification"`
-	APIKey   string           `json:"apiKey,omitempty" example:"1C86339AA3E521BE868B4F46725D5" description:"Custom API key for this session (auto-generated if not provided)"`
-	Settings *SessionSettings `json:"settings,omitempty" description:"Session settings (proxy, webhook)"`
+	Name     string           `json:"name" validate:"required,min=1,max=100,session_id" example:"my-session" description:"Session name for identification"`
+	APIKey   string           `json:"apiKey,omitempty" validate:"omitempty,len=32,alphanum" example:"1C86339AA3E521BE868B4F46725D5" description:"Custom API key for this session (auto-generated if not provided)"`
+	Settings *SessionSettings `json:"settings,omitempty" validate:"omitempty,dive" description:"Session settings (proxy, webhook)"`
 } // @name CreateSessionRequest
 
 type UpdateRequest struct {
-	Name     *string          `json:"name,omitempty" example:"updated-session" validate:"omitempty,min=1,max=100" description:"Session name for identification"`
-	Settings *SessionSettings `json:"settings,omitempty" description:"Session settings (proxy, webhook)"`
+	Name     *string          `json:"name,omitempty" validate:"omitempty,min=1,max=100,session_id" example:"updated-session" description:"Session name for identification"`
+	Settings *SessionSettings `json:"settings,omitempty" validate:"omitempty,dive" description:"Session settings (proxy, webhook)"`
 }
 
 type SessionResponse struct {
@@ -316,7 +316,7 @@ func QRBase64(qrString string) string {
 }
 
 type PairPhoneRequest struct {
-	Phone string `json:"phone" validate:"required" example:"5511999999999" description:"Phone number with country code"`
+	Phone string `json:"phone" validate:"required,phone" example:"5511999999999" description:"Phone number with country code"`
 } // @name PairPhoneRequest
 type PairPhoneResponse struct {
 	LinkingCode string `json:"linkingCode" example:"ABCD-EFGH" description:"8-character linking code to enter on phone"`
