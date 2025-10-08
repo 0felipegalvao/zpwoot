@@ -1,0 +1,196 @@
+version: "2"
+
+# Options for analysis running
+run:
+  # Timeout for total work
+  timeout: 5m
+  # Exit code when at least one issue was found
+  issues-exit-code: 1
+  # Include test files
+  tests: true
+  # Define the Go version limit
+  go: "1.21"
+  # The mode used to evaluate relative paths
+  relative-path-mode: gomod
+# Linters configuration
+linters:
+  # Disable default linters to have more control
+  disable-all: true
+
+  # Enable specific linters
+  enable:
+    # Essential linters
+    - errcheck       # Check for unchecked errors
+    - govet          # Vet examines Go source code
+    - ineffassign    # Detect ineffectual assignments
+    - staticcheck    # Staticcheck is a go vet on steroids
+    - unused         # Check for unused constants, variables, functions and types
+
+    # Code quality and complexity (with relaxed settings)
+    - gocyclo        # Cyclomatic complexity
+    - funlen         # Function length
+    - nestif         # Nested if statements
+    - goconst        # Repeated strings that could be constants
+
+    # Style and formatting
+    - misspell       # Spelling mistakes
+    - whitespace     # Whitespace issues
+    - gocritic       # Comprehensive Go source code linter (selective checks)
+
+    # Security and error handling
+    - gosec          # Security issues
+    - errorlint      # Error wrapping
+    - nilerr         # Nil error checks
+
+    # Additional useful linters
+    - asciicheck     # Non-ASCII identifiers
+    - durationcheck  # Duration multiplication
+
+    # Temporarily disabled - requires significant refactoring
+    # - dupl           # Code clone detection
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+    exclude-functions:
+      - (*os.File).Close
+      - (*database/sql.Rows).Close
+      - (*database/sql.Stmt).Close
+      - (*net/http.Response.Body).Close
+
+  funlen:
+    lines: 150
+    statements: 100
+    ignore-comments: true
+
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+    ignore-tests: true
+
+  gocritic:
+    disabled-checks:
+      - dupImport
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+      - wrapperFunc
+      - importShadow
+      - commentFormatting
+      - assignOp
+      - paramTypeCombine
+      - unnamedResult
+      - rangeValCopy
+      - typeAssertChain
+      - fieldalignment
+    enabled-tags:
+      - diagnostic
+      - performance
+
+  gocyclo:
+    min-complexity: 20
+
+  gosec:
+    excludes:
+      - G104  # Errors unhandled
+      - G204  # Subprocess launched with variable
+      - G304  # File path provided as taint input
+    severity: medium
+    confidence: medium
+
+  govet:
+    enable:
+      - shadow
+      - fieldalignment
+    disable:
+      - stringintconv  # Too many false positives
+
+  misspell:
+    locale: US
+    ignore-words:
+      - cancelled  # British spelling used in context names
+
+  nestif:
+    min-complexity: 6
+
+  staticcheck:
+    checks:
+      - all
+      - -SA9003  # Empty branches are sometimes intentional
+
+  errorlint:
+    errorf: true
+    asserts: false  # Too many false positives with type assertions
+    comparison: true
+
+  asciicheck:
+    check-generated: false
+
+# Issues configuration
+issues:
+  # Maximum issues count per one linter (0 = unlimited)
+  max-issues-per-linter: 50
+  # Maximum count of issues with the same text (0 = unlimited)
+  max-same-issues: 3
+  # Make issues output unique by line
+  uniq-by-line: true
+  # Show only new issues (useful for large codebases)
+  new: false
+
+  # Exclude specific paths from analysis
+  exclude-dirs:
+    - vendor
+    - third_party
+    - examples
+    - docs/swagger
+
+  # Exclude generated files
+  exclude-files:
+    - ".*\\.pb\\.go$"
+    - ".*_gen\\.go$"
+
+  # Custom exclusion rules
+  exclude-rules:
+    # Exclude some linters from running on test files
+    - path: _test\.go
+      linters:
+        - errcheck
+        - funlen
+        - goconst
+        - gocyclo
+        - gosec
+        - nilerr
+
+    # Allow defer Close() without error checking
+    - linters:
+        - errcheck
+      text: "Error return value of.*Close.*is not checked"
+
+    # Allow long lines in generated swagger docs
+    - path: docs/swagger/
+      linters:
+        - lll
+
+    # Allow some issues in main.go files
+    - path: main\.go
+      linters:
+        - funlen
+        - gocyclo
+
+    # Allow unused functions in examples
+    - path: examples/
+      linters:
+        - unused
+        - deadcode
+
+# Output configuration
+output:
+  # Enable sorting of results
+  sort-results: true
+  # Order to use when sorting results
+  sort-order:
+    - linter
+    - severity
+    - file
+  # Show statistics per linter
+  show-stats: true

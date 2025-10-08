@@ -1,0 +1,123 @@
+package session
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"zpwoot/internal/core/application/dto"
+	"zpwoot/internal/core/domain/session"
+	"zpwoot/internal/core/domain/shared"
+	"zpwoot/internal/core/ports/output"
+)
+
+type GetUseCase struct {
+	sessionService *session.Service
+	whatsappClient output.WhatsAppClient
+	logger         output.Logger
+}
+
+func NewGetUseCase(
+	sessionService *session.Service,
+	whatsappClient output.WhatsAppClient,
+	logger output.Logger,
+) *GetUseCase {
+	return &GetUseCase{
+		sessionService: sessionService,
+		whatsappClient: whatsappClient,
+		logger:         logger,
+	}
+}
+
+func (uc *GetUseCase) Execute(ctx context.Context, sessionID string) (*dto.SessionDetailResponse, error) {
+	if sessionID == "" {
+		return nil, fmt.Errorf("session ID is required")
+	}
+
+	domainSession, err := uc.sessionService.Get(ctx, sessionID)
+	if err != nil {
+		if errors.Is(err, shared.ErrSessionNotFound) {
+			return nil, dto.ErrSessionNotFound
+		}
+
+		return nil, fmt.Errorf("failed to get session from domain: %w", err)
+	}
+
+	waStatus, err := uc.whatsappClient.GetSessionStatus(ctx, sessionID)
+	if err != nil {
+		var waErr *output.WhatsAppError
+		if errors.As(err, &waErr) && waErr.Code == sessionNotFoundCode {
+			return dto.ToDetailResponse(domainSession), nil
+		}
+
+		return dto.ToDetailResponse(domainSession), nil
+	}
+
+	if waStatus != nil {
+		uc.updateSessionFromWAStatus(ctx, sessionID, domainSession, waStatus)
+	}
+
+	response := dto.ToDetailResponse(domainSession)
+
+	return response, nil
+}
+
+func (uc *GetUseCase) ExecuteWithSync(ctx context.Context, sessionID string) (*dto.SessionDetailResponse, error) {
+	response, err := uc.Execute(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	waStatus, err := uc.whatsappClient.GetSessionStatus(ctx, sessionID)
+	if err != nil {
+		return response, err
+	}
+
+	if waStatus != nil {
+		response.DeviceJID = waStatus.DeviceJID
+		response.Connected = waStatus.Connected
+
+		response.Status = uc.determineSessionStatus(waStatus)
+
+		if !waStatus.ConnectedAt.IsZero() {
+			response.ConnectedAt = &waStatus.ConnectedAt
+		}
+
+		if !waStatus.LastSeen.IsZero() {
+			response.LastSeen = &waStatus.LastSeen
+		}
+	}
+
+	return response, nil
+}
+
+func (uc *GetUseCase) determineSessionStatus(waStatus *output.SessionStatus) string {
+	switch {
+	case waStatus.Connected:
+		return "connected"
+	case waStatus.LoggedIn:
+		return "disconnected"
+	default:
+		return "qr_code"
+	}
+}
+
+func (uc *GetUseCase) updateSessionFromWAStatus(ctx context.Context, sessionID string, domainSession *session.Session, waStatus *output.SessionStatus) {
+	if waStatus.Connected && !domainSession.IsConnected {
+		domainSession.SetConnected(waStatus.DeviceJID)
+	} else if !waStatus.Connected && domainSession.IsConnected {
+		domainSession.SetDisconnected()
+	}
+
+	if waStatus.DeviceJID != "" {
+		domainSession.DeviceJID = waStatus.DeviceJID
+	}
+
+	if !waStatus.LastSeen.IsZero() {
+		domainSession.UpdateLastSeen()
+	}
+
+	go func(ctx context.Context) {
+		_ = uc.sessionService.Update(ctx, domainSession)
+	}(ctx)
+}
