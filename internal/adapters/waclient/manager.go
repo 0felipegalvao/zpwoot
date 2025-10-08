@@ -62,7 +62,7 @@ func NewWAClient(container *sqlstore.Container, logger *logger.Logger, sessionRe
 	}
 
 	if webhookSender != nil && webhookRepo != nil {
-		wac.eventHandler = NewDefaultEventHandler(logger, webhookSender, webhookRepo)
+		wac.eventHandler = NewDefaultEventHandler(logger, webhookSender, webhookRepo, sessionRepo)
 	}
 
 	go wac.loadSessionsFromDatabase()

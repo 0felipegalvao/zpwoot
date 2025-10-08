@@ -46,6 +46,32 @@ func (s *Service) Create(ctx context.Context, name string) (*Session, error) {
 	return session, nil
 }
 
+// CreateFromSession creates a session from an existing Session entity (allows custom apiKey)
+func (s *Service) CreateFromSession(ctx context.Context, session *Session) error {
+	if session.Name == "" {
+		return errors.New("session name cannot be empty")
+	}
+
+	existingSession, err := s.repo.GetByName(ctx, session.Name)
+	if err != nil && !errors.Is(err, shared.ErrSessionNotFound) {
+		return fmt.Errorf("failed to check existing session: %w", err)
+	}
+
+	if existingSession != nil {
+		return shared.ErrSessionAlreadyExists
+	}
+
+	if err := s.repo.Create(ctx, session); err != nil {
+		if isUniqueConstraintError(err) {
+			return shared.ErrSessionAlreadyExists
+		}
+
+		return fmt.Errorf("failed to create session: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Service) Get(ctx context.Context, id string) (*Session, error) {
 	session, err := s.repo.GetByID(ctx, id)
 	if err != nil {

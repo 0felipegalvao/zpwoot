@@ -7,6 +7,7 @@ import (
 	"zpwoot/internal/core/application/validators"
 	"zpwoot/internal/core/domain/session"
 
+	"github.com/google/uuid"
 	"github.com/skip2/go-qrcode"
 )
 
@@ -33,6 +34,7 @@ type SessionSettings struct {
 
 type CreateRequest struct {
 	Name     string           `json:"name" example:"my-session" validate:"required,min=1,max=100" description:"Session name for identification"`
+	APIKey   string           `json:"apiKey,omitempty" example:"1C86339AA3E521BE868B4F46725D5" description:"Custom API key for this session (auto-generated if not provided)"`
 	Settings *SessionSettings `json:"settings,omitempty" description:"Session settings (proxy, webhook)"`
 } // @name CreateSessionRequest
 
@@ -92,6 +94,7 @@ type QRCodeResponse struct {
 type CreateSessionResponse struct {
 	ID              string     `json:"id" example:"550e8400-e29b-41d4-a716-446655440000" description:"Session identifier"`
 	Name            string     `json:"name" example:"My WhatsApp Session" description:"Session name"`
+	APIKey          string     `json:"apiKey" example:"1C86339AA3E521BE868B4F46725D5" description:"API key for this session"`
 	Status          string     `json:"status" example:"disconnected" description:"Initial session status"`
 	Connected       bool       `json:"connected" example:"false" description:"Whether session is connected"`
 	QRCode          string     `json:"qrCode,omitempty" example:"2@abc123..." description:"QR code string (if generated)"`
@@ -151,7 +154,23 @@ func (r *CreateRequest) Validate() error {
 }
 
 func (r *CreateRequest) ToDomain() *session.Session {
-	return session.NewSession(r.Name)
+	now := time.Now()
+	sessionID := uuid.New().String()
+
+	// Se o usuário forneceu um apiKey customizado, usar ele; senão, gerar automaticamente
+	apiKey := r.APIKey
+	if apiKey == "" {
+		apiKey = session.GenerateAPIKey()
+	}
+
+	return &session.Session{
+		ID:          sessionID,
+		Name:        r.Name,
+		APIKey:      apiKey,
+		IsConnected: false,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
 }
 
 func FromDomain(s *session.Session) *SessionResponse {
@@ -229,6 +248,7 @@ func ToCreateResponse(s *session.Session) *CreateSessionResponse {
 	response := &CreateSessionResponse{
 		ID:        s.ID,
 		Name:      s.Name,
+		APIKey:    s.APIKey,
 		Status:    string(s.GetStatus()),
 		Connected: s.IsConnected,
 		CreatedAt: s.CreatedAt,

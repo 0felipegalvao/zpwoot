@@ -18,6 +18,7 @@ $$ language 'plpgsql';
 CREATE TABLE IF NOT EXISTS "zpSessions" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "name" VARCHAR(255) NOT NULL UNIQUE,
+    "apiKey" VARCHAR(255) NOT NULL UNIQUE,
     "deviceJid" VARCHAR(255),
     "isConnected" BOOLEAN NOT NULL DEFAULT false,
     "connectionError" TEXT,
@@ -32,6 +33,7 @@ CREATE TABLE IF NOT EXISTS "zpSessions" (
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS "idx_zp_sessions_name" ON "zpSessions" ("name");
+CREATE INDEX IF NOT EXISTS "idx_zp_sessions_api_key" ON "zpSessions" ("apiKey");
 CREATE INDEX IF NOT EXISTS "idx_zp_sessions_is_connected" ON "zpSessions" ("isConnected");
 CREATE INDEX IF NOT EXISTS "idx_zp_sessions_device_jid" ON "zpSessions" ("deviceJid");
 
@@ -53,6 +55,7 @@ CREATE TRIGGER update_zp_sessions_updated_at
 COMMENT ON TABLE "zpSessions" IS 'Wameow sessions management table - optimized with boolean connection status';
 COMMENT ON COLUMN "zpSessions"."id" IS 'Unique session identifier';
 COMMENT ON COLUMN "zpSessions"."name" IS 'Human-readable session name (unique, URL-friendly)';
+COMMENT ON COLUMN "zpSessions"."apiKey" IS 'Unique API key for this session (auto-generated if not provided)';
 COMMENT ON COLUMN "zpSessions"."deviceJid" IS 'Wameow device JID identifier';
 COMMENT ON COLUMN "zpSessions"."isConnected" IS 'Boolean indicating if session is currently connected to Wameow';
 COMMENT ON COLUMN "zpSessions"."connectionError" IS 'Last connection error message if any';

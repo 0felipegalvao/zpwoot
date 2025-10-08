@@ -1,6 +1,9 @@
 package session
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,6 +12,7 @@ import (
 type Session struct {
 	ID              string     `json:"id" db:"id"`
 	Name            string     `json:"name" db:"name"`
+	APIKey          string     `json:"apiKey" db:"apiKey"`
 	DeviceJID       string     `json:"device_jid,omitempty" db:"deviceJid"`
 	IsConnected     bool       `json:"is_connected" db:"isConnected"`
 	ConnectionError string     `json:"connection_error,omitempty" db:"connectionError"`
@@ -40,6 +44,16 @@ func (s Status) IsValid() bool {
 	}
 }
 
+// GenerateAPIKey generates a random API key in the format: 1C86339AA3E521BE868B4F46725D5
+func GenerateAPIKey() string {
+	bytes := make([]byte, 16)
+	if _, err := rand.Read(bytes); err != nil {
+		// Fallback to UUID-based generation if crypto/rand fails
+		return strings.ToUpper(strings.ReplaceAll(uuid.New().String(), "-", ""))[:32]
+	}
+	return strings.ToUpper(hex.EncodeToString(bytes))[:32]
+}
+
 func NewSession(name string) *Session {
 	now := time.Now()
 	sessionID := uuid.New().String()
@@ -47,6 +61,7 @@ func NewSession(name string) *Session {
 	return &Session{
 		ID:          sessionID,
 		Name:        name,
+		APIKey:      GenerateAPIKey(),
 		IsConnected: false,
 		CreatedAt:   now,
 		UpdatedAt:   now,

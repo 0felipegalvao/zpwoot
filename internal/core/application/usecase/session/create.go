@@ -34,7 +34,11 @@ func (uc *CreateUseCase) Execute(ctx context.Context, req *dto.CreateRequest) (*
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	domainSession, err := uc.sessionService.Create(ctx, req.Name)
+	// Converter DTO para domínio (inclui apiKey customizado se fornecido)
+	domainSession := req.ToDomain()
+
+	// Criar sessão no repositório
+	err := uc.sessionService.CreateFromSession(ctx, domainSession)
 	if err != nil {
 		if errors.Is(err, shared.ErrSessionAlreadyExists) {
 			return nil, dto.ErrSessionAlreadyExists

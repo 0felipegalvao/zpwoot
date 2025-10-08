@@ -23,13 +23,15 @@ type DefaultEventHandler struct {
 	logger        *logger.Logger
 	webhookSender output.WebhookSender
 	webhookRepo   webhook.Repository
+	sessionRepo   SessionRepository
 }
 
-func NewDefaultEventHandler(logger *logger.Logger, webhookSender output.WebhookSender, webhookRepo webhook.Repository) *DefaultEventHandler {
+func NewDefaultEventHandler(logger *logger.Logger, webhookSender output.WebhookSender, webhookRepo webhook.Repository, sessionRepo SessionRepository) *DefaultEventHandler {
 	return &DefaultEventHandler{
 		logger:        logger,
 		webhookSender: webhookSender,
 		webhookRepo:   webhookRepo,
+		sessionRepo:   sessionRepo,
 	}
 }
 
@@ -304,16 +306,30 @@ func (eh *DefaultEventHandler) shouldSendWebhook(webhookConfig *webhook.Webhook,
 type OrderedWebhookPayload struct {
 	Event     string      `json:"event"`
 	SessionID string      `json:"sessionId"`
+	APIKey    string      `json:"apiKey"`
 	Timestamp int64       `json:"timestamp"`
 	Data      interface{} `json:"data"`
 }
 
 func (eh *DefaultEventHandler) sendWebhook(webhookConfig *webhook.Webhook, eventType EventType, eventData interface{}, sessionID string) error {
 
-	// Criar payload com ordem específica: event, sessionId, timestamp, data
+	// Buscar apiKey da sessão
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	apiKey := ""
+	sess, err := eh.sessionRepo.GetByID(ctx, sessionID)
+	if err != nil {
+		eh.logger.Warn().Err(err).Str("session_id", sessionID).Msg("Failed to get session apiKey for webhook")
+	} else {
+		apiKey = sess.APIKey
+	}
+
+	// Criar payload com ordem específica: event, sessionId, apiKey, timestamp, data
 	orderedPayload := OrderedWebhookPayload{
 		Event:     string(eventType),
 		SessionID: sessionID,
+		APIKey:    apiKey,
 		Timestamp: time.Now().Unix(),
 		Data:      eventData,
 	}
@@ -330,9 +346,6 @@ func (eh *DefaultEventHandler) sendWebhook(webhookConfig *webhook.Webhook, event
 		Timestamp: time.Now(),
 		Data:      payloadMap,
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
 
 	return eh.webhookSender.SendWebhook(ctx, webhookConfig.URL, webhookConfig.Secret, webhookEvent)
 }

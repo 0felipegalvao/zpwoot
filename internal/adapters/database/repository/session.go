@@ -26,11 +26,11 @@ func NewSessionRepository(db *sqlx.DB) *SessionRepository {
 func (r *SessionRepository) Create(ctx context.Context, sess *session.Session) error {
 	query := `
 		INSERT INTO "zpSessions" (
-			"id", "name", "deviceJid", "isConnected", "connectionError",
+			"id", "name", "apiKey", "deviceJid", "isConnected", "connectionError",
 			"qrCode", "qrCodeExpiresAt", "proxyConfig", "createdAt",
 			"updatedAt", "connectedAt", "lastSeen"
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
 		)
 	`
 
@@ -39,6 +39,7 @@ func (r *SessionRepository) Create(ctx context.Context, sess *session.Session) e
 	_, err := r.db.ExecContext(ctx, query,
 		sess.ID,
 		sess.Name,
+		sess.APIKey,
 		sess.DeviceJID,
 		sess.IsConnected,
 		sess.ConnectionError,
