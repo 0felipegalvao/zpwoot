@@ -3,6 +3,7 @@ package webhook
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 )
 
@@ -29,8 +30,10 @@ func (s *Service) ValidateURL(webhookURL string) error {
 		return fmt.Errorf("webhook URL must have a valid host")
 	}
 
-	if strings.Contains(parsedURL.Host, "localhost") || strings.Contains(parsedURL.Host, "127.0.0.1") {
-		return fmt.Errorf("localhost URLs are not allowed for webhooks")
+	if !s.isLocalhostAllowed() {
+		if strings.Contains(parsedURL.Host, "localhost") || strings.Contains(parsedURL.Host, "127.0.0.1") {
+			return fmt.Errorf("localhost URLs are not allowed for webhooks")
+		}
 	}
 
 	return nil
@@ -161,4 +164,9 @@ func (s *Service) ValidateSecret(secret string) error {
 	}
 
 	return nil
+}
+
+func (s *Service) isLocalhostAllowed() bool {
+	env := os.Getenv("NODE_ENV")
+	return env == "development" || env == ""
 }

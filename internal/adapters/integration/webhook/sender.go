@@ -40,9 +40,35 @@ func (s *HTTPWebhookSender) SendWebhook(ctx context.Context, url string, secret 
 		return errors.New("webhook event cannot be nil")
 	}
 
-	payload, err := json.Marshal(event)
-	if err != nil {
-		return fmt.Errorf("failed to marshal webhook event: %w", err)
+	var payload []byte
+	var err error
+
+	// Verificar se há um payload ordenado especial
+	if orderedPayload, hasOrdered := event.Data["_ordered_payload"]; hasOrdered {
+		// Serializar o payload ordenado diretamente para manter a ordem dos campos
+		payload, err = json.Marshal(orderedPayload)
+		if err != nil {
+			return fmt.Errorf("failed to marshal ordered webhook payload: %w", err)
+		}
+	} else if _, hasEvent := event.Data["event"]; hasEvent {
+		if _, hasSessionId := event.Data["sessionId"]; hasSessionId {
+			if _, hasTimestamp := event.Data["timestamp"]; hasTimestamp {
+				if _, hasData := event.Data["data"]; hasData {
+
+					payload, err = json.Marshal(event.Data)
+					if err != nil {
+						return fmt.Errorf("failed to marshal custom webhook payload: %w", err)
+					}
+				}
+			}
+		}
+	}
+
+	if payload == nil {
+		payload, err = json.Marshal(event)
+		if err != nil {
+			return fmt.Errorf("failed to marshal webhook event: %w", err)
+		}
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(payload))

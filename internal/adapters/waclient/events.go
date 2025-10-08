@@ -58,7 +58,7 @@ func (eh *DefaultEventHandler) HandleEvent(client *Client, event interface{}) er
 	case *events.OfflineSyncPreview:
 		return eh.handleOfflineSyncPreview(client, evt)
 	default:
-		// Log payload de eventos não tratados em DEBUG (payload no final)
+
 		if payload, err := json.Marshal(event); err == nil {
 			log.Debug().
 				Str("event", "unhandled").
@@ -72,24 +72,8 @@ func (eh *DefaultEventHandler) HandleEvent(client *Client, event interface{}) er
 }
 
 func (eh *DefaultEventHandler) handleMessage(client *Client, evt *events.Message) error {
-	messageInfo := &MessageInfo{
-		ID:        evt.Info.ID,
-		Chat:      evt.Info.Chat.String(),
-		Sender:    evt.Info.Sender.String(),
-		PushName:  evt.Info.PushName,
-		Timestamp: evt.Info.Timestamp,
-		FromMe:    evt.Info.IsFromMe,
-		Type:      getMessageType(evt.Message),
-		IsGroup:   evt.Info.IsGroup,
-	}
 
-	webhookData := map[string]interface{}{
-		"messageInfo": messageInfo,
-		"message":     evt.Message,
-	}
-
-	// Log completo em uma linha (INFO + payload no final)
-	if payload, err := json.Marshal(webhookData); err == nil {
+	if payload, err := json.Marshal(evt); err == nil {
 		log.Info().
 			Str("chat", evt.Info.Chat.String()).
 			Str("from", evt.Info.Sender.String()).
@@ -101,11 +85,16 @@ func (eh *DefaultEventHandler) handleMessage(client *Client, evt *events.Message
 			Msg("Message received")
 	}
 
-	return eh.sendWebhookIfEnabled(client, EventMessage, webhookData)
+	log.Debug().
+		Str("pkg", "waclient").
+		Str("session_id", client.SessionID).
+		Msg("DEBUG: About to call sendWebhookIfEnabled for Message event")
+
+	return eh.sendWebhookIfEnabled(client, EventMessage, evt)
 }
 
 func (eh *DefaultEventHandler) handleReceipt(client *Client, evt *events.Receipt) error {
-	// Log completo em uma linha (INFO + payload no final)
+
 	if payload, err := json.Marshal(evt); err == nil {
 		log.Info().
 			Str("chat", evt.Chat.String()).
@@ -116,11 +105,11 @@ func (eh *DefaultEventHandler) handleReceipt(client *Client, evt *events.Receipt
 			Msg("Receipt received")
 	}
 
-	return eh.sendWebhookIfEnabled(client, EventReadReceipt, evt)
+	return eh.sendWebhookIfEnabled(client, EventReceipt, evt)
 }
 
 func (eh *DefaultEventHandler) handlePresence(client *Client, evt *events.Presence) error {
-	// Log completo em DEBUG apenas (payload no final)
+
 	if payload, err := json.Marshal(evt); err == nil {
 		log.Debug().
 			Str("event", "presence").
@@ -134,7 +123,7 @@ func (eh *DefaultEventHandler) handlePresence(client *Client, evt *events.Presen
 }
 
 func (eh *DefaultEventHandler) handleChatPresence(client *Client, evt *events.ChatPresence) error {
-	// Log completo em DEBUG apenas (payload no final)
+
 	if payload, err := json.Marshal(evt); err == nil {
 		log.Debug().
 			Str("event", "chat_presence").
@@ -148,13 +137,8 @@ func (eh *DefaultEventHandler) handleChatPresence(client *Client, evt *events.Ch
 }
 
 func (eh *DefaultEventHandler) handleHistorySync(client *Client, evt *events.HistorySync) error {
-	syncInfo := map[string]interface{}{
-		"type":              evt.Data.SyncType,
-		"conversationCount": len(evt.Data.Conversations),
-	}
 
-	// Log completo em DEBUG apenas (payload no final)
-	if payload, err := json.Marshal(syncInfo); err == nil {
+	if payload, err := json.Marshal(evt); err == nil {
 		log.Debug().
 			Str("event", "history_sync").
 			Str("session_id", client.SessionID).
@@ -162,7 +146,7 @@ func (eh *DefaultEventHandler) handleHistorySync(client *Client, evt *events.His
 			Msg("Event received")
 	}
 
-	return eh.sendWebhookIfEnabled(client, EventHistorySync, syncInfo)
+	return eh.sendWebhookIfEnabled(client, EventHistorySync, evt)
 }
 
 func (eh *DefaultEventHandler) handleAppStateSyncComplete(client *Client, evt *events.AppStateSyncComplete) error {
@@ -220,58 +204,123 @@ func (eh *DefaultEventHandler) handleOfflineSyncPreview(client *Client, evt *eve
 }
 
 func (eh *DefaultEventHandler) sendWebhookIfEnabled(client *Client, eventType EventType, eventData interface{}) error {
+	log.Debug().
+		Str("pkg", "waclient").
+		Str("session_id", client.SessionID).
+		Str("event_type", string(eventType)).
+		Msg("DEBUG: sendWebhookIfEnabled called")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	webhookConfig, err := eh.webhookRepo.GetBySessionID(ctx, client.SessionID)
 	if err != nil {
 		if err.Error() == "webhook not found" {
+			log.Debug().
+				Str("pkg", "waclient").
+				Str("session_id", client.SessionID).
+				Msg("DEBUG: No webhook config found for session")
 			return nil
 		}
 		eh.logger.Error().Err(err).Str("session_id", client.SessionID).Msg("Failed to load webhook config")
 		return nil
 	}
 
+	log.Debug().
+		Str("pkg", "waclient").
+		Str("session_id", client.SessionID).
+		Str("webhook_url", webhookConfig.URL).
+		Bool("webhook_enabled", webhookConfig.Enabled).
+		Interface("webhook_events", webhookConfig.Events).
+		Msg("DEBUG: Webhook config loaded")
+
 	if !eh.shouldSendWebhook(webhookConfig, eventType) {
+		log.Debug().
+			Str("pkg", "waclient").
+			Str("session_id", client.SessionID).
+			Str("event_type", string(eventType)).
+			Msg("DEBUG: shouldSendWebhook returned false")
 		return nil
 	}
+
+	log.Debug().
+		Str("pkg", "waclient").
+		Str("session_id", client.SessionID).
+		Str("event_type", string(eventType)).
+		Msg("DEBUG: About to send webhook")
 
 	return eh.sendWebhook(webhookConfig, eventType, eventData, client.SessionID)
 }
 
 func (eh *DefaultEventHandler) shouldSendWebhook(webhookConfig *webhook.Webhook, eventType EventType) bool {
-	if eh.webhookSender == nil || !webhookConfig.Enabled {
+	log.Debug().
+		Str("pkg", "waclient").
+		Bool("webhook_sender_nil", eh.webhookSender == nil).
+		Bool("webhook_enabled", webhookConfig.Enabled).
+		Str("event_type", string(eventType)).
+		Interface("webhook_events", webhookConfig.Events).
+		Msg("DEBUG: shouldSendWebhook evaluation")
+
+	if eh.webhookSender == nil {
+		log.Debug().
+			Str("pkg", "waclient").
+			Msg("DEBUG: webhookSender is nil")
+		return false
+	}
+
+	if !webhookConfig.Enabled {
+		log.Debug().
+			Str("pkg", "waclient").
+			Msg("DEBUG: webhook is disabled")
 		return false
 	}
 
 	if len(webhookConfig.Events) == 0 {
+		log.Debug().
+			Str("pkg", "waclient").
+			Msg("DEBUG: no events configured, allowing all")
 		return true
 	}
 
 	eventTypeStr := string(eventType)
 	for _, subscribedEvent := range webhookConfig.Events {
 		if subscribedEvent == eventTypeStr {
+			log.Debug().
+				Str("pkg", "waclient").
+				Str("event_type", eventTypeStr).
+				Msg("DEBUG: event type matches subscription")
 			return true
 		}
 	}
+
+	log.Debug().
+		Str("pkg", "waclient").
+		Str("event_type", eventTypeStr).
+		Msg("DEBUG: event type does not match any subscription")
 	return false
 }
 
-func (eh *DefaultEventHandler) sendWebhook(webhookConfig *webhook.Webhook, eventType EventType, eventData interface{}, sessionID string) error {
-	var data map[string]interface{}
-	if mapData, ok := eventData.(map[string]interface{}); ok {
-		data = mapData
-	} else {
-		jsonData, err := json.Marshal(eventData)
-		if err != nil {
-			eh.logger.Error().Err(err).Msg("Failed to marshal event data")
-			return err
-		}
+// OrderedWebhookPayload garante a ordem específica dos campos no JSON
+type OrderedWebhookPayload struct {
+	Event     string      `json:"event"`
+	SessionID string      `json:"sessionId"`
+	Timestamp int64       `json:"timestamp"`
+	Data      interface{} `json:"data"`
+}
 
-		if err := json.Unmarshal(jsonData, &data); err != nil {
-			eh.logger.Error().Err(err).Msg("Failed to unmarshal event data")
-			return err
-		}
+func (eh *DefaultEventHandler) sendWebhook(webhookConfig *webhook.Webhook, eventType EventType, eventData interface{}, sessionID string) error {
+
+	// Criar payload com ordem específica: event, sessionId, timestamp, data
+	orderedPayload := OrderedWebhookPayload{
+		Event:     string(eventType),
+		SessionID: sessionID,
+		Timestamp: time.Now().Unix(),
+		Data:      eventData,
+	}
+
+	// Marcar que este payload deve ser serializado diretamente
+	payloadMap := map[string]interface{}{
+		"_ordered_payload": orderedPayload,
 	}
 
 	webhookEvent := &output.WebhookEvent{
@@ -279,7 +328,7 @@ func (eh *DefaultEventHandler) sendWebhook(webhookConfig *webhook.Webhook, event
 		Type:      string(eventType),
 		SessionID: sessionID,
 		Timestamp: time.Now(),
-		Data:      data,
+		Data:      payloadMap,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

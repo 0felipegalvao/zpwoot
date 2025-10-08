@@ -555,8 +555,6 @@ func (wac *WAClient) sendQRWebhook(client *Client, code string) {
 func (wac *WAClient) handleMessage(client *Client, evt *events.Message) {
 	client.LastSeen = time.Now()
 
-	wac.sendWebhook(client, EventMessage, evt)
-
 	if wac.eventHandler != nil {
 		if err := wac.eventHandler.HandleEvent(client, evt); err != nil {
 			wac.logger.Error().Err(err).Str("session_id", client.SessionID).Msg("Event handler error for message")
@@ -566,8 +564,6 @@ func (wac *WAClient) handleMessage(client *Client, evt *events.Message) {
 
 func (wac *WAClient) handleReceipt(client *Client, evt *events.Receipt) {
 	client.LastSeen = time.Now()
-
-	wac.sendWebhook(client, EventReceipt, evt)
 
 	if wac.eventHandler != nil {
 		if err := wac.eventHandler.HandleEvent(client, evt); err != nil {
