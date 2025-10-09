@@ -45,7 +45,6 @@ type SendPresenceRequest struct {
 	Presence string `json:"presence" validate:"required,oneof=available unavailable composing recording paused" example:"available" description:"Presence type: available, unavailable, composing, recording, paused"`
 } // @name SendPresenceRequest
 type SendPresenceResponse struct {
-	Success bool `json:"success" example:"true"`
 } // @name SendPresenceResponse
 type ChatPresenceRequest struct {
 	Phone    string `json:"phone" validate:"required" example:"5511999999999"`
@@ -53,5 +52,4 @@ type ChatPresenceRequest struct {
 	Media    string `json:"media,omitempty" example:"text" description:"Media type: text, audio"`
 } // @name ChatPresenceRequest
 type ChatPresenceResponse struct {
-	Success bool `json:"success" example:"true"`
 } // @name ChatPresenceResponse

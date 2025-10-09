@@ -31,7 +31,7 @@ func NewWebhookHandler(webhookUseCases input.WebhookUseCases, logger *logger.Log
 // @Produce		json
 // @Param			sessionId	path		string						true	"Session ID"
 // @Param			request		body		dto.CreateWebhookRequest	true	"Webhook configuration"
-// @Success		200			{object}	map[string]interface{}		"Webhook configured successfully"
+// @Success		200			{object}	dto.WebhookResponse			"Webhook configured successfully"
 // @Failure		400			{object}	dto.ErrorResponse			"Invalid request"
 // @Failure		500			{object}	dto.ErrorResponse			"Internal server error"
 // @Router			/sessions/{sessionId}/webhooks/set [post]
@@ -69,10 +69,7 @@ func (h *WebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) {
 		Str("webhook_url", req.URL).
 		Msg("Webhook configured successfully")
 
-	h.writeJSON(w, http.StatusOK, map[string]interface{}{
-		"success": true,
-		"data":    response,
-	})
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary		Get Webhook Configuration
@@ -80,7 +77,7 @@ func (h *WebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) {
 // @Tags			Webhooks
 // @Produce		json
 // @Param			sessionId	path		string				true	"Session ID"
-// @Success		200			{object}	map[string]interface{}	"Webhook configuration"
+// @Success		200			{object}	dto.WebhookResponse	"Webhook configuration"
 // @Failure		404			{object}	dto.ErrorResponse	"Webhook not found"
 // @Failure		500			{object}	dto.ErrorResponse	"Internal server error"
 // @Router			/sessions/{sessionId}/webhooks/find [get]
@@ -106,10 +103,7 @@ func (h *WebhookHandler) GetWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeJSON(w, http.StatusOK, map[string]interface{}{
-		"success": true,
-		"data":    response,
-	})
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 
@@ -118,7 +112,7 @@ func (h *WebhookHandler) GetWebhook(w http.ResponseWriter, r *http.Request) {
 // @Description	List all available webhook event types
 // @Tags			Webhooks
 // @Produce		json
-// @Success		200	{object}	map[string]interface{}	"Available events"
+// @Success		200	{object}	dto.ListEventsResponse	"Available events"
 // @Failure		500	{object}	dto.ErrorResponse		"Internal server error"
 // @Router			/webhooks/events [get]
 // @Security		ApiKeyAuth
@@ -131,10 +125,7 @@ func (h *WebhookHandler) ListEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeJSON(w, http.StatusOK, map[string]interface{}{
-		"success": true,
-		"data":    response,
-	})
+	h.writeJSON(w, http.StatusOK, response)
 }
 func (h *WebhookHandler) writeJSON(w http.ResponseWriter, statusCode int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
@@ -148,11 +139,9 @@ func (h *WebhookHandler) writeError(w http.ResponseWriter, statusCode int, error
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	errorResponse := map[string]interface{}{
-		"success": false,
-		"error":   message,
-		"code":    errorCode,
-		"status":  statusCode,
+	errorResponse := dto.ErrorResponse{
+		Error:   errorCode,
+		Message: message,
 	}
 
 	if err := json.NewEncoder(w).Encode(errorResponse); err != nil {

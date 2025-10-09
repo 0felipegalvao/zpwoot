@@ -30,8 +30,8 @@ func NewProxyHandler(proxyUseCases input.ProxyUseCases, logger output.Logger) *P
 // @Produce		json
 // @Param			sessionId	path		string					true	"Session ID"
 // @Param			request		body		dto.CreateProxyRequest	true	"Proxy configuration"
-// @Success		200			{object}	map[string]interface{}	"Configuration updated successfully"
-// @Success		201			{object}	map[string]interface{}	"Configuration created successfully"
+// @Success		200			{object}	dto.ProxyResponse		"Configuration updated successfully"
+// @Success		201			{object}	dto.ProxyResponse		"Configuration created successfully"
 // @Failure		400			{object}	dto.ErrorResponse		"Invalid request"
 // @Failure		500			{object}	dto.ErrorResponse		"Internal server error"
 // @Router			/sessions/{sessionId}/proxy/set [post]
@@ -72,10 +72,7 @@ func (h *ProxyHandler) Set(w http.ResponseWriter, r *http.Request) {
 			h.writeErrorResponse(w, http.StatusInternalServerError, "failed to update proxy configuration")
 			return
 		}
-		h.writeJSONResponse(w, http.StatusOK, map[string]interface{}{
-			"success": true,
-			"data":    response,
-		})
+		h.writeJSONResponse(w, http.StatusOK, response)
 	} else {
 		// Create new configuration
 		response, err = h.proxyUseCases.Create().Execute(r.Context(), sessionID, &req)
@@ -84,10 +81,7 @@ func (h *ProxyHandler) Set(w http.ResponseWriter, r *http.Request) {
 			h.writeErrorResponse(w, http.StatusInternalServerError, "failed to create proxy configuration")
 			return
 		}
-		h.writeJSONResponse(w, http.StatusCreated, map[string]interface{}{
-			"success": true,
-			"data":    response,
-		})
+		h.writeJSONResponse(w, http.StatusCreated, response)
 	}
 }
 
@@ -97,7 +91,7 @@ func (h *ProxyHandler) Set(w http.ResponseWriter, r *http.Request) {
 // @Accept			json
 // @Produce		json
 // @Param			sessionId	path		string				true	"Session ID"
-// @Success		200			{object}	map[string]interface{}	"Configuration found"
+// @Success		200			{object}	dto.ProxyResponse	"Configuration found"
 // @Failure		400			{object}	dto.ErrorResponse	"Invalid request"
 // @Failure		404			{object}	dto.ErrorResponse	"Configuration not found"
 // @Failure		500			{object}	dto.ErrorResponse	"Internal server error"
@@ -121,10 +115,7 @@ func (h *ProxyHandler) Find(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeJSONResponse(w, http.StatusOK, map[string]interface{}{
-		"success": true,
-		"data":    response,
-	})
+	h.writeJSONResponse(w, http.StatusOK, response)
 }
 
 func (h *ProxyHandler) writeJSONResponse(w http.ResponseWriter, statusCode int, data interface{}) {
@@ -140,7 +131,6 @@ func (h *ProxyHandler) writeJSONResponse(w http.ResponseWriter, statusCode int, 
 
 func (h *ProxyHandler) writeErrorResponse(w http.ResponseWriter, statusCode int, message string) {
 	errorResponse := map[string]interface{}{
-		"success": false,
 		"error":   message,
 		"status":  statusCode,
 	}

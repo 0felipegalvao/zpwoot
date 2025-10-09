@@ -68,7 +68,7 @@ func (h *SessionHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeSuccessResponse(w, http.StatusCreated, response)
+	h.writeJSON(w, http.StatusCreated, response)
 }
 
 // @Summary		Get WhatsApp Session
@@ -101,7 +101,7 @@ func (h *SessionHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary		List WhatsApp Sessions
@@ -109,7 +109,7 @@ func (h *SessionHandler) Get(w http.ResponseWriter, r *http.Request) {
 // @Tags			Sessions
 // @Accept			json
 // @Produce		json
-// @Success		200	{object}	dto.APIResponse	"List of sessions (without QR codes)"
+// @Success		200	{object}	dto.SessionListResponse	"List of sessions (without QR codes)"
 // @Failure		500	{object}	dto.ErrorResponse		"Internal server error"
 // @Security		ApiKeyAuth
 // @Router			/sessions [get]
@@ -129,7 +129,7 @@ func (h *SessionHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary		Connect WhatsApp Session
@@ -167,7 +167,7 @@ func (h *SessionHandler) Connect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary		Disconnect WhatsApp Session
@@ -205,7 +205,7 @@ func (h *SessionHandler) Disconnect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, statusResponse)
+	h.writeJSON(w, http.StatusOK, statusResponse)
 }
 
 // @Summary		Logout WhatsApp Session
@@ -249,11 +249,11 @@ func (h *SessionHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	response := &dto.SessionActionResponse{
 		SessionID: sessionID,
 		Action:    "logout",
-		Status:    "success",
+
 		Message:   "Session logged out (device unlinked from WhatsApp)",
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary		Delete WhatsApp Session
@@ -294,11 +294,11 @@ func (h *SessionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	response := &dto.SessionActionResponse{
 		SessionID: sessionID,
 		Action:    "delete",
-		Status:    "success",
+
 		Message:   "Session deleted successfully",
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary		Get QR Code
@@ -340,16 +340,15 @@ func (h *SessionHandler) QRCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
-func (h *SessionHandler) writeSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
+func (h *SessionHandler) writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 
-	response := dto.NewSuccessResponse(data)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		h.logger.Error().Err(err).Msg("Failed to encode success response")
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		h.logger.Error().Err(err).Msg("Failed to encode response")
 	}
 }
 
@@ -357,7 +356,10 @@ func (h *SessionHandler) writeErrorResponse(w http.ResponseWriter, status int, c
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 
-	response := dto.NewErrorResponse(code, message)
+	response := map[string]interface{}{
+		"error":   code,
+		"message": message,
+	}
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		h.logger.Error().Err(err).Msg("Failed to encode error response")
 	}
@@ -428,5 +430,5 @@ func (h *SessionHandler) PairPhone(w http.ResponseWriter, r *http.Request) {
 		Str("linking_code", response.LinkingCode).
 		Msg("Phone paired successfully")
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }

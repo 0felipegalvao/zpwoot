@@ -34,8 +34,8 @@ func NewChatwootHandler(chatwootUseCases input.ChatwootUseCases, webhookHandler 
 // @Produce		json
 // @Param			sessionId	path		string						true	"Session ID"
 // @Param			request		body		dto.CreateChatwootRequest	true	"Chatwoot configuration"
-// @Success		200			{object}	dto.StandardResponse		"Configuration updated successfully"
-// @Success		201			{object}	dto.StandardResponse		"Configuration created successfully"
+// @Success		200			{object}	dto.ChatwootResponse		"Configuration updated successfully"
+// @Success		201			{object}	dto.ChatwootResponse		"Configuration created successfully"
 // @Failure		400			{object}	dto.ErrorResponse			"Invalid request"
 // @Failure		500			{object}	dto.ErrorResponse			"Internal server error"
 // @Router			/sessions/{sessionId}/chatwoot/set [post]
@@ -89,10 +89,7 @@ func (h *ChatwootHandler) Set(w http.ResponseWriter, r *http.Request) {
 			h.writeErrorResponse(w, http.StatusInternalServerError, "failed to update chatwoot configuration")
 			return
 		}
-		h.writeJSONResponse(w, http.StatusOK, map[string]interface{}{
-			"success": true,
-			"data":    response,
-		})
+		h.writeJSONResponse(w, http.StatusOK, response)
 	} else {
 		// Create new configuration
 		response, err = h.chatwootUseCases.Create().Execute(r.Context(), sessionID, &req)
@@ -101,10 +98,7 @@ func (h *ChatwootHandler) Set(w http.ResponseWriter, r *http.Request) {
 			h.writeErrorResponse(w, http.StatusInternalServerError, "failed to create chatwoot configuration")
 			return
 		}
-		h.writeJSONResponse(w, http.StatusCreated, map[string]interface{}{
-			"success": true,
-			"data":    response,
-		})
+		h.writeJSONResponse(w, http.StatusCreated, response)
 	}
 }
 
@@ -114,7 +108,7 @@ func (h *ChatwootHandler) Set(w http.ResponseWriter, r *http.Request) {
 // @Accept			json
 // @Produce		json
 // @Param			sessionId	path		string					true	"Session ID"
-// @Success		200			{object}	dto.StandardResponse	"Configuration found"
+// @Success		200			{object}	dto.ChatwootResponse	"Configuration found"
 // @Failure		400			{object}	dto.ErrorResponse		"Invalid request"
 // @Failure		404			{object}	dto.ErrorResponse		"Configuration not found"
 // @Failure		500			{object}	dto.ErrorResponse		"Internal server error"
@@ -138,10 +132,7 @@ func (h *ChatwootHandler) Find(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeJSONResponse(w, http.StatusOK, map[string]interface{}{
-		"success": true,
-		"data":    response,
-	})
+	h.writeJSONResponse(w, http.StatusOK, response)
 }
 
 
@@ -153,7 +144,7 @@ func (h *ChatwootHandler) Find(w http.ResponseWriter, r *http.Request) {
 // @Produce		json
 // @Param			sessionId	path		string							true	"Session ID"
 // @Param			webhook		body		dto.ChatwootWebhookRequest		true	"Webhook payload from Chatwoot"
-// @Success		200			{object}	dto.StandardResponse		"Webhook processed successfully"
+// @Success		200			{object}	dto.ChatwootWebhookResponse		"Webhook processed successfully"
 // @Failure		400			{object}	dto.ErrorResponse				"Invalid request"
 // @Failure		500			{object}	dto.ErrorResponse				"Internal server error"
 // @Router			/sessions/{sessionId}/chatwoot/webhook [post]
@@ -189,10 +180,7 @@ func (h *ChatwootHandler) Webhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeJSONResponse(w, http.StatusOK, map[string]interface{}{
-		"success": true,
-		"data":    response,
-	})
+	h.writeJSONResponse(w, http.StatusOK, response)
 }
 
 func (h *ChatwootHandler) writeJSONResponse(w http.ResponseWriter, statusCode int, data interface{}) {
@@ -208,7 +196,6 @@ func (h *ChatwootHandler) writeJSONResponse(w http.ResponseWriter, statusCode in
 
 func (h *ChatwootHandler) writeErrorResponse(w http.ResponseWriter, statusCode int, message string) {
 	errorResponse := map[string]interface{}{
-		"success": false,
 		"error":   message,
 		"status":  statusCode,
 	}

@@ -5,26 +5,7 @@ import (
 	"time"
 )
 
-// StandardResponse represents the standardized API response format
-type StandardResponse struct {
-	Success bool        `json:"success" example:"true" description:"Indicates if the request was successful"`
-	Data    interface{} `json:"data,omitempty" description:"Response data when successful"`
-	Error   string      `json:"error,omitempty" example:"Invalid request" description:"Error message when unsuccessful"`
-	Status  int         `json:"status,omitempty" example:"400" description:"HTTP status code when unsuccessful"`
-} // @name StandardResponse
 
-type APIResponse struct {
-	Success   bool          `json:"success" example:"true" description:"Whether the request was successful"`
-	Data      interface{}   `json:"data,omitempty" description:"Response data (present on success)"`
-	Error     *APIErrorInfo `json:"error,omitempty" description:"Error information (present on failure)"`
-	Timestamp time.Time     `json:"timestamp" example:"2025-01-15T10:30:00Z" description:"Response timestamp"`
-} // @name APIResponse
-
-type SuccessResponse struct {
-	Success bool        `json:"success" example:"true" description:"Whether the request was successful"`
-	Message string      `json:"message" example:"Operation completed successfully" description:"Success message"`
-	Data    interface{} `json:"data,omitempty" description:"Response data (optional)"`
-} // @name SuccessResponse
 
 type ErrorResponse struct {
 	Error   string `json:"error" example:"validation_error" description:"Error code"`
@@ -70,51 +51,9 @@ type HealthResponse struct {
 	Services  map[string]string `json:"services" description:"Status of individual services"`
 }
 
-func NewSuccessResponse(data interface{}) *APIResponse {
-	return &APIResponse{
-		Success:   true,
-		Data:      data,
-		Timestamp: time.Now(),
-	}
-}
 
-func NewSimpleSuccessResponse(message string) *SuccessResponse {
-	return &SuccessResponse{
-		Success: true,
-		Message: message,
-	}
-}
 
-func NewSimpleSuccessResponseWithData(message string, data interface{}) *SuccessResponse {
-	return &SuccessResponse{
-		Success: true,
-		Message: message,
-		Data:    data,
-	}
-}
 
-func NewErrorResponse(code, message string) *APIResponse {
-	return &APIResponse{
-		Success: false,
-		Error: &APIErrorInfo{
-			Code:    code,
-			Message: message,
-		},
-		Timestamp: time.Now(),
-	}
-}
-
-func NewErrorResponseWithDetails(code, message string, details map[string]interface{}) *APIResponse {
-	return &APIResponse{
-		Success: false,
-		Error: &APIErrorInfo{
-			Code:    code,
-			Message: message,
-			Details: details,
-		},
-		Timestamp: time.Now(),
-	}
-}
 
 func NewValidationError(field, message string) *ValidationError {
 	return &ValidationError{
@@ -123,16 +62,7 @@ func NewValidationError(field, message string) *ValidationError {
 	}
 }
 
-func NewValidationErrorResponse(field, message string) *APIResponse {
-	return NewErrorResponseWithDetails(
-		"validation_error",
-		"Validation failed",
-		map[string]interface{}{
-			"field":   field,
-			"message": message,
-		},
-	)
-}
+
 
 const (
 	ErrorCodeValidation    = "validation_error"

@@ -80,7 +80,7 @@ func (h *ContactHandler) CheckUser(w http.ResponseWriter, r *http.Request) {
 		Users: users,
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Get user information
@@ -134,7 +134,7 @@ func (h *ContactHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		PictureID:    userDetail.PictureID,
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Get user avatar
@@ -188,7 +188,7 @@ func (h *ContactHandler) GetAvatar(w http.ResponseWriter, r *http.Request) {
 		DirectURL: avatarInfo.DirectURL,
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Get all contacts
@@ -237,7 +237,7 @@ func (h *ContactHandler) GetContacts(w http.ResponseWriter, r *http.Request) {
 		Contacts: contactDetails,
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Send presence
@@ -284,11 +284,9 @@ func (h *ContactHandler) SendPresence(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := &dto.SendPresenceResponse{
-		Success: true,
-	}
+	response := &dto.SendPresenceResponse{}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Send chat presence
@@ -341,19 +339,16 @@ func (h *ContactHandler) ChatPresence(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := &dto.ChatPresenceResponse{
-		Success: true,
-	}
+	response := &dto.ChatPresenceResponse{}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
-func (h *ContactHandler) writeSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
+func (h *ContactHandler) writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 
-	response := dto.NewSuccessResponse(data)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
+	if err := json.NewEncoder(w).Encode(data); err != nil {
 		h.logger.Error().Err(err).Msg("Failed to encode response")
 	}
 }

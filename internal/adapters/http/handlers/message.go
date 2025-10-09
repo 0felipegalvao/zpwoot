@@ -34,7 +34,6 @@ func NewMessageHandler(messageService input.MessageService, logger output.Logger
 }
 func (h *MessageHandler) buildMessageResponse(result *output.MessageResult, to, messageType, content string) *dto.SendMessageResponse {
 	response := &dto.SendMessageResponse{
-		Success:   true,
 		ID:        result.MessageID,
 		To:        to,
 		Type:      messageType,
@@ -113,7 +112,7 @@ func (h *MessageHandler) SendText(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := h.buildMessageResponse(result, normalizedTo, "text", req.Text)
-	h.writeJSON(w, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Send image message
@@ -191,7 +190,7 @@ func (h *MessageHandler) SendImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := h.buildMessageResponse(result, normalizedTo, "image", req.Caption)
-	h.writeJSON(w, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Send audio message
@@ -268,17 +267,10 @@ func (h *MessageHandler) SendAudio(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := h.buildMessageResponse(result, normalizedTo, "audio", "")
-	h.writeJSON(w, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
-func (h *MessageHandler) writeJSON(w http.ResponseWriter, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		h.logger.Error().Err(err).Msg("Failed to encode JSON response")
-	}
-}
 
 func (h *MessageHandler) writeError(w http.ResponseWriter, status int, code, message string) {
 	w.Header().Set("Content-Type", "application/json")
@@ -292,13 +284,12 @@ func (h *MessageHandler) writeError(w http.ResponseWriter, status int, code, mes
 	}
 }
 
-func (h *MessageHandler) writeSuccessResponse(w http.ResponseWriter, status int, data interface{}) {
+func (h *MessageHandler) writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 
-	response := dto.NewSuccessResponse(data)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		h.logger.Error().Err(err).Msg("Failed to encode success response")
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		h.logger.Error().Err(err).Msg("Failed to encode response")
 	}
 }
 
@@ -397,7 +388,7 @@ func (h *MessageHandler) SendVideo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := h.buildMessageResponse(result, normalizedTo, "video", req.Caption)
-	h.writeJSON(w, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Send document message
@@ -474,7 +465,7 @@ func (h *MessageHandler) SendDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := h.buildMessageResponse(result, normalizedTo, "document", req.Caption)
-	h.writeJSON(w, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Send location message
@@ -530,7 +521,7 @@ func (h *MessageHandler) SendLocation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := h.buildMessageResponse(result, normalizedTo, "location", req.Name)
-	h.writeJSON(w, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Send contact message
@@ -597,7 +588,7 @@ func (h *MessageHandler) SendContact(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := h.buildMessageResponse(result, normalizedTo, "contact", contactInfo.Name)
-	h.writeJSON(w, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Send reaction message
@@ -669,7 +660,7 @@ func (h *MessageHandler) SendReaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := h.buildMessageResponse(result, normalizedTo, "reaction", req.Reaction)
-	h.writeJSON(w, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Send poll message
@@ -727,7 +718,7 @@ func (h *MessageHandler) SendPoll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := h.buildMessageResponse(result, normalizedTo, "poll", req.Name)
-	h.writeJSON(w, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Send sticker message
@@ -802,7 +793,7 @@ func (h *MessageHandler) SendSticker(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := h.buildMessageResponse(result, normalizedTo, "sticker", "")
-	h.writeJSON(w, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Send multiple contacts
@@ -864,7 +855,7 @@ func (h *MessageHandler) SendContactsArray(w http.ResponseWriter, r *http.Reques
 	}
 
 	response := h.buildMessageResponse(result, normalizedTo, "contacts", fmt.Sprintf("%d contacts", len(contacts)))
-	h.writeJSON(w, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Send template message
@@ -957,12 +948,11 @@ func (h *MessageHandler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := &dto.DeleteMessageResponse{
-		Success:   true,
 		MessageID: req.MessageID,
 		Timestamp: 0,
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Edit message
@@ -1021,12 +1011,11 @@ func (h *MessageHandler) EditMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := &dto.EditMessageResponse{
-		Success:   true,
 		MessageID: req.MessageID,
 		Timestamp: 0,
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Mark messages as read
@@ -1078,11 +1067,9 @@ func (h *MessageHandler) MarkRead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := &dto.MarkReadResponse{
-		Success: true,
-	}
+	response := &dto.MarkReadResponse{}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }
 
 // @Summary      Request history sync
@@ -1132,9 +1119,8 @@ func (h *MessageHandler) RequestHistorySync(w http.ResponseWriter, r *http.Reque
 	}
 
 	response := &dto.HistorySyncResponse{
-		Success:   true,
 		Timestamp: time.Now().Unix(),
 	}
 
-	h.writeSuccessResponse(w, http.StatusOK, response)
+	h.writeJSON(w, http.StatusOK, response)
 }

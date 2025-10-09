@@ -71,6 +71,5 @@ type SetGroupAnnounceRequest struct {
 	Announce bool   `json:"announce" validate:"required" example:"true"`
 } // @name SetGroupAnnounceRequest
 type GroupActionResponse struct {
-	Success bool   `json:"success" example:"true"`
 	Message string `json:"message" example:"Operation completed successfully"`
 } // @name GroupActionResponse

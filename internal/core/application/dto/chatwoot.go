@@ -176,7 +176,6 @@ type ChatwootAttachment struct {
 }
 
 type ChatwootWebhookResponse struct {
-	Success bool   `json:"success"`
 	Message string `json:"message,omitempty"`
 	Error   string `json:"error,omitempty"`
 }

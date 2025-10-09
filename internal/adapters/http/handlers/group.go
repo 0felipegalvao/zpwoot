@@ -63,7 +63,7 @@ func (h *GroupHandler) ListGroups(w http.ResponseWriter, r *http.Request) {
 		Int("count", len(groups.Groups)).
 		Msg("Groups listed successfully")
 
-	h.writeJSON(w, groups)
+	h.writeJSON(w, http.StatusOK, groups)
 }
 
 // @Summary      Get group info
@@ -109,7 +109,7 @@ func (h *GroupHandler) GetGroupInfo(w http.ResponseWriter, r *http.Request) {
 		Str("group_jid", groupJID).
 		Msg("Group info retrieved successfully")
 
-	h.writeJSON(w, group)
+	h.writeJSON(w, http.StatusOK, group)
 }
 
 // @Summary      Get group invite info
@@ -159,7 +159,7 @@ func (h *GroupHandler) GetGroupInviteInfo(w http.ResponseWriter, r *http.Request
 		Str("group_jid", group.JID).
 		Msg("Group invite info retrieved successfully")
 
-	h.writeJSON(w, group)
+	h.writeJSON(w, http.StatusOK, group)
 }
 
 // @Summary      Get group invite link
@@ -209,7 +209,7 @@ func (h *GroupHandler) GetGroupInviteLink(w http.ResponseWriter, r *http.Request
 		Bool("reset", reset).
 		Msg("Group invite link retrieved successfully")
 
-	h.writeJSON(w, dto.GetInviteLinkResponse{
+	h.writeJSON(w, http.StatusOK, dto.GetInviteLinkResponse{
 		InviteLink: link,
 	})
 }
@@ -261,8 +261,7 @@ func (h *GroupHandler) JoinGroup(w http.ResponseWriter, r *http.Request) {
 		Str("code", req.Code).
 		Msg("Joined group successfully")
 
-	h.writeJSON(w, dto.GroupActionResponse{
-		Success: true,
+	h.writeJSON(w, http.StatusOK, dto.GroupActionResponse{
 		Message: "Group joined successfully",
 	})
 }
@@ -320,7 +319,7 @@ func (h *GroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		Str("group_name", group.Name).
 		Msg("Group created successfully")
 
-	h.writeJSON(w, group)
+	h.writeJSON(w, http.StatusCreated, group)
 }
 
 // @Summary      Leave group
@@ -370,8 +369,7 @@ func (h *GroupHandler) LeaveGroup(w http.ResponseWriter, r *http.Request) {
 		Str("group_jid", req.GroupJID).
 		Msg("Left group successfully")
 
-	h.writeJSON(w, dto.GroupActionResponse{
-		Success: true,
+	h.writeJSON(w, http.StatusOK, dto.GroupActionResponse{
 		Message: "Group left successfully",
 	})
 }
@@ -436,8 +434,7 @@ func (h *GroupHandler) UpdateGroupParticipants(w http.ResponseWriter, r *http.Re
 		Int("count", len(req.Participants)).
 		Msg("Group participants updated successfully")
 
-	h.writeJSON(w, dto.GroupActionResponse{
-		Success: true,
+	h.writeJSON(w, http.StatusOK, dto.GroupActionResponse{
 		Message: fmt.Sprintf("Group participants %sed successfully", req.Action),
 	})
 }
@@ -496,8 +493,7 @@ func (h *GroupHandler) SetGroupName(w http.ResponseWriter, r *http.Request) {
 		Str("name", req.Name).
 		Msg("Group name set successfully")
 
-	h.writeJSON(w, dto.GroupActionResponse{
-		Success: true,
+	h.writeJSON(w, http.StatusOK, dto.GroupActionResponse{
 		Message: "Group name set successfully",
 	})
 }
@@ -554,8 +550,7 @@ func (h *GroupHandler) SetGroupTopic(w http.ResponseWriter, r *http.Request) {
 		Str("group_jid", req.GroupJID).
 		Msg("Group topic set successfully")
 
-	h.writeJSON(w, dto.GroupActionResponse{
-		Success: true,
+	h.writeJSON(w, http.StatusOK, dto.GroupActionResponse{
 		Message: "Group topic set successfully",
 	})
 }
@@ -609,8 +604,7 @@ func (h *GroupHandler) SetGroupLocked(w http.ResponseWriter, r *http.Request) {
 		Bool("locked", req.Locked).
 		Msg("Group locked setting updated successfully")
 
-	h.writeJSON(w, dto.GroupActionResponse{
-		Success: true,
+	h.writeJSON(w, http.StatusOK, dto.GroupActionResponse{
 		Message: "Group locked setting updated successfully",
 	})
 }
@@ -664,8 +658,7 @@ func (h *GroupHandler) SetGroupAnnounce(w http.ResponseWriter, r *http.Request) 
 		Bool("announce", req.Announce).
 		Msg("Group announce setting updated successfully")
 
-	h.writeJSON(w, dto.GroupActionResponse{
-		Success: true,
+	h.writeJSON(w, http.StatusOK, dto.GroupActionResponse{
 		Message: "Group announce setting updated successfully",
 	})
 }
@@ -724,8 +717,7 @@ func (h *GroupHandler) SetDisappearingTimer(w http.ResponseWriter, r *http.Reque
 		Str("duration", req.Duration).
 		Msg("Disappearing timer set successfully")
 
-	h.writeJSON(w, dto.GroupActionResponse{
-		Success: true,
+	h.writeJSON(w, http.StatusOK, dto.GroupActionResponse{
 		Message: "Disappearing timer set successfully",
 	})
 }
@@ -794,7 +786,7 @@ func (h *GroupHandler) SetGroupPhoto(w http.ResponseWriter, r *http.Request) {
 		Str("picture_id", pictureID).
 		Msg("Group photo set successfully")
 
-	h.writeJSON(w, dto.SetGroupPhotoResponse{
+	h.writeJSON(w, http.StatusOK, dto.SetGroupPhotoResponse{
 		PictureID: pictureID,
 	})
 }
@@ -846,13 +838,13 @@ func (h *GroupHandler) RemoveGroupPhoto(w http.ResponseWriter, r *http.Request) 
 		Str("group_jid", req.GroupJID).
 		Msg("Group photo removed successfully")
 
-	h.writeJSON(w, dto.GroupActionResponse{
-		Success: true,
+	h.writeJSON(w, http.StatusOK, dto.GroupActionResponse{
 		Message: "Group photo removed successfully",
 	})
 }
-func (h *GroupHandler) writeJSON(w http.ResponseWriter, data interface{}) {
+func (h *GroupHandler) writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		h.logger.Error().Err(err).Msg("Failed to encode response")

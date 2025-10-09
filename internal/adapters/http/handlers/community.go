@@ -105,7 +105,9 @@ func (h *CommunityHandler) handleGroupLinkOperation(
 		message = "Group unlinked from community successfully"
 	}
 
-	response := dto.NewSimpleSuccessResponse(message)
+	response := map[string]interface{}{
+		"message": message,
+	}
 
 	if err := h.writeJSON(w, response); err != nil {
 		return
@@ -239,7 +241,7 @@ func (h *CommunityHandler) CreateCommunity(w http.ResponseWriter, r *http.Reques
 // @Param sessionId path string true "ID da sessão"
 // @Param communityJid path string true "JID da comunidade"
 // @Param request body dto.LinkGroupRequest true "Dados do grupo a vincular"
-// @Success 200 {object} dto.SuccessResponse
+// @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /sessions/{sessionId}/communities/{communityJid}/link [post]
@@ -257,7 +259,7 @@ func (h *CommunityHandler) LinkGroup(w http.ResponseWriter, r *http.Request) {
 // @Param sessionId path string true "ID da sessão"
 // @Param communityJid path string true "JID da comunidade"
 // @Param request body dto.UnlinkGroupRequest true "Dados do grupo a desvincular"
-// @Success 200 {object} dto.SuccessResponse
+// @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /sessions/{sessionId}/communities/{communityJid}/unlink [post]

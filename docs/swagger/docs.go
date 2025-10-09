@@ -91,7 +91,7 @@ const docTemplate = `{
                     "200": {
                         "description": "List of sessions (without QR codes)",
                         "schema": {
-                            "$ref": "#/definitions/APIResponse"
+                            "$ref": "#/definitions/SessionListResponse"
                         }
                     },
                     "500": {
@@ -299,7 +299,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Configuration found",
                         "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootResponse"
+                            "$ref": "#/definitions/dto.ChatwootResponse"
                         }
                     },
                     "400": {
@@ -355,7 +355,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.CreateChatwootRequest"
+                            "$ref": "#/definitions/dto.CreateChatwootRequest"
                         }
                     }
                 ],
@@ -363,13 +363,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Configuration updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootResponse"
+                            "$ref": "#/definitions/dto.ChatwootResponse"
                         }
                     },
                     "201": {
                         "description": "Configuration created successfully",
                         "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootResponse"
+                            "$ref": "#/definitions/dto.ChatwootResponse"
                         }
                     },
                     "400": {
@@ -419,7 +419,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootWebhookRequest"
+                            "$ref": "#/definitions/dto.ChatwootWebhookRequest"
                         }
                     }
                 ],
@@ -427,7 +427,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Webhook processed successfully",
                         "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootWebhookResponse"
+                            "$ref": "#/definitions/dto.ChatwootWebhookResponse"
                         }
                     },
                     "400": {
@@ -696,7 +696,8 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/SuccessResponse"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -807,7 +808,8 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/SuccessResponse"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -4175,7 +4177,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Configuration found",
                         "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ProxyResponse"
+                            "$ref": "#/definitions/dto.ProxyResponse"
                         }
                     },
                     "400": {
@@ -4231,7 +4233,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.CreateProxyRequest"
+                            "$ref": "#/definitions/dto.CreateProxyRequest"
                         }
                     }
                 ],
@@ -4239,13 +4241,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Configuration updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ProxyResponse"
+                            "$ref": "#/definitions/dto.ProxyResponse"
                         }
                     },
                     "201": {
                         "description": "Configuration created successfully",
                         "schema": {
-                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ProxyResponse"
+                            "$ref": "#/definitions/dto.ProxyResponse"
                         }
                     },
                     "400": {
@@ -4462,40 +4464,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "APIErrorInfo": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "validation_error"
-                },
-                "details": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Validation failed"
-                }
-            }
-        },
-        "APIResponse": {
-            "type": "object",
-            "properties": {
-                "data": {},
-                "error": {
-                    "$ref": "#/definitions/APIErrorInfo"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "timestamp": {
-                    "type": "string",
-                    "example": "2025-01-15T10:30:00Z"
-                }
-            }
-        },
         "ChatPresenceRequest": {
             "type": "object",
             "required": [
@@ -4522,13 +4490,7 @@ const docTemplate = `{
             }
         },
         "ChatPresenceResponse": {
-            "type": "object",
-            "properties": {
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
+            "type": "object"
         },
         "CheckUserRequest": {
             "type": "object",
@@ -4873,10 +4835,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "3EB0C767D0D1A2B5F8"
                 },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                },
                 "timestamp": {
                     "type": "integer",
                     "example": 1696570882
@@ -4911,10 +4869,6 @@ const docTemplate = `{
                 "messageId": {
                     "type": "string",
                     "example": "3EB0C767D0D1A2B5F8"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
                 },
                 "timestamp": {
                     "type": "integer",
@@ -5070,10 +5024,6 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Operation completed successfully"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
                 }
             }
         },
@@ -5106,10 +5056,6 @@ const docTemplate = `{
         "HistorySyncResponse": {
             "type": "object",
             "properties": {
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                },
                 "timestamp": {
                     "type": "integer",
                     "example": 1696570882
@@ -5268,13 +5214,7 @@ const docTemplate = `{
             }
         },
         "MarkReadResponse": {
-            "type": "object",
-            "properties": {
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
+            "type": "object"
         },
         "NewsletterInfo": {
             "type": "object",
@@ -5678,10 +5618,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "sent"
                 },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                },
                 "timestamp": {
                     "type": "integer",
                     "example": 1696570882
@@ -5774,13 +5710,7 @@ const docTemplate = `{
             }
         },
         "SendPresenceResponse": {
-            "type": "object",
-            "properties": {
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
+            "type": "object"
         },
         "SendReactionMessageRequest": {
             "type": "object",
@@ -5940,6 +5870,21 @@ const docTemplate = `{
                 "updatedAt": {
                     "type": "string",
                     "example": "2025-01-15T10:35:00Z"
+                }
+            }
+        },
+        "SessionListResponse": {
+            "type": "object",
+            "properties": {
+                "sessions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/SessionListInfo"
+                    }
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 5
                 }
             }
         },
@@ -6160,20 +6105,6 @@ const docTemplate = `{
                 }
             }
         },
-        "SuccessResponse": {
-            "type": "object",
-            "properties": {
-                "data": {},
-                "message": {
-                    "type": "string",
-                    "example": "Operation completed successfully"
-                },
-                "success": {
-                    "type": "boolean",
-                    "example": true
-                }
-            }
-        },
         "SystemInfoResponse": {
             "type": "object",
             "properties": {
@@ -6352,7 +6283,7 @@ const docTemplate = `{
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.ChatwootAccount": {
+        "dto.ChatwootAccount": {
             "type": "object",
             "properties": {
                 "id": {
@@ -6363,7 +6294,7 @@ const docTemplate = `{
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.ChatwootAttachment": {
+        "dto.ChatwootAttachment": {
             "type": "object",
             "properties": {
                 "data_url": {
@@ -6383,13 +6314,13 @@ const docTemplate = `{
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.ChatwootContact": {
+        "dto.ChatwootContact": {
             "type": "object",
             "properties": {
                 "contact_inboxes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootContactInbox"
+                        "$ref": "#/definitions/dto.ChatwootContactInbox"
                     }
                 },
                 "custom_attributes": {
@@ -6416,7 +6347,7 @@ const docTemplate = `{
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.ChatwootContactInbox": {
+        "dto.ChatwootContactInbox": {
             "type": "object",
             "properties": {
                 "inbox_id": {
@@ -6427,14 +6358,14 @@ const docTemplate = `{
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.ChatwootConversation": {
+        "dto.ChatwootConversation": {
             "type": "object",
             "properties": {
                 "agent_last_seen_at": {
                     "type": "integer"
                 },
                 "contact": {
-                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootContact"
+                    "$ref": "#/definitions/dto.ChatwootContact"
                 },
                 "contact_last_seen_at": {
                     "type": "integer"
@@ -6450,7 +6381,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "inbox": {
-                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootInbox"
+                    "$ref": "#/definitions/dto.ChatwootInbox"
                 },
                 "labels": {
                     "type": "array",
@@ -6461,7 +6392,7 @@ const docTemplate = `{
                 "messages": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootMessage"
+                        "$ref": "#/definitions/dto.ChatwootMessage"
                     }
                 },
                 "status": {
@@ -6475,7 +6406,7 @@ const docTemplate = `{
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.ChatwootInbox": {
+        "dto.ChatwootInbox": {
             "type": "object",
             "properties": {
                 "channel_type": {
@@ -6501,17 +6432,17 @@ const docTemplate = `{
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.ChatwootMessage": {
+        "dto.ChatwootMessage": {
             "type": "object",
             "properties": {
                 "attachments": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootAttachment"
+                        "$ref": "#/definitions/dto.ChatwootAttachment"
                     }
                 },
                 "contact": {
-                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootContact"
+                    "$ref": "#/definitions/dto.ChatwootContact"
                 },
                 "content": {
                     "type": "string"
@@ -6520,7 +6451,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "conversation": {
-                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootConversation"
+                    "$ref": "#/definitions/dto.ChatwootConversation"
                 },
                 "created_at": {
                     "type": "integer"
@@ -6532,7 +6463,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "inbox": {
-                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootInbox"
+                    "$ref": "#/definitions/dto.ChatwootInbox"
                 },
                 "message_type": {
                     "type": "integer"
@@ -6541,14 +6472,14 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "sender": {
-                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootUser"
+                    "$ref": "#/definitions/dto.ChatwootUser"
                 },
                 "source_id": {
                     "type": "string"
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.ChatwootResponse": {
+        "dto.ChatwootResponse": {
             "type": "object",
             "properties": {
                 "accountId": {
@@ -6628,7 +6559,7 @@ const docTemplate = `{
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.ChatwootUser": {
+        "dto.ChatwootUser": {
             "type": "object",
             "properties": {
                 "availability_status": {
@@ -6651,36 +6582,36 @@ const docTemplate = `{
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.ChatwootWebhookRequest": {
+        "dto.ChatwootWebhookRequest": {
             "type": "object",
             "properties": {
                 "account": {
-                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootAccount"
+                    "$ref": "#/definitions/dto.ChatwootAccount"
                 },
                 "changed_by": {
-                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootUser"
+                    "$ref": "#/definitions/dto.ChatwootUser"
                 },
                 "contact": {
-                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootContact"
+                    "$ref": "#/definitions/dto.ChatwootContact"
                 },
                 "conversation": {
-                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootConversation"
+                    "$ref": "#/definitions/dto.ChatwootConversation"
                 },
                 "event": {
                     "type": "string"
                 },
                 "inbox": {
-                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootInbox"
+                    "$ref": "#/definitions/dto.ChatwootInbox"
                 },
                 "message": {
-                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootMessage"
+                    "$ref": "#/definitions/dto.ChatwootMessage"
                 },
                 "timestamp": {
                     "type": "integer"
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.ChatwootWebhookResponse": {
+        "dto.ChatwootWebhookResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -6688,13 +6619,10 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
-                },
-                "success": {
-                    "type": "boolean"
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.CreateChatwootRequest": {
+        "dto.CreateChatwootRequest": {
             "type": "object",
             "required": [
                 "accountId",
@@ -6768,7 +6696,7 @@ const docTemplate = `{
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.CreateProxyRequest": {
+        "dto.CreateProxyRequest": {
             "type": "object",
             "required": [
                 "host",
@@ -6805,7 +6733,7 @@ const docTemplate = `{
                 }
             }
         },
-        "zpwoot_internal_core_application_dto.ProxyResponse": {
+        "dto.ProxyResponse": {
             "type": "object",
             "properties": {
                 "createdAt": {

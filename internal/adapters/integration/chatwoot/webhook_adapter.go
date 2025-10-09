@@ -36,13 +36,11 @@ func (a *WebhookAdapter) HandleWebhook(ctx context.Context, sessionID string, re
 	response, err := a.handler.HandleWebhook(ctx, sessionID, payload)
 	if err != nil {
 		return &dto.ChatwootWebhookResponse{
-			Success: false,
-			Error:   err.Error(),
+			Error: err.Error(),
 		}, nil
 	}
 
 	return &dto.ChatwootWebhookResponse{
-		Success: response.Success,
 		Message: response.Message,
 	}, nil
 }

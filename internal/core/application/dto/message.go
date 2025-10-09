@@ -41,7 +41,6 @@ type ContactInfo struct {
 } // @name ContactInfo
 
 type SendMessageResponse struct {
-	Success     bool         `json:"success" example:"true"`
 	ID          string       `json:"id" example:"3EB0A9253FA64269E11C9D"`
 	To          string       `json:"to" example:"5511999999999@s.whatsapp.net"`
 	Type        string       `json:"type" example:"text"`
@@ -403,7 +402,6 @@ type DeleteMessageRequest struct {
 	MessageID string `json:"messageId" validate:"required" example:"3EB0C767D0D1A2B5F8"`
 } // @name DeleteMessageRequest
 type DeleteMessageResponse struct {
-	Success   bool   `json:"success" example:"true"`
 	MessageID string `json:"messageId" example:"3EB0C767D0D1A2B5F8"`
 	Timestamp int64  `json:"timestamp" example:"1696570882"`
 } // @name DeleteMessageResponse
@@ -413,7 +411,6 @@ type EditMessageRequest struct {
 	Text      string `json:"text" validate:"required" example:"Edited message text"`
 } // @name EditMessageRequest
 type EditMessageResponse struct {
-	Success   bool   `json:"success" example:"true"`
 	MessageID string `json:"messageId" example:"3EB0C767D0D1A2B5F8"`
 	Timestamp int64  `json:"timestamp" example:"1696570882"`
 } // @name EditMessageResponse
@@ -422,13 +419,11 @@ type MarkReadRequest struct {
 	MessageIDs []string `json:"messageIds" validate:"required,min=1" example:"3EB0C767D0D1A2B5F8,3EB0C767D0D1A2B5F9"`
 } // @name MarkReadRequest
 type MarkReadResponse struct {
-	Success bool `json:"success" example:"true"`
 } // @name MarkReadResponse
 type HistorySyncRequest struct {
 	Count int `json:"count,omitempty" example:"50" description:"Number of messages to sync (default: 50)"`
 } // @name HistorySyncRequest
 type HistorySyncResponse struct {
-	Success   bool  `json:"success" example:"true"`
 	Timestamp int64 `json:"timestamp" example:"1696570882"`
 } // @name HistorySyncResponse
 

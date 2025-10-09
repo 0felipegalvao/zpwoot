@@ -96,7 +96,6 @@ func (h *NewsletterHandler) handleNewsletterOperation(
 	}
 
 	response := map[string]interface{}{
-		"success": true,
 		"message": message,
 	}
 
@@ -302,7 +301,6 @@ func (h *NewsletterHandler) FollowNewsletter(w http.ResponseWriter, r *http.Requ
 	}
 
 	response := map[string]interface{}{
-		"success": true,
 		"message": "Newsletter followed successfully",
 	}
 
@@ -349,7 +347,6 @@ func (h *NewsletterHandler) UnfollowNewsletter(w http.ResponseWriter, r *http.Re
 	}
 
 	response := map[string]interface{}{
-		"success": true,
 		"message": "Newsletter unfollowed successfully",
 	}
 
@@ -513,7 +510,6 @@ func (h *NewsletterHandler) SendMessage(w http.ResponseWriter, r *http.Request) 
 	}
 
 	response := map[string]interface{}{
-		"success":    true,
 		"message":    "Message sent to newsletter successfully",
 		"message_id": "temp_id_" + newsletterJID,
 	}

@@ -178,7 +178,6 @@ func (uc *SendUseCase) buildSendResponse(messageResult *output.MessageResult) *d
 	}
 
 	return &dto.SendMessageResponse{
-		Success:   true,
 		ID:        finalMessageID,
 		To:        "",
 		Type:      "",
