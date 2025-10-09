@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"zpwoot/internal/adapters/logger"
+	chatwootIntegration "zpwoot/internal/adapters/integration/chatwoot"
 	"zpwoot/internal/core/domain/session"
 	"zpwoot/internal/core/domain/webhook"
 	"zpwoot/internal/core/ports/output"
@@ -50,7 +51,7 @@ type SessionRepository interface {
 	List(ctx context.Context, limit, offset int) ([]*session.Session, error)
 }
 
-func NewWAClient(container *sqlstore.Container, logger *logger.Logger, sessionRepo SessionRepository, webhookSender output.WebhookSender, webhookRepo webhook.Repository) *WAClient {
+func NewWAClient(container *sqlstore.Container, logger *logger.Logger, sessionRepo SessionRepository, webhookSender output.WebhookSender, webhookRepo webhook.Repository, chatwootIntegrator *chatwootIntegration.Integrator) *WAClient {
 	store.DeviceProps.PlatformType = waCompanionReg.DeviceProps_UNKNOWN.Enum()
 	store.DeviceProps.Os = proto.String(runtime.GOOS)
 
@@ -62,7 +63,7 @@ func NewWAClient(container *sqlstore.Container, logger *logger.Logger, sessionRe
 	}
 
 	if webhookSender != nil && webhookRepo != nil {
-		wac.eventHandler = NewDefaultEventHandler(logger, webhookSender, webhookRepo, sessionRepo)
+		wac.eventHandler = NewDefaultEventHandler(logger, webhookSender, webhookRepo, sessionRepo, chatwootIntegrator)
 	}
 
 	go wac.loadSessionsFromDatabase()

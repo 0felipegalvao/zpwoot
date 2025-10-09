@@ -66,8 +66,16 @@ type ContactResponse struct {
 	PhoneNumber      string                 `json:"phone_number"`
 	Identifier       string                 `json:"identifier"`
 	CustomAttributes map[string]interface{} `json:"custom_attributes"`
-	CreatedAt        string                 `json:"created_at"`
-	UpdatedAt        string                 `json:"updated_at"`
+	CreatedAt        int64                  `json:"created_at"`
+	UpdatedAt        int64                  `json:"updated_at"`
+}
+
+type ContactSearchResponse struct {
+	Meta struct {
+		Count       int `json:"count"`
+		CurrentPage int `json:"current_page"`
+	} `json:"meta"`
+	Payload []ContactResponse `json:"payload"`
 }
 
 type ConversationRequest struct {
@@ -87,8 +95,8 @@ type ConversationResponse struct {
 	AssigneeID int                    `json:"assignee_id"`
 	Messages   []MessageResponse      `json:"messages,omitempty"`
 	Meta       map[string]interface{} `json:"meta,omitempty"`
-	CreatedAt  string                 `json:"created_at"`
-	UpdatedAt  string                 `json:"updated_at"`
+	CreatedAt  int64                  `json:"created_at"`
+	UpdatedAt  float64                `json:"updated_at"`
 }
 
 type MessageRequest struct {
@@ -109,14 +117,14 @@ type AttachmentRequest struct {
 type MessageResponse struct {
 	ID          int                    `json:"id"`
 	Content     string                 `json:"content"`
-	MessageType string                 `json:"message_type"`
+	MessageType int                    `json:"message_type"`
 	ContentType string                 `json:"content_type"`
 	Private     bool                   `json:"private"`
 	SourceID    string                 `json:"source_id"`
 	Sender      map[string]interface{} `json:"sender"`
 	Echo        map[string]interface{} `json:"echo"`
-	CreatedAt   string                 `json:"created_at"`
-	UpdatedAt   string                 `json:"updated_at"`
+	CreatedAt   int64                  `json:"created_at"`
+	UpdatedAt   int64                  `json:"updated_at"`
 }
 
 type ErrorResponse struct {
@@ -251,16 +259,16 @@ func (c *Client) GetContactByIdentifier(ctx context.Context, identifier string) 
 		return nil, err
 	}
 
-	var results []ContactResponse
-	if err := c.handleResponse(resp, &results); err != nil {
+	var searchResult ContactSearchResponse
+	if err := c.handleResponse(resp, &searchResult); err != nil {
 		return nil, err
 	}
 
-	if len(results) == 0 {
+	if searchResult.Meta.Count == 0 || len(searchResult.Payload) == 0 {
 		return nil, fmt.Errorf("contact not found")
 	}
 
-	return &results[0], nil
+	return &searchResult.Payload[0], nil
 }
 
 func (c *Client) CreateConversation(ctx context.Context, req *ConversationRequest) (*ConversationResponse, error) {

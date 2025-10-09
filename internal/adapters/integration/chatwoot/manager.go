@@ -34,6 +34,10 @@ func NewManager(
 	}
 }
 
+func (m *Manager) SetWhatsAppClient(client output.WhatsAppClient) {
+	m.whatsappClient = client
+}
+
 func (m *Manager) InitializeInbox(ctx context.Context, sessionID string) error {
 
 	config, err := m.chatwootRepo.GetBySessionID(ctx, sessionID)

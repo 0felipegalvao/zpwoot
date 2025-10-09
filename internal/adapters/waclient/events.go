@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	chatwootIntegration "zpwoot/internal/adapters/integration/chatwoot"
@@ -28,12 +29,13 @@ type DefaultEventHandler struct {
 	chatwootIntegrator *chatwootIntegration.Integrator
 }
 
-func NewDefaultEventHandler(logger *logger.Logger, webhookSender output.WebhookSender, webhookRepo webhook.Repository, sessionRepo SessionRepository) *DefaultEventHandler {
+func NewDefaultEventHandler(logger *logger.Logger, webhookSender output.WebhookSender, webhookRepo webhook.Repository, sessionRepo SessionRepository, chatwootIntegrator *chatwootIntegration.Integrator) *DefaultEventHandler {
 	return &DefaultEventHandler{
-		logger:        logger,
-		webhookSender: webhookSender,
-		webhookRepo:   webhookRepo,
-		sessionRepo:   sessionRepo,
+		logger:             logger,
+		webhookSender:      webhookSender,
+		webhookRepo:        webhookRepo,
+		sessionRepo:        sessionRepo,
+		chatwootIntegrator: chatwootIntegrator,
 	}
 }
 
@@ -93,6 +95,11 @@ func (eh *DefaultEventHandler) handleMessage(client *Client, evt *events.Message
 		Str("pkg", "waclient").
 		Str("session_id", client.SessionID).
 		Msg("DEBUG: About to call sendWebhookIfEnabled for Message event")
+
+	// Try Chatwoot integration first
+	if err := eh.processChatwootEvent(client, EventMessage, evt); err != nil {
+		eh.logger.Error().Err(err).Str("session_id", client.SessionID).Msg("Failed to process Chatwoot event")
+	}
 
 	return eh.sendWebhookIfEnabled(client, EventMessage, evt)
 }
@@ -346,6 +353,129 @@ func (eh *DefaultEventHandler) sendWebhook(webhookConfig *webhook.Webhook, event
 	}
 
 	return eh.webhookSender.SendWebhook(ctx, webhookConfig.URL, webhookConfig.Secret, webhookEvent)
+}
+
+func (eh *DefaultEventHandler) processChatwootEvent(client *Client, eventType EventType, eventData interface{}) error {
+	if eh.chatwootIntegrator == nil {
+		log.Debug().
+			Str("pkg", "waclient").
+			Str("session_id", client.SessionID).
+			Msg("DEBUG: No Chatwoot integrator available")
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Convert event data to the format expected by Chatwoot integrator
+	webhookEvent := &output.WebhookEvent{
+		ID:        uuid.New().String(),
+		Type:      strings.ToLower(string(eventType)),
+		SessionID: client.SessionID,
+		Timestamp: time.Now(),
+		Data:      eh.convertEventDataForChatwoot(eventData),
+	}
+
+	log.Debug().
+		Str("pkg", "waclient").
+		Str("session_id", client.SessionID).
+		Str("event_type", string(eventType)).
+		Msg("DEBUG: Processing event for Chatwoot integration")
+
+	return eh.chatwootIntegrator.ProcessWhatsAppEvent(ctx, client.SessionID, webhookEvent)
+}
+
+func (eh *DefaultEventHandler) convertEventDataForChatwoot(eventData interface{}) map[string]interface{} {
+	if eventData == nil {
+		return make(map[string]interface{})
+	}
+
+	// Check if it's a WhatsApp message event
+	if evt, ok := eventData.(*events.Message); ok {
+		return eh.convertWhatsAppMessageToChatwoot(evt)
+	}
+
+	// For other event types, convert to JSON and back to get a clean map
+	jsonData, err := json.Marshal(eventData)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to marshal event data for Chatwoot")
+		return make(map[string]interface{})
+	}
+
+	var result map[string]interface{}
+	if err := json.Unmarshal(jsonData, &result); err != nil {
+		log.Error().Err(err).Msg("Failed to unmarshal event data for Chatwoot")
+		return make(map[string]interface{})
+	}
+
+	return result
+}
+
+func (eh *DefaultEventHandler) convertWhatsAppMessageToChatwoot(evt *events.Message) map[string]interface{} {
+	messageData := map[string]interface{}{
+		"id":        evt.Info.ID,
+		"chat_id":   evt.Info.Chat.String(),
+		"from":      evt.Info.Sender.String(),
+		"from_name": evt.Info.PushName,
+		"is_group":  evt.Info.IsGroup,
+		"timestamp": evt.Info.Timestamp.Unix(),
+		"type":      getMessageType(evt.Message),
+	}
+
+	// Extract message content based on message type
+	if evt.Message.GetConversation() != "" {
+		messageData["content"] = evt.Message.GetConversation()
+		messageData["text"] = evt.Message.GetConversation()
+	} else if evt.Message.GetExtendedTextMessage() != nil {
+		messageData["content"] = evt.Message.GetExtendedTextMessage().GetText()
+		messageData["text"] = evt.Message.GetExtendedTextMessage().GetText()
+	} else if evt.Message.GetImageMessage() != nil {
+		img := evt.Message.GetImageMessage()
+		messageData["content"] = "[Image]"
+		if img.GetCaption() != "" {
+			messageData["caption"] = img.GetCaption()
+			messageData["content"] = img.GetCaption()
+		}
+		messageData["media"] = map[string]interface{}{
+			"url":       img.GetURL(),
+			"mime_type": img.GetMimetype(),
+			"filename":  "image",
+		}
+	} else if evt.Message.GetAudioMessage() != nil {
+		audio := evt.Message.GetAudioMessage()
+		messageData["content"] = "[Audio]"
+		messageData["media"] = map[string]interface{}{
+			"url":       audio.GetURL(),
+			"mime_type": audio.GetMimetype(),
+			"filename":  "audio",
+		}
+	} else if evt.Message.GetVideoMessage() != nil {
+		video := evt.Message.GetVideoMessage()
+		messageData["content"] = "[Video]"
+		if video.GetCaption() != "" {
+			messageData["caption"] = video.GetCaption()
+			messageData["content"] = video.GetCaption()
+		}
+		messageData["media"] = map[string]interface{}{
+			"url":       video.GetURL(),
+			"mime_type": video.GetMimetype(),
+			"filename":  "video",
+		}
+	} else if evt.Message.GetDocumentMessage() != nil {
+		doc := evt.Message.GetDocumentMessage()
+		messageData["content"] = "[Document]"
+		messageData["media"] = map[string]interface{}{
+			"url":       doc.GetURL(),
+			"mime_type": doc.GetMimetype(),
+			"filename":  doc.GetFileName(),
+		}
+	} else {
+		messageData["content"] = "[Unknown message type]"
+	}
+
+	return map[string]interface{}{
+		"message": messageData,
+	}
 }
 
 func getMessageType(msg interface{}) string {

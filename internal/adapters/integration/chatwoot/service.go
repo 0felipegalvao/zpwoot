@@ -76,22 +76,35 @@ func (s *Service) SetupInbox(ctx context.Context, config *chatwoot.Chatwoot, ses
 }
 
 func (s *Service) CreateOrUpdateContact(ctx context.Context, client *Client, phoneNumber, name string) (*ContactResponse, error) {
+	// Extract and format phone number from WhatsApp JID
+	extractedPhone := s.extractPhoneNumberFromJID(phoneNumber)
+	formattedPhone := s.formatPhoneNumberForChatwoot(extractedPhone)
 
-	contact, err := client.GetContactByIdentifier(ctx, phoneNumber)
+	// First try to find contact by formatted phone number
+	s.logger.Debug().
+		Str("phone_number", formattedPhone).
+		Msg("Searching for existing Chatwoot contact")
+
+	contact, err := client.GetContactByIdentifier(ctx, formattedPhone)
 	if err == nil {
 		s.logger.Debug().
-			Str("phone_number", phoneNumber).
+			Str("phone_number", formattedPhone).
 			Int("contact_id", contact.ID).
 			Msg("Found existing Chatwoot contact")
 		return contact, nil
 	}
 
+	s.logger.Debug().
+		Str("phone_number", formattedPhone).
+		Err(err).
+		Msg("Contact not found, will create new one")
+
 	contactReq := &ContactRequest{
 		Name:        name,
-		PhoneNumber: phoneNumber,
-		Identifier:  phoneNumber,
+		PhoneNumber: formattedPhone,
+		Identifier:  phoneNumber, // Use original JID as identifier
 		CustomAttributes: map[string]interface{}{
-			"whatsapp_number": phoneNumber,
+			"whatsapp_number": phoneNumber, // Keep original JID for reference
 		},
 	}
 
@@ -372,4 +385,22 @@ func (s *Service) GetMessageType(isFromMe bool) string {
 		return "outgoing"
 	}
 	return "incoming"
+}
+
+// extractPhoneNumberFromJID extracts phone number from WhatsApp JID
+// Example: "559981769536:83@s.whatsapp.net" -> "559981769536"
+func (s *Service) extractPhoneNumberFromJID(jid string) string {
+	// Remove device ID part (e.g., ":83")
+	withoutDevice := strings.Split(jid, ":")[0]
+	// Remove domain part (e.g., "@s.whatsapp.net")
+	phoneNumber := strings.Split(withoutDevice, "@")[0]
+	return phoneNumber
+}
+
+// formatPhoneNumberForChatwoot formats phone number for Chatwoot (E.164 format)
+func (s *Service) formatPhoneNumberForChatwoot(phoneNumber string) string {
+	// Remove any existing + sign
+	cleaned := strings.TrimPrefix(phoneNumber, "+")
+	// Add + prefix for E.164 format
+	return "+" + cleaned
 }

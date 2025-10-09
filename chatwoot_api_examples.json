@@ -1,0 +1,215 @@
+{
+  "contact_search_response": {
+    "description": "Resposta real da API do Chatwoot ao buscar contatos",
+    "endpoint": "GET /api/v1/accounts/1/contacts/search?q=+554988989314",
+    "status_code": 200,
+    "response": {
+      "meta": {
+        "count": 1,
+        "current_page": 1
+      },
+      "payload": [
+        {
+          "additional_attributes": {},
+          "availability_status": "offline",
+          "email": null,
+          "id": 2,
+          "name": "Development",
+          "phone_number": "+554988989314",
+          "blocked": false,
+          "identifier": "554988989314@s.whatsapp.net",
+          "thumbnail": "",
+          "custom_attributes": {
+            "whatsapp_number": "554988989314@s.whatsapp.net"
+          },
+          "created_at": 1760039756,
+          "contact_inboxes": []
+        }
+      ]
+    },
+    "notes": [
+      "O campo 'created_at' vem como timestamp Unix (número), não como string",
+      "O campo 'id' é o ID do contato no Chatwoot",
+      "O campo 'identifier' é usado para identificar o contato no WhatsApp"
+    ]
+  },
+  "conversation_create_success_response_real": {
+    "description": "Resposta real de sucesso ao criar uma conversação",
+    "endpoint": "POST /api/v1/accounts/1/conversations",
+    "status_code": 200,
+    "response": {
+      "meta": {
+        "sender": {
+          "additional_attributes": {},
+          "availability_status": "offline",
+          "email": null,
+          "id": 2,
+          "name": "Development",
+          "phone_number": "+554988989314",
+          "blocked": false,
+          "identifier": "554988989314@s.whatsapp.net",
+          "thumbnail": "",
+          "custom_attributes": {
+            "whatsapp_number": "554988989314@s.whatsapp.net"
+          },
+          "created_at": 1760039756
+        },
+        "channel": "Channel::Api",
+        "hmac_verified": false
+      },
+      "id": 1,
+      "messages": [],
+      "account_id": 1,
+      "uuid": "3df4f507-0cec-4eb7-a314-3bfc2d797fb4",
+      "additional_attributes": {},
+      "agent_last_seen_at": 0,
+      "assignee_last_seen_at": 0,
+      "can_reply": true,
+      "contact_last_seen_at": 0,
+      "custom_attributes": {},
+      "inbox_id": 1,
+      "labels": [],
+      "muted": false,
+      "snoozed_until": null,
+      "status": "open",
+      "created_at": 1760040088,
+      "updated_at": 1760040088.811477,
+      "timestamp": 1760040088,
+      "first_reply_created_at": 0,
+      "unread_count": 0,
+      "last_non_activity_message": null,
+      "last_activity_at": 1760040088,
+      "priority": null,
+      "waiting_since": 1760040088,
+      "sla_policy_id": null
+    },
+    "notes": [
+      "O campo 'created_at' vem como timestamp Unix (número)",
+      "O campo 'updated_at' vem como float (número com decimais)",
+      "O campo 'id' é o ID da conversação no Chatwoot",
+      "O campo 'uuid' é o identificador único da conversação"
+    ]
+  },
+  "message_send_success_response_real": {
+    "description": "Resposta real de sucesso ao enviar uma mensagem",
+    "endpoint": "POST /api/v1/accounts/1/conversations/{conversation_id}/messages",
+    "status_code": 200,
+    "response": {
+      "id": 2,
+      "content": "Tetse",
+      "inbox_id": 1,
+      "conversation_id": 4,
+      "message_type": 0,
+      "content_type": "text",
+      "status": "sent",
+      "content_attributes": {},
+      "created_at": 1760040182,
+      "private": false,
+      "source_id": null,
+      "sender": {
+        "additional_attributes": {},
+        "custom_attributes": {
+          "whatsapp_number": "554988989314@s.whatsapp.net"
+        },
+        "email": null,
+        "id": 2,
+        "identifier": "554988989314@s.whatsapp.net",
+        "name": "Development",
+        "phone_number": "+554988989314",
+        "thumbnail": "",
+        "blocked": false,
+        "type": "contact"
+      }
+    },
+    "notes": [
+      "O campo 'message_type' vem como número (0 = incoming, 1 = outgoing)",
+      "O campo 'created_at' vem como timestamp Unix (número)",
+      "O campo 'id' é o ID da mensagem no Chatwoot",
+      "O campo 'conversation_id' referencia a conversação"
+    ]
+  },
+  "contact_create_request": {
+    "description": "Estrutura para criar um contato no Chatwoot",
+    "endpoint": "POST /public/api/v1/inboxes/{inbox_identifier}/contacts",
+    "request_body": {
+      "identifier": "554988989314@s.whatsapp.net",
+      "name": "Development",
+      "phone_number": "+554988989314",
+      "custom_attributes": {
+        "whatsapp_number": "554988989314@s.whatsapp.net"
+      }
+    }
+  },
+  "contact_create_error_response": {
+    "description": "Erro ao tentar criar contato que já existe",
+    "endpoint": "POST /api/v1/accounts/1/contacts",
+    "status_code": 422,
+    "response": {
+      "message": "Identifier has already been taken, Phone number has already been taken",
+      "attributes": ["identifier", "phone_number"]
+    }
+  },
+  "conversation_create_request": {
+    "description": "Estrutura para criar uma conversação no Chatwoot",
+    "endpoint": "POST /public/api/v1/inboxes/{inbox_identifier}/contacts/{contact_identifier}/conversations",
+    "request_body": {
+      "custom_attributes": {}
+    }
+  },
+  "conversation_create_success_response": {
+    "description": "Resposta de sucesso ao criar uma conversação",
+    "status_code": 200,
+    "response": {
+      "id": 123,
+      "inbox_id": "string",
+      "messages": [
+        {
+          "id": 123,
+          "content": "string",
+          "account_id": 123,
+          "inbox_id": 123,
+          "conversation_id": 123,
+          "message_type": 0,
+          "created_at": 123,
+          "updated_at": 123,
+          "private": true,
+          "status": "sent",
+          "source_id": "string",
+          "content_type": "text",
+          "content_attributes": {},
+          "sender_type": "contact",
+          "sender_id": 123,
+          "external_source_ids": {},
+          "additional_attributes": {},
+          "processed_message_content": "string",
+          "sentiment": {},
+          "conversation": {},
+          "attachment": {},
+          "sender": {}
+        }
+      ],
+      "contact": {}
+    }
+  },
+  "phone_number_formats": {
+    "description": "Formatos de número de telefone usados",
+    "whatsapp_jid": "554988989314@s.whatsapp.net",
+    "e164_format": "+554988989314",
+    "raw_number": "554988989314",
+    "notes": [
+      "WhatsApp JID é usado como identifier",
+      "Formato E.164 (+55...) é usado como phone_number",
+      "Número bruto é extraído do JID para formatação"
+    ]
+  },
+  "api_endpoints": {
+    "description": "Endpoints da API do Chatwoot utilizados",
+    "base_url": "http://127.0.0.1:3001",
+    "endpoints": {
+      "search_contacts": "/api/v1/accounts/1/contacts/search?q={phone_number}",
+      "create_contact": "/api/v1/accounts/1/contacts",
+      "create_conversation": "/public/api/v1/inboxes/{inbox_identifier}/contacts/{contact_identifier}/conversations",
+      "send_message": "/public/api/v1/inboxes/{inbox_identifier}/contacts/{contact_identifier}/conversations/{conversation_id}/messages"
+    }
+  }
+}

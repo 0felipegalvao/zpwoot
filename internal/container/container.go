@@ -107,23 +107,27 @@ func (c *Container) InitWithContext(ctx context.Context) error {
 	c.logger.Info().Msg("Initializing webhook sender")
 	c.initWebhookSender()
 
+	c.logger.Info().Msg("Initializing Chatwoot integrator")
+	baseURL := buildBaseURL(c.config)
+	c.chatwootUseCases = chatwootUseCase.NewUseCases(c.chatwootService, c.logger, baseURL)
+	c.chatwootIntegrator = chatwootIntegration.NewIntegrator(
+		c.cachedChatwootRepo,
+		nil, // WhatsApp client will be set later
+		c.logger,
+		baseURL,
+	)
+
 	c.logger.Info().Msg("Initializing WhatsApp client")
 	c.initWAClient()
+
+	c.logger.Info().Msg("Setting WhatsApp client in Chatwoot integrator")
+	c.chatwootIntegrator.SetWhatsAppClient(c.whatsappClient)
 
 	c.logger.Info().Msg("Initializing use cases")
 	c.sessionUseCases = session.NewUseCases(c.sessionService, c.whatsappClient, c.logger)
 	c.messageUseCases = message.NewUseCases(c.sessionService, c.whatsappClient, c.logger)
 	c.webhookUseCases = c.initWebhookUseCases()
 	c.proxyUseCases = proxyUseCase.NewUseCases(c.proxyService, c.logger)
-
-	baseURL := buildBaseURL(c.config)
-	c.chatwootUseCases = chatwootUseCase.NewUseCases(c.chatwootService, c.logger, baseURL)
-	c.chatwootIntegrator = chatwootIntegration.NewIntegrator(
-		c.cachedChatwootRepo,
-		c.whatsappClient,
-		c.logger,
-		baseURL,
-	)
 
 	c.logger.Info().Msg("Container initialization completed successfully")
 
@@ -234,7 +238,7 @@ func (c *Container) initWAClient() {
 		c.logger,
 		c.config.Database.URL,
 	)
-	waClient := waclient.NewWAClient(waContainer, c.logger, sessionRepo, c.webhookSender, c.cachedWebhookRepo)
+	waClient := waclient.NewWAClient(waContainer, c.logger, sessionRepo, c.webhookSender, c.cachedWebhookRepo, c.chatwootIntegrator)
 	c.whatsappClient = waclient.NewWAClientAdapter(waClient)
 }
 

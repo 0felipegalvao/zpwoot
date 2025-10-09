@@ -32,6 +32,10 @@ func NewIntegrator(
 	}
 }
 
+func (i *Integrator) SetWhatsAppClient(client output.WhatsAppClient) {
+	i.manager.SetWhatsAppClient(client)
+}
+
 func (i *Integrator) ProcessWhatsAppEvent(ctx context.Context, sessionID string, event *output.WebhookEvent) error {
 	switch event.Type {
 	case "message":
