@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"zpwoot/internal/core/application/dto"
+	"zpwoot/internal/core/domain/common"
 	"zpwoot/internal/core/domain/session"
-	"zpwoot/internal/core/domain/shared"
 	"zpwoot/internal/core/ports/output"
 )
 
@@ -36,7 +36,7 @@ func (uc *GetUseCase) Execute(ctx context.Context, sessionID string) (*dto.Sessi
 
 	domainSession, err := uc.sessionService.Get(ctx, sessionID)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			return nil, dto.ErrSessionNotFound
 		}
 
@@ -75,9 +75,6 @@ func (uc *GetUseCase) ExecuteWithSync(ctx context.Context, sessionID string) (*d
 
 	if waStatus != nil {
 		response.DeviceJID = waStatus.DeviceJID
-		response.Connected = waStatus.Connected
-
-		response.Status = uc.determineSessionStatus(waStatus)
 
 		if !waStatus.ConnectedAt.IsZero() {
 			response.ConnectedAt = &waStatus.ConnectedAt
@@ -91,17 +88,6 @@ func (uc *GetUseCase) ExecuteWithSync(ctx context.Context, sessionID string) (*d
 	return response, nil
 }
 
-func (uc *GetUseCase) determineSessionStatus(waStatus *output.SessionStatus) string {
-	switch {
-	case waStatus.Connected:
-		return "connected"
-	case waStatus.LoggedIn:
-		return "disconnected"
-	default:
-		return "qr_code"
-	}
-}
-
 func (uc *GetUseCase) updateSessionFromWAStatus(ctx context.Context, sessionID string, domainSession *session.Session, waStatus *output.SessionStatus) {
 	if waStatus.Connected && !domainSession.IsConnected {
 		domainSession.SetConnected(waStatus.DeviceJID)
@@ -113,11 +99,4 @@ func (uc *GetUseCase) updateSessionFromWAStatus(ctx context.Context, sessionID s
 		domainSession.DeviceJID = waStatus.DeviceJID
 	}
 
-	if !waStatus.LastSeen.IsZero() {
-		domainSession.UpdateLastSeen()
-	}
-
-	go func(ctx context.Context) {
-		_ = uc.sessionService.Update(ctx, domainSession)
-	}(ctx)
 }

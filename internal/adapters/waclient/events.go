@@ -302,7 +302,6 @@ func (eh *DefaultEventHandler) shouldSendWebhook(webhookConfig *webhook.Webhook,
 	return false
 }
 
-// OrderedWebhookPayload garante a ordem específica dos campos no JSON
 type OrderedWebhookPayload struct {
 	Event     string      `json:"event"`
 	SessionID string      `json:"sessionId"`
@@ -313,7 +312,6 @@ type OrderedWebhookPayload struct {
 
 func (eh *DefaultEventHandler) sendWebhook(webhookConfig *webhook.Webhook, eventType EventType, eventData interface{}, sessionID string) error {
 
-	// Buscar apiKey da sessão
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -325,7 +323,6 @@ func (eh *DefaultEventHandler) sendWebhook(webhookConfig *webhook.Webhook, event
 		apiKey = sess.APIKey
 	}
 
-	// Criar payload com ordem específica: event, sessionId, apiKey, timestamp, data
 	orderedPayload := OrderedWebhookPayload{
 		Event:     string(eventType),
 		SessionID: sessionID,
@@ -334,7 +331,6 @@ func (eh *DefaultEventHandler) sendWebhook(webhookConfig *webhook.Webhook, event
 		Data:      eventData,
 	}
 
-	// Marcar que este payload deve ser serializado diretamente
 	payloadMap := map[string]interface{}{
 		"_ordered_payload": orderedPayload,
 	}

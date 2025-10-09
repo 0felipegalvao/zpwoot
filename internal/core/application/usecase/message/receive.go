@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"zpwoot/internal/core/application/dto"
+	"zpwoot/internal/core/domain/common"
 	"zpwoot/internal/core/domain/session"
-	"zpwoot/internal/core/domain/shared"
 	"zpwoot/internal/core/ports/output"
 )
 
@@ -38,18 +38,12 @@ func (uc *ReceiveUseCase) ProcessIncomingMessage(ctx context.Context, req *dto.R
 
 	_, err := uc.sessionService.Get(ctx, req.SessionID)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			return dto.ErrSessionNotFound
 		}
 
 		return fmt.Errorf("failed to get session: %w", err)
 	}
-
-	go func(ctx context.Context) {
-		if err := uc.sessionService.UpdateStatus(ctx, req.SessionID, session.StatusConnected); err != nil {
-			uc.logger.Error().Err(err).Str("session_id", req.SessionID).Msg("Failed to update session status")
-		}
-	}(ctx)
 
 	return nil
 }
@@ -65,18 +59,12 @@ func (uc *ReceiveUseCase) ProcessIncomingMessageBatch(ctx context.Context, sessi
 
 	_, err := uc.sessionService.Get(ctx, sessionID)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			return dto.ErrSessionNotFound
 		}
 
 		return fmt.Errorf("failed to get session: %w", err)
 	}
-
-	go func(ctx context.Context) {
-		if err := uc.sessionService.UpdateStatus(ctx, sessionID, session.StatusConnected); err != nil {
-			uc.logger.Error().Err(err).Str("session_id", sessionID).Msg("Failed to update session status")
-		}
-	}(ctx)
 
 	for _, message := range messages {
 		req := &dto.ReceiveMessageRequest{

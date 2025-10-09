@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"zpwoot/internal/core/domain/shared"
+	"zpwoot/internal/core/domain/common"
 )
 
 type Service struct {
@@ -14,115 +14,72 @@ type Service struct {
 }
 
 func NewService(repo Repository) *Service {
-	return &Service{
-		repo: repo,
-	}
+	return &Service{repo: repo}
 }
 
 func (s *Service) Create(ctx context.Context, name string) (*Session, error) {
 	if name == "" {
-		return nil, errors.New("session name cannot be empty")
+		return nil, common.ErrInvalidInput
 	}
 
-	existingSession, err := s.repo.GetByName(ctx, name)
-	if err != nil && !errors.Is(err, shared.ErrSessionNotFound) {
-		return nil, fmt.Errorf("failed to check existing session: %w", err)
-	}
-
-	if existingSession != nil {
-		return nil, shared.ErrSessionAlreadyExists
+	if err := s.checkNameAvailable(ctx, name); err != nil {
+		return nil, err
 	}
 
 	session := NewSession(name)
-
 	if err := s.repo.Create(ctx, session); err != nil {
 		if isUniqueConstraintError(err) {
-			return nil, shared.ErrSessionAlreadyExists
+			return nil, common.ErrAlreadyExists
 		}
-
-		return nil, fmt.Errorf("failed to create session: %w", err)
+		return nil, fmt.Errorf("create session: %w", err)
 	}
 
 	return session, nil
 }
 
-// CreateFromSession creates a session from an existing Session entity (allows custom apiKey)
 func (s *Service) CreateFromSession(ctx context.Context, session *Session) error {
 	if session.Name == "" {
-		return errors.New("session name cannot be empty")
+		return common.ErrInvalidInput
 	}
 
-	existingSession, err := s.repo.GetByName(ctx, session.Name)
-	if err != nil && !errors.Is(err, shared.ErrSessionNotFound) {
-		return fmt.Errorf("failed to check existing session: %w", err)
-	}
-
-	if existingSession != nil {
-		return shared.ErrSessionAlreadyExists
+	if err := s.checkNameAvailable(ctx, session.Name); err != nil {
+		return err
 	}
 
 	if err := s.repo.Create(ctx, session); err != nil {
 		if isUniqueConstraintError(err) {
-			return shared.ErrSessionAlreadyExists
+			return common.ErrAlreadyExists
 		}
-
-		return fmt.Errorf("failed to create session: %w", err)
+		return fmt.Errorf("create session: %w", err)
 	}
 
 	return nil
 }
 
 func (s *Service) Get(ctx context.Context, id string) (*Session, error) {
-	session, err := s.repo.GetByID(ctx, id)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get session: %w", err)
-	}
-
-	return session, nil
+	return s.repo.GetByID(ctx, id)
 }
 
 func (s *Service) Update(ctx context.Context, session *Session) error {
-	if err := s.repo.Update(ctx, session); err != nil {
-		return fmt.Errorf("failed to update session: %w", err)
-	}
-
-	return nil
-}
-
-func (s *Service) UpdateStatus(ctx context.Context, id string, status Status) error {
-	if !status.IsValid() {
-		return shared.ErrInvalidStatus
-	}
-
-	if err := s.repo.UpdateStatus(ctx, id, status); err != nil {
-		return fmt.Errorf("failed to update session status: %w", err)
-	}
-
-	return nil
-}
-
-func (s *Service) UpdateQR(ctx context.Context, id string, qrCode string) error {
-	if err := s.repo.UpdateQRCode(ctx, id, qrCode); err != nil {
-		return fmt.Errorf("failed to update QR code: %w", err)
-	}
-
-	return nil
+	return s.repo.Update(ctx, session)
 }
 
 func (s *Service) List(ctx context.Context, limit, offset int) ([]*Session, error) {
-	sessions, err := s.repo.List(ctx, limit, offset)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list sessions: %w", err)
-	}
-
-	return sessions, nil
+	return s.repo.List(ctx, limit, offset)
 }
 
 func (s *Service) Delete(ctx context.Context, id string) error {
-	if err := s.repo.Delete(ctx, id); err != nil {
-		return fmt.Errorf("failed to delete session: %w", err)
-	}
+	return s.repo.Delete(ctx, id)
+}
 
+func (s *Service) checkNameAvailable(ctx context.Context, name string) error {
+	existing, err := s.repo.GetByName(ctx, name)
+	if err != nil && !errors.Is(err, common.ErrNotFound) {
+		return fmt.Errorf("check session name: %w", err)
+	}
+	if existing != nil {
+		return common.ErrAlreadyExists
+	}
 	return nil
 }
 
@@ -130,9 +87,7 @@ func isUniqueConstraintError(err error) bool {
 	if err == nil {
 		return false
 	}
-
 	errStr := strings.ToLower(err.Error())
-
 	return strings.Contains(errStr, "duplicate key") ||
 		strings.Contains(errStr, "unique constraint") ||
 		strings.Contains(errStr, "violates unique")

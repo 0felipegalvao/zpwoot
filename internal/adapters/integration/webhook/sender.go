@@ -43,9 +43,8 @@ func (s *HTTPWebhookSender) SendWebhook(ctx context.Context, url string, secret 
 	var payload []byte
 	var err error
 
-	// Verificar se há um payload ordenado especial
 	if orderedPayload, hasOrdered := event.Data["_ordered_payload"]; hasOrdered {
-		// Serializar o payload ordenado diretamente para manter a ordem dos campos
+
 		payload, err = json.Marshal(orderedPayload)
 		if err != nil {
 			return fmt.Errorf("failed to marshal ordered webhook payload: %w", err)

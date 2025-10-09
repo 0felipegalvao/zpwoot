@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"zpwoot/internal/core/application/dto"
+	"zpwoot/internal/core/domain/common"
 	"zpwoot/internal/core/domain/session"
-	"zpwoot/internal/core/domain/shared"
 	"zpwoot/internal/core/ports/output"
 )
 
@@ -36,7 +36,7 @@ func (uc *LogoutUseCase) Execute(ctx context.Context, sessionID string) error {
 
 	domainSession, err := uc.sessionService.Get(ctx, sessionID)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			return dto.ErrSessionNotFound
 		}
 

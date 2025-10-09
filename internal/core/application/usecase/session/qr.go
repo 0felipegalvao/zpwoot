@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"zpwoot/internal/core/application/dto"
+	"zpwoot/internal/core/domain/common"
 	"zpwoot/internal/core/domain/session"
-	"zpwoot/internal/core/domain/shared"
 	"zpwoot/internal/core/ports/output"
 )
 
@@ -37,7 +37,7 @@ func (uc *QRUseCase) GetQRCode(ctx context.Context, sessionID string) (*dto.QRCo
 
 	domainSession, err := uc.sessionService.Get(ctx, sessionID)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			return nil, dto.ErrSessionNotFound
 		}
 
@@ -87,7 +87,7 @@ func (uc *QRUseCase) RefreshQRCode(ctx context.Context, sessionID string) (*dto.
 
 	domainSession, err := uc.sessionService.Get(ctx, sessionID)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			return nil, dto.ErrSessionNotFound
 		}
 
@@ -135,7 +135,7 @@ func (uc *QRUseCase) CheckQRCodeStatus(ctx context.Context, sessionID string) (*
 
 	domainSession, err := uc.sessionService.Get(ctx, sessionID)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			return nil, dto.ErrSessionNotFound
 		}
 

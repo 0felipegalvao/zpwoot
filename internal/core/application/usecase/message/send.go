@@ -7,8 +7,8 @@ import (
 
 	"zpwoot/internal/core/application/dto"
 	"zpwoot/internal/core/application/validator"
+	"zpwoot/internal/core/domain/common"
 	"zpwoot/internal/core/domain/session"
-	"zpwoot/internal/core/domain/shared"
 	"zpwoot/internal/core/ports/output"
 
 	"github.com/google/uuid"
@@ -97,12 +97,10 @@ func (uc *SendUseCase) validateSendRequest(sessionID string, req *dto.SendMessag
 		return fmt.Errorf("session ID is required")
 	}
 
-	// Validate using validator
 	if err := validator.Validate(req); err != nil {
 		return fmt.Errorf("validation failed: %w", err)
 	}
 
-	// Additional custom validation
 	if err := req.Validate(); err != nil {
 		return fmt.Errorf("validation failed: %w", err)
 	}
@@ -113,7 +111,7 @@ func (uc *SendUseCase) validateSendRequest(sessionID string, req *dto.SendMessag
 func (uc *SendUseCase) getValidatedSession(ctx context.Context, sessionID string) (*session.Session, error) {
 	domainSession, err := uc.sessionService.Get(ctx, sessionID)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			return nil, dto.ErrSessionNotFound
 		}
 		return nil, fmt.Errorf("failed to get session: %w", err)
@@ -169,11 +167,7 @@ func (uc *SendUseCase) handleWhatsAppError(err error) error {
 }
 
 func (uc *SendUseCase) updateSessionStatusAsync(ctx context.Context, sessionID string) {
-	go func(ctx context.Context) {
-		if err := uc.sessionService.UpdateStatus(ctx, sessionID, session.StatusConnected); err != nil {
-			uc.logger.Error().Err(err).Str("session_id", sessionID).Msg("Failed to update session status")
-		}
-	}(ctx)
+
 }
 
 func (uc *SendUseCase) buildSendResponse(messageResult *output.MessageResult) *dto.SendMessageResponse {

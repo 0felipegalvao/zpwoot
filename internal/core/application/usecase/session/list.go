@@ -97,17 +97,7 @@ func (uc *ListUseCase) updateSessionResponseFromWAClient(ctx context.Context, se
 		return
 	}
 
-	sessionResponse.Connected = waStatus.Connected
 	sessionResponse.DeviceJID = waStatus.DeviceJID
-
-	switch {
-	case waStatus.Connected:
-		sessionResponse.Status = "connected"
-	case waStatus.LoggedIn:
-		sessionResponse.Status = "disconnected"
-	default:
-		sessionResponse.Status = "qr_code"
-	}
 
 	if !waStatus.ConnectedAt.IsZero() {
 		sessionResponse.ConnectedAt = &waStatus.ConnectedAt

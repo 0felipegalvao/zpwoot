@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"zpwoot/internal/core/domain/common"
 	"zpwoot/internal/core/domain/session"
-	"zpwoot/internal/core/domain/shared"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -26,15 +26,13 @@ func NewSessionRepository(db *sqlx.DB) *SessionRepository {
 func (r *SessionRepository) Create(ctx context.Context, sess *session.Session) error {
 	query := `
 		INSERT INTO "zpSessions" (
-			"id", "name", "apiKey", "deviceJid", "isConnected", "connectionError",
-			"qrCode", "qrCodeExpiresAt", "proxyConfig", "createdAt",
-			"updatedAt", "connectedAt", "lastSeen"
+			"id", "name", "apiKey", "deviceJid", "isConnected",
+			"connectionError", "qrCode", "qrCodeExpiresAt",
+			"createdAt", "updatedAt"
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 		)
 	`
-
-	var proxyConfig interface{} = sess.ProxyConfig
 
 	_, err := r.db.ExecContext(ctx, query,
 		sess.ID,
@@ -45,11 +43,8 @@ func (r *SessionRepository) Create(ctx context.Context, sess *session.Session) e
 		sess.ConnectionError,
 		sess.QRCode,
 		sess.QRCodeExpiresAt,
-		proxyConfig,
 		sess.CreatedAt,
 		sess.UpdatedAt,
-		sess.ConnectedAt,
-		sess.LastSeen,
 	)
 
 	if err != nil {
@@ -61,10 +56,10 @@ func (r *SessionRepository) Create(ctx context.Context, sess *session.Session) e
 
 func (r *SessionRepository) GetByID(ctx context.Context, id string) (*session.Session, error) {
 	query := `
-		SELECT "id", "name", "deviceJid", "isConnected", "connectionError", 
-			   "qrCode", "qrCodeExpiresAt", "proxyConfig", "createdAt", 
-			   "updatedAt", "connectedAt", "lastSeen"
-		FROM "zpSessions" 
+		SELECT "id", "name", "apiKey", "deviceJid", "isConnected",
+			   "connectionError", "qrCode", "qrCodeExpiresAt",
+			   "createdAt", "updatedAt"
+		FROM "zpSessions"
 		WHERE "id" = $1
 	`
 
@@ -73,7 +68,7 @@ func (r *SessionRepository) GetByID(ctx context.Context, id string) (*session.Se
 	err := r.db.GetContext(ctx, &sess, query, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, shared.ErrSessionNotFound
+			return nil, common.ErrNotFound
 		}
 
 		return nil, fmt.Errorf("failed to get session: %w", err)
@@ -84,9 +79,9 @@ func (r *SessionRepository) GetByID(ctx context.Context, id string) (*session.Se
 
 func (r *SessionRepository) GetByJID(ctx context.Context, jid string) (*session.Session, error) {
 	query := `
-		SELECT "id", "name", "deviceJid", "isConnected", "connectionError",
-			   "qrCode", "qrCodeExpiresAt", "proxyConfig", "createdAt",
-			   "updatedAt", "connectedAt", "lastSeen"
+		SELECT "id", "name", "apiKey", "deviceJid", "isConnected",
+			   "connectionError", "qrCode", "qrCodeExpiresAt",
+			   "createdAt", "updatedAt"
 		FROM "zpSessions"
 		WHERE "deviceJid" = $1
 	`
@@ -96,7 +91,7 @@ func (r *SessionRepository) GetByJID(ctx context.Context, jid string) (*session.
 	err := r.db.GetContext(ctx, &sess, query, jid)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, shared.ErrSessionNotFound
+			return nil, common.ErrNotFound
 		}
 
 		return nil, fmt.Errorf("failed to get session by JID: %w", err)
@@ -107,10 +102,10 @@ func (r *SessionRepository) GetByJID(ctx context.Context, jid string) (*session.
 
 func (r *SessionRepository) GetByName(ctx context.Context, name string) (*session.Session, error) {
 	query := `
-		SELECT "id", "name", "deviceJid", "isConnected", "connectionError", 
-			   "qrCode", "qrCodeExpiresAt", "proxyConfig", "createdAt", 
-			   "updatedAt", "connectedAt", "lastSeen"
-		FROM "zpSessions" 
+		SELECT "id", "name", "apiKey", "deviceJid", "isConnected",
+			   "connectionError", "qrCode", "qrCodeExpiresAt",
+			   "createdAt", "updatedAt"
+		FROM "zpSessions"
 		WHERE "name" = $1
 	`
 
@@ -119,7 +114,7 @@ func (r *SessionRepository) GetByName(ctx context.Context, name string) (*sessio
 	err := r.db.GetContext(ctx, &sess, query, name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, shared.ErrSessionNotFound
+			return nil, common.ErrNotFound
 		}
 
 		return nil, fmt.Errorf("failed to get session by name: %w", err)
@@ -130,9 +125,9 @@ func (r *SessionRepository) GetByName(ctx context.Context, name string) (*sessio
 
 func (r *SessionRepository) List(ctx context.Context, limit, offset int) ([]*session.Session, error) {
 	query := `
-		SELECT "id", "name", "deviceJid", "isConnected", "connectionError",
-			   "qrCode", "qrCodeExpiresAt", "proxyConfig", "createdAt",
-			   "updatedAt", "connectedAt", "lastSeen"
+		SELECT "id", "name", "apiKey", "deviceJid", "isConnected",
+			   "connectionError", "qrCode", "qrCodeExpiresAt",
+			   "createdAt", "updatedAt"
 		FROM "zpSessions"
 		ORDER BY "createdAt" DESC
 		LIMIT $1 OFFSET $2
@@ -157,14 +152,9 @@ func (r *SessionRepository) Update(ctx context.Context, sess *session.Session) e
 			"connectionError" = $5,
 			"qrCode" = $6,
 			"qrCodeExpiresAt" = $7,
-			"proxyConfig" = $8,
-			"updatedAt" = $9,
-			"connectedAt" = $10,
-			"lastSeen" = $11
+			"updatedAt" = $8
 		WHERE "id" = $1
 	`
-
-	var proxyConfig interface{} = sess.ProxyConfig
 
 	result, err := r.db.ExecContext(ctx, query,
 		sess.ID,
@@ -174,10 +164,7 @@ func (r *SessionRepository) Update(ctx context.Context, sess *session.Session) e
 		sess.ConnectionError,
 		sess.QRCode,
 		sess.QRCodeExpiresAt,
-		proxyConfig,
 		time.Now(),
-		sess.ConnectedAt,
-		sess.LastSeen,
 	)
 
 	if err != nil {
@@ -190,32 +177,7 @@ func (r *SessionRepository) Update(ctx context.Context, sess *session.Session) e
 	}
 
 	if rowsAffected == 0 {
-		return shared.ErrSessionNotFound
-	}
-
-	return nil
-}
-
-func (r *SessionRepository) UpdateStatus(ctx context.Context, id string, status session.Status) error {
-	query := `
-		UPDATE "zpSessions" SET
-			"isConnected" = $2,
-			"updatedAt" = NOW()
-		WHERE "id" = $1
-	`
-
-	result, err := r.db.ExecContext(ctx, query, id, status == session.StatusConnected)
-	if err != nil {
-		return fmt.Errorf("failed to update session status: %w", err)
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
-		return shared.ErrSessionNotFound
+		return common.ErrNotFound
 	}
 
 	return nil
@@ -235,31 +197,7 @@ func (r *SessionRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	if rowsAffected == 0 {
-		return shared.ErrSessionNotFound
-	}
-
-	return nil
-}
-
-func (r *SessionRepository) UpdateQRCode(ctx context.Context, id string, qrCode string) error {
-	query := `
-		UPDATE "zpSessions"
-		SET "qrCode" = $2, "updatedAt" = NOW()
-		WHERE "id" = $1
-	`
-
-	result, err := r.db.ExecContext(ctx, query, id, qrCode)
-	if err != nil {
-		return fmt.Errorf("failed to update session QR code: %w", err)
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %w", err)
-	}
-
-	if rowsAffected == 0 {
-		return shared.ErrSessionNotFound
+		return common.ErrNotFound
 	}
 
 	return nil

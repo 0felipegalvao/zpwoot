@@ -9,21 +9,17 @@ import (
 )
 
 var (
-	// Singleton validator instance
 	validate *validator.Validate
 
-	// Regex patterns
-	phoneRegex     = regexp.MustCompile(`^\+?[1-9]\d{7,14}$`) // Minimum 8 digits (country code + number)
+	phoneRegex     = regexp.MustCompile(`^\+?[1-9]\d{7,14}$`)
 	jidRegex       = regexp.MustCompile(`^\d+@(s\.whatsapp\.net|g\.us|broadcast|newsletter)$`)
 	urlRegex       = regexp.MustCompile(`^https?://[^\s/$.?#].[^\s]*$`)
 	sessionIDRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 )
 
-// Initialize the validator with custom validators
 func init() {
 	validate = validator.New()
 
-	// Register custom validators
 	_ = validate.RegisterValidation("phone", validatePhone)
 	_ = validate.RegisterValidation("jid", validateJID)
 	_ = validate.RegisterValidation("whatsapp_url", validateWhatsAppURL)
@@ -33,29 +29,24 @@ func init() {
 	_ = validate.RegisterValidation("presence_type", validatePresenceType)
 }
 
-// GetValidator returns the singleton validator instance
 func GetValidator() *validator.Validate {
 	return validate
 }
 
-// Validate validates a struct
 func Validate(s interface{}) error {
 	return validate.Struct(s)
 }
 
-// ValidateVar validates a single variable
 func ValidateVar(field interface{}, tag string) error {
 	return validate.Var(field, tag)
 }
 
-// Custom validator: phone number (E.164 format)
 func validatePhone(fl validator.FieldLevel) bool {
 	phone := fl.Field().String()
 	if phone == "" {
-		return true // Allow empty if not required
+		return true
 	}
 
-	// Remove common formatting
 	phone = strings.ReplaceAll(phone, " ", "")
 	phone = strings.ReplaceAll(phone, "-", "")
 	phone = strings.ReplaceAll(phone, "(", "")
@@ -64,41 +55,37 @@ func validatePhone(fl validator.FieldLevel) bool {
 	return phoneRegex.MatchString(phone)
 }
 
-// Custom validator: WhatsApp JID (Java ID)
 func validateJID(fl validator.FieldLevel) bool {
 	jid := fl.Field().String()
 	if jid == "" {
-		return true // Allow empty if not required
+		return true
 	}
 
 	return jidRegex.MatchString(jid)
 }
 
-// Custom validator: WhatsApp URL (http/https)
 func validateWhatsAppURL(fl validator.FieldLevel) bool {
 	url := fl.Field().String()
 	if url == "" {
-		return true // Allow empty if not required
+		return true
 	}
 
 	return urlRegex.MatchString(url)
 }
 
-// Custom validator: Session ID (alphanumeric, dash, underscore)
 func validateSessionID(fl validator.FieldLevel) bool {
 	sessionID := fl.Field().String()
 	if sessionID == "" {
-		return true // Allow empty if not required
+		return true
 	}
 
 	return sessionIDRegex.MatchString(sessionID)
 }
 
-// Custom validator: Webhook event type
 func validateWebhookEvent(fl validator.FieldLevel) bool {
 	event := fl.Field().String()
 	if event == "" {
-		return true // Allow empty if not required
+		return true
 	}
 
 	validEvents := []string{
@@ -125,11 +112,10 @@ func validateWebhookEvent(fl validator.FieldLevel) bool {
 	return false
 }
 
-// Custom validator: Message type
 func validateMessageType(fl validator.FieldLevel) bool {
 	msgType := fl.Field().String()
 	if msgType == "" {
-		return true // Allow empty if not required
+		return true
 	}
 
 	validTypes := []string{
@@ -147,11 +133,10 @@ func validateMessageType(fl validator.FieldLevel) bool {
 	return false
 }
 
-// Custom validator: Presence type
 func validatePresenceType(fl validator.FieldLevel) bool {
 	presence := fl.Field().String()
 	if presence == "" {
-		return true // Allow empty if not required
+		return true
 	}
 
 	validPresences := []string{
@@ -167,7 +152,6 @@ func validatePresenceType(fl validator.FieldLevel) bool {
 	return false
 }
 
-// ValidationError represents a validation error with field and message
 type ValidationError struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
@@ -175,7 +159,6 @@ type ValidationError struct {
 	Value   string `json:"value,omitempty"`
 }
 
-// FormatValidationErrors converts validator errors to a friendly format
 func FormatValidationErrors(err error) []ValidationError {
 	var errors []ValidationError
 
@@ -193,7 +176,6 @@ func FormatValidationErrors(err error) []ValidationError {
 	return errors
 }
 
-// getErrorMessage returns a user-friendly error message based on the validation tag
 func getErrorMessage(e validator.FieldError) string {
 	field := e.Field()
 	tag := e.Tag()
@@ -241,7 +223,6 @@ func getErrorMessage(e validator.FieldError) string {
 	}
 }
 
-// ValidateStruct is a helper function to validate a struct and return formatted errors
 func ValidateStruct(s interface{}) ([]ValidationError, error) {
 	err := Validate(s)
 	if err != nil {
@@ -249,4 +230,3 @@ func ValidateStruct(s interface{}) ([]ValidationError, error) {
 	}
 	return nil, nil
 }
-

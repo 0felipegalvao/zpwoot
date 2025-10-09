@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"zpwoot/internal/core/application/dto"
+	"zpwoot/internal/core/domain/common"
 	"zpwoot/internal/core/domain/session"
-	"zpwoot/internal/core/domain/shared"
 	"zpwoot/internal/core/ports/output"
 )
 
@@ -43,20 +43,19 @@ func (uc *ConnectUseCase) Execute(ctx context.Context, sessionID string) (*dto.S
 	if response, err := uc.performWhatsAppConnection(ctx, sessionID, domainSession); err != nil {
 		return response, err
 	} else if response != nil {
-
 		return response, nil
 	}
 
 	uc.updateConnectionStatus(ctx, sessionID)
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(500 * time.Millisecond)
 
 	updatedSession, err := uc.sessionService.Get(ctx, sessionID)
 	if err == nil && updatedSession != nil {
 		domainSession = updatedSession
 	}
 
-	return uc.buildConnectionResponse(ctx, sessionID, domainSession)
+	return uc.buildConnectingResponse(sessionID, domainSession), nil
 }
 
 func (uc *ConnectUseCase) ExecuteWithAutoReconnect(ctx context.Context, sessionID string, autoReconnect bool) (*dto.SessionStatusResponse, error) {
@@ -70,7 +69,7 @@ func (uc *ConnectUseCase) validateSessionForConnection(ctx context.Context, sess
 
 	domainSession, err := uc.sessionService.Get(ctx, sessionID)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			return nil, dto.ErrSessionNotFound
 		}
 		return nil, fmt.Errorf("failed to get session from domain: %w", err)
@@ -127,32 +126,15 @@ func (uc *ConnectUseCase) performWhatsAppConnection(ctx context.Context, session
 }
 
 func (uc *ConnectUseCase) updateConnectionStatus(ctx context.Context, sessionID string) {
-	err := uc.sessionService.UpdateStatus(ctx, sessionID, session.StatusConnecting)
-	if err != nil {
-		uc.logger.Error().Err(err).Str("session_id", sessionID).Msg("Failed to update session status to connecting")
-	}
+
 }
 
-func (uc *ConnectUseCase) buildConnectionResponse(ctx context.Context, sessionID string, domainSession *session.Session) (*dto.SessionStatusResponse, error) {
-	waStatus, err := uc.whatsappClient.GetSessionStatus(ctx, sessionID)
-	if err != nil {
-		return &dto.SessionStatusResponse{
-			ID:        sessionID,
-			Status:    string(session.StatusConnecting),
-			Connected: false,
-		}, err
+func (uc *ConnectUseCase) buildConnectingResponse(sessionID string, domainSession *session.Session) *dto.SessionStatusResponse {
+	return &dto.SessionStatusResponse{
+		ID:        sessionID,
+		Status:    string(domainSession.GetStatus()),
+		Connected: domainSession.IsConnected,
+		QRCode:    domainSession.QRCode,
+		Message:   "Connection initiated. Wait for QR code or connection event.",
 	}
-
-	if waStatus.Connected {
-		domainSession.SetConnected(waStatus.DeviceJID)
-		_ = uc.sessionService.Update(ctx, domainSession)
-	} else if !waStatus.LoggedIn {
-		qrInfo, err := uc.whatsappClient.GetQRCode(ctx, sessionID)
-		if err == nil && qrInfo.Code != "" {
-			domainSession.SetQRCode(qrInfo.Code, qrInfo.ExpiresAt)
-			_ = uc.sessionService.Update(ctx, domainSession)
-		}
-	}
-
-	return dto.ToStatusResponse(domainSession), nil
 }

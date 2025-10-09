@@ -157,7 +157,6 @@ func (r *CreateRequest) ToDomain() *session.Session {
 	now := time.Now()
 	sessionID := uuid.New().String()
 
-	// Se o usuário forneceu um apiKey customizado, usar ele; senão, gerar automaticamente
 	apiKey := r.APIKey
 	if apiKey == "" {
 		apiKey = session.GenerateAPIKey()
@@ -174,27 +173,15 @@ func (r *CreateRequest) ToDomain() *session.Session {
 }
 
 func FromDomain(s *session.Session) *SessionResponse {
-	response := &SessionResponse{
-		SessionID:   s.ID,
-		Name:        s.Name,
-		Status:      string(s.GetStatus()),
-		Connected:   s.IsConnected,
-		DeviceJID:   s.DeviceJID,
-		QRCode:      s.QRCode,
-		CreatedAt:   s.CreatedAt,
-		UpdatedAt:   s.UpdatedAt,
-		ConnectedAt: s.ConnectedAt,
-		LastSeen:    s.LastSeen,
+	return &SessionResponse{
+		SessionID: s.ID,
+		Name:      s.Name,
+		Status:    string(s.GetStatus()),
+		Connected: s.IsConnected,
+		DeviceJID: s.DeviceJID,
+		CreatedAt: s.CreatedAt,
+		UpdatedAt: s.UpdatedAt,
 	}
-
-	if s.QRCode != "" {
-		response.QRCodeBase64 = QRBase64(s.QRCode)
-		if s.QRCodeExpiresAt != nil {
-			response.QRCodeExpiresAt = s.QRCodeExpiresAt
-		}
-	}
-
-	return response
 }
 
 func (s *SessionResponse) ToListInfo() *SessionListInfo {
@@ -234,18 +221,13 @@ func ToDetailResponse(s *session.Session) *SessionDetailResponse {
 		Status:          string(s.GetStatus()),
 		Connected:       s.IsConnected,
 		ConnectionError: s.ConnectionError,
-		QRCode:          s.QRCode,
-		QRCodeExpiresAt: s.QRCodeExpiresAt,
-		ProxyConfig:     s.ProxyConfig,
 		CreatedAt:       s.CreatedAt,
 		UpdatedAt:       s.UpdatedAt,
-		ConnectedAt:     s.ConnectedAt,
-		LastSeen:        s.LastSeen,
 	}
 }
 
 func ToCreateResponse(s *session.Session) *CreateSessionResponse {
-	response := &CreateSessionResponse{
+	return &CreateSessionResponse{
 		ID:        s.ID,
 		Name:      s.Name,
 		APIKey:    s.APIKey,
@@ -253,35 +235,14 @@ func ToCreateResponse(s *session.Session) *CreateSessionResponse {
 		Connected: s.IsConnected,
 		CreatedAt: s.CreatedAt,
 	}
-
-	if s.QRCode != "" {
-		response.QRCode = s.QRCode
-		response.QRCodeBase64 = QRBase64(s.QRCode)
-
-		if s.QRCodeExpiresAt != nil {
-			response.QRCodeExpiresAt = s.QRCodeExpiresAt
-		}
-	}
-
-	return response
 }
 
 func ToStatusResponse(s *session.Session) *SessionStatusResponse {
-	response := &SessionStatusResponse{
+	return &SessionStatusResponse{
 		ID:        s.ID,
 		Status:    string(s.GetStatus()),
 		Connected: s.IsConnected,
 	}
-
-	if s.QRCode != "" {
-		response.QRCode = s.QRCode
-		response.QRCodeBase64 = QRBase64(s.QRCode)
-		if s.QRCodeExpiresAt != nil {
-			response.QRCodeExpiresAt = s.QRCodeExpiresAt
-		}
-	}
-
-	return response
 }
 
 func ToListResponse(s *session.Session) *SessionResponse {
@@ -290,15 +251,13 @@ func ToListResponse(s *session.Session) *SessionResponse {
 
 func ToListInfo(s *session.Session) *SessionListInfo {
 	return &SessionListInfo{
-		SessionID:   s.ID,
-		Name:        s.Name,
-		Status:      string(s.GetStatus()),
-		Connected:   s.IsConnected,
-		DeviceJID:   s.DeviceJID,
-		CreatedAt:   s.CreatedAt,
-		UpdatedAt:   s.UpdatedAt,
-		ConnectedAt: s.ConnectedAt,
-		LastSeen:    s.LastSeen,
+		SessionID: s.ID,
+		Name:      s.Name,
+		Status:    string(s.GetStatus()),
+		Connected: s.IsConnected,
+		DeviceJID: s.DeviceJID,
+		CreatedAt: s.CreatedAt,
+		UpdatedAt: s.UpdatedAt,
 	}
 }
 

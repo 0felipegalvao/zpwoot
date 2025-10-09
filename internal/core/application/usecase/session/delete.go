@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"zpwoot/internal/core/application/dto"
+	"zpwoot/internal/core/domain/common"
 	"zpwoot/internal/core/domain/session"
-	"zpwoot/internal/core/domain/shared"
 	"zpwoot/internal/core/ports/output"
 )
 
@@ -36,7 +36,7 @@ func (uc *DeleteUseCase) Execute(ctx context.Context, sessionID string) error {
 
 	domainSession, err := uc.sessionService.Get(ctx, sessionID)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			return dto.ErrSessionNotFound
 		}
 
@@ -62,7 +62,7 @@ func (uc *DeleteUseCase) Execute(ctx context.Context, sessionID string) error {
 
 	err = uc.sessionService.Delete(ctx, sessionID)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			return dto.ErrSessionNotFound
 		}
 
@@ -81,7 +81,7 @@ func (uc *DeleteUseCase) ExecuteForce(ctx context.Context, sessionID string) err
 	_ = uc.whatsappClient.DeleteSession(ctx, sessionID)
 
 	err := uc.sessionService.Delete(ctx, sessionID)
-	if err != nil && !errors.Is(err, shared.ErrSessionNotFound) {
+	if err != nil && !errors.Is(err, common.ErrNotFound) {
 		return fmt.Errorf("failed to delete session from domain: %w", err)
 	}
 
@@ -95,7 +95,7 @@ func (uc *DeleteUseCase) ExecuteWithValidation(ctx context.Context, sessionID st
 
 	_, err := uc.sessionService.Get(ctx, sessionID)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			return dto.ErrSessionNotFound
 		}
 

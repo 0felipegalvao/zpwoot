@@ -46,7 +46,6 @@ func (h *SessionHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate request using validator
 	if err := validator.Validate(&req); err != nil {
 		validator.WriteValidationError(w, err)
 		return

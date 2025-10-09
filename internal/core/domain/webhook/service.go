@@ -7,166 +7,105 @@ import (
 	"strings"
 )
 
+const minSecretLength = 16
+
 type Service struct{}
 
 func NewService() *Service {
 	return &Service{}
 }
+
 func (s *Service) ValidateURL(webhookURL string) error {
 	if webhookURL == "" {
-		return fmt.Errorf("webhook URL cannot be empty")
+		return ErrInvalidURL
 	}
 
 	parsedURL, err := url.Parse(webhookURL)
 	if err != nil {
-		return fmt.Errorf("invalid webhook URL: %w", err)
+		return fmt.Errorf("%w: %v", ErrInvalidURL, err)
 	}
 
 	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
-		return fmt.Errorf("webhook URL must use http or https scheme")
+		return fmt.Errorf("%w: must use http or https", ErrInvalidURL)
 	}
 
 	if parsedURL.Host == "" {
-		return fmt.Errorf("webhook URL must have a valid host")
+		return fmt.Errorf("%w: missing host", ErrInvalidURL)
 	}
 
-	if !s.isLocalhostAllowed() {
-		if strings.Contains(parsedURL.Host, "localhost") || strings.Contains(parsedURL.Host, "127.0.0.1") {
-			return fmt.Errorf("localhost URLs are not allowed for webhooks")
-		}
+	if !s.isLocalhostAllowed() && s.isLocalhost(parsedURL.Host) {
+		return fmt.Errorf("%w: localhost not allowed", ErrInvalidURL)
 	}
 
 	return nil
 }
+
 func (s *Service) ValidateEvents(events []string) error {
 	if len(events) == 0 {
 		return nil
 	}
 
-	validEvents := s.GetValidEventTypes()
-	validEventMap := make(map[string]bool)
-
-	for _, e := range validEvents {
-		validEventMap[e] = true
-	}
-
+	validEvents := s.buildValidEventMap()
 	for _, event := range events {
-		if !validEventMap[event] {
-			return fmt.Errorf("invalid event type: %s", event)
+		if !validEvents[event] {
+			return fmt.Errorf("%w: %s", ErrInvalidEvent, event)
 		}
 	}
 
 	return nil
 }
+
+func (s *Service) ValidateSecret(secret string) error {
+	if secret == "" {
+		return ErrInvalidSecret
+	}
+	if len(secret) < minSecretLength {
+		return fmt.Errorf("%w: must be at least %d characters", ErrInvalidSecret, minSecretLength)
+	}
+	return nil
+}
 func (s *Service) GetValidEventTypes() []string {
 	return []string{
-		"Message",
-		"MessageRevoked",
-		"MessageReaction",
-		"Connected",
-		"Disconnected",
-		"QRCode",
-		"PairSuccess",
-		"LoggedOut",
-		"HistorySync",
-		"Receipt",
-		"ChatPresence",
-		"GroupInfo",
-		"JoinedGroup",
-		"Picture",
-		"IdentityChange",
-		"PrivacySettings",
-		"OfflineSyncPreview",
-		"OfflineSyncCompleted",
-		"AppState",
-		"KeepAliveTimeout",
-		"KeepAliveRestored",
-		"Blocklist",
+		"Message", "MessageRevoked", "MessageReaction", "Receipt",
+		"Connected", "Disconnected", "QRCode", "PairSuccess", "LoggedOut",
+		"KeepAliveTimeout", "KeepAliveRestored",
+		"GroupInfo", "JoinedGroup",
+		"Picture", "IdentityChange", "PrivacySettings", "Blocklist", "ChatPresence",
+		"HistorySync", "OfflineSyncPreview", "OfflineSyncCompleted", "AppState",
+		"CallOffer", "CallAccept", "CallPreAccept", "CallTransport",
+		"CallOfferNotice", "CallRelayLatency", "CallTerminate", "UnknownCallEvent",
+		"NewsletterJoin", "NewsletterLeave", "NewsletterMuteChange",
+		"NewsletterLiveUpdate", "NewsletterMessageMeta",
 		"MediaRetry",
-		"CallOffer",
-		"CallAccept",
-		"CallPreAccept",
-		"CallTransport",
-		"CallOfferNotice",
-		"CallRelayLatency",
-		"CallTerminate",
-		"UnknownCallEvent",
-		"NewsletterJoin",
-		"NewsletterLeave",
-		"NewsletterMuteChange",
-		"NewsletterLiveUpdate",
-		"NewsletterMessageMeta",
 	}
 }
 func (s *Service) GetEventCategories() map[string][]string {
 	return map[string][]string{
-		"Messages": {
-			"Message",
-			"MessageRevoked",
-			"MessageReaction",
-			"Receipt",
-		},
-		"Connection": {
-			"Connected",
-			"Disconnected",
-			"QRCode",
-			"PairSuccess",
-			"LoggedOut",
-			"KeepAliveTimeout",
-			"KeepAliveRestored",
-		},
-		"Groups": {
-			"GroupInfo",
-			"JoinedGroup",
-		},
-		"User": {
-			"Picture",
-			"IdentityChange",
-			"PrivacySettings",
-			"Blocklist",
-			"ChatPresence",
-		},
-		"Sync": {
-			"HistorySync",
-			"OfflineSyncPreview",
-			"OfflineSyncCompleted",
-			"AppState",
-		},
-		"Calls": {
-			"CallOffer",
-			"CallAccept",
-			"CallPreAccept",
-			"CallTransport",
-			"CallOfferNotice",
-			"CallRelayLatency",
-			"CallTerminate",
-			"UnknownCallEvent",
-		},
-		"Newsletter": {
-			"NewsletterJoin",
-			"NewsletterLeave",
-			"NewsletterMuteChange",
-			"NewsletterLiveUpdate",
-			"NewsletterMessageMeta",
-		},
-		"Media": {
-			"MediaRetry",
-		},
+		"Messages":   {"Message", "MessageRevoked", "MessageReaction", "Receipt"},
+		"Connection": {"Connected", "Disconnected", "QRCode", "PairSuccess", "LoggedOut", "KeepAliveTimeout", "KeepAliveRestored"},
+		"Groups":     {"GroupInfo", "JoinedGroup"},
+		"User":       {"Picture", "IdentityChange", "PrivacySettings", "Blocklist", "ChatPresence"},
+		"Sync":       {"HistorySync", "OfflineSyncPreview", "OfflineSyncCompleted", "AppState"},
+		"Calls":      {"CallOffer", "CallAccept", "CallPreAccept", "CallTransport", "CallOfferNotice", "CallRelayLatency", "CallTerminate", "UnknownCallEvent"},
+		"Newsletter": {"NewsletterJoin", "NewsletterLeave", "NewsletterMuteChange", "NewsletterLiveUpdate", "NewsletterMessageMeta"},
+		"Media":      {"MediaRetry"},
 	}
 }
-func (s *Service) ValidateSecret(secret string) error {
-	if secret == "" {
-		return fmt.Errorf("webhook secret cannot be empty")
-	}
 
-	if len(secret) < 16 {
-		return fmt.Errorf("webhook secret must be at least 16 characters long")
+func (s *Service) buildValidEventMap() map[string]bool {
+	events := s.GetValidEventTypes()
+	eventMap := make(map[string]bool, len(events))
+	for _, e := range events {
+		eventMap[e] = true
 	}
-
-	return nil
+	return eventMap
 }
 
 func (s *Service) isLocalhostAllowed() bool {
 	env := os.Getenv("NODE_ENV")
 	return env == "development" || env == ""
+}
+
+func (s *Service) isLocalhost(host string) bool {
+	return strings.Contains(host, "localhost") || strings.Contains(host, "127.0.0.1")
 }

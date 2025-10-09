@@ -80,7 +80,7 @@ func (wac *WAClient) waitForQRCodeWithTimeout(ctx context.Context, sessionID str
 				continue
 			}
 
-			if client.QRCode != "" && client.Status == session.StatusQRCode {
+			if client.QRCode != "" && client.Status == session.StatusConnecting {
 				wac.logger.Debug().Str("session_id", sessionID).Msg("QR code found and ready")
 				return &QREvent{
 					Event:     "qr",
@@ -129,7 +129,7 @@ func (wac *WAClient) ConnectAndGetQRCode(ctx context.Context, sessionID string) 
 		if qrItem.Event == "code" && qrItem.Code != "" {
 			client.QRCode = qrItem.Code
 			client.QRExpiresAt = time.Now().Add(qrItem.Timeout)
-			client.Status = session.StatusQRCode
+			client.Status = session.StatusConnecting
 
 			return &output.QRCodeInfo{
 				Code:      qrItem.Code,
@@ -157,7 +157,7 @@ func (wac *WAClient) GetQRCode(ctx context.Context, sessionID string) (*output.Q
 		return nil, &output.WhatsAppError{Code: "ALREADY_CONNECTED", Message: "session is already connected"}
 	}
 
-	if client.QRCode != "" && client.Status == session.StatusQRCode {
+	if client.QRCode != "" && client.Status == session.StatusConnecting {
 		return &output.QRCodeInfo{
 			Code:      client.QRCode,
 			ExpiresAt: client.QRExpiresAt,

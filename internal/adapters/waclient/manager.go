@@ -133,14 +133,10 @@ func (wac *WAClient) createClient(ctx context.Context, sess *session.Session, de
 	clientCtx, cancel := context.WithCancel(ctx)
 
 	client := &Client{
-		SessionID:   sess.ID,
-		Name:        sess.Name,
-		WAClient:    waClient,
-		Status:      sess.GetStatus(),
-		QRCode:      sess.QRCode,
-		QRExpiresAt: getTimeValue(sess.QRCodeExpiresAt),
-		ConnectedAt: getTimeValue(sess.ConnectedAt),
-		LastSeen:    getTimeValue(sess.LastSeen),
+		SessionID: sess.ID,
+		Name:      sess.Name,
+		WAClient:  waClient,
+		Status:    sess.GetStatus(),
 		Config: &SessionConfig{
 			SessionID: sess.ID,
 			Name:      sess.Name,
@@ -314,8 +310,7 @@ func (wac *WAClient) connectNewSession(ctx context.Context, client *Client) erro
 func (wac *WAClient) reconnectExistingSession(ctx context.Context, client *Client) error {
 	if err := client.WAClient.Connect(); err != nil {
 		if strings.Contains(err.Error(), "websocket is already connected") {
-			client.Status = session.StatusConnected
-			wac.updateSessionStatus(ctx, client)
+			wac.logger.Info().Str("session_id", client.SessionID).Msg("Websocket already connected, waiting for Connected event")
 			return nil
 		}
 
@@ -392,9 +387,7 @@ func (wac *WAClient) LogoutSession(ctx context.Context, sessionID string) error 
 		Name:        client.Name,
 		DeviceJID:   "",
 		IsConnected: false,
-		QRCode:      "",
 		UpdatedAt:   now,
-		LastSeen:    &now,
 	}
 
 	if err := wac.sessionRepo.Update(ctx, sess); err != nil {
@@ -471,6 +464,10 @@ func (wac *WAClient) handleConnected(client *Client, evt *events.Connected) {
 	client.ConnectedAt = time.Now()
 	client.LastSeen = time.Now()
 
+	// Clear QR code when connected
+	client.QRCode = ""
+	client.QRExpiresAt = time.Time{}
+
 	if client.WAClient.Store.ID != nil {
 		wac.logger.Info().Str("session_id", client.SessionID).Msg("Connected")
 	}
@@ -539,7 +536,7 @@ func (wac *WAClient) displayQRCode(code, sessionID string) {
 func (wac *WAClient) updateClientWithQRCode(ctx context.Context, client *Client, code string) {
 	client.QRCode = code
 	client.QRExpiresAt = time.Now().Add(60 * time.Second)
-	client.Status = session.StatusQRCode
+	client.Status = session.StatusConnecting
 	wac.updateSessionStatus(ctx, client)
 }
 
@@ -647,14 +644,6 @@ func (wac *WAClient) updateSessionStatus(ctx context.Context, client *Client) {
 		sess.QRCodeExpiresAt = &client.QRExpiresAt
 	}
 
-	if !client.ConnectedAt.IsZero() {
-		sess.ConnectedAt = &client.ConnectedAt
-	}
-
-	if !client.LastSeen.IsZero() {
-		sess.LastSeen = &client.LastSeen
-	}
-
 	dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
@@ -662,6 +651,13 @@ func (wac *WAClient) updateSessionStatus(ctx context.Context, client *Client) {
 		if !errors.Is(err, context.Canceled) {
 			wac.logger.Error().Err(err).Str("session_id", client.SessionID).Str("device_jid", deviceJID).Msg("Failed to update session status")
 		}
+	} else {
+		wac.logger.Debug().
+			Str("session_id", client.SessionID).
+			Str("device_jid", deviceJID).
+			Bool("is_connected", sess.IsConnected).
+			Str("qr_code", sess.QRCode).
+			Msg("Session status updated in database")
 	}
 }
 

@@ -16,7 +16,7 @@ func TestValidatePhone(t *testing.T) {
 		{"Invalid - too short", "123", true},
 		{"Invalid - contains letters", "abc123", true},
 		{"Invalid - starts with zero", "00000000000", true},
-		{"Empty phone", "", false}, // Empty is valid if not required
+		{"Empty phone", "", false},
 	}
 
 	for _, tt := range tests {
@@ -41,7 +41,7 @@ func TestValidateJID(t *testing.T) {
 		{"Valid newsletter JID", "123456789@newsletter", false},
 		{"Invalid - no suffix", "5511999999999", true},
 		{"Invalid - wrong domain", "invalid@domain.com", true},
-		{"Empty JID", "", false}, // Empty is valid if not required
+		{"Empty JID", "", false},
 	}
 
 	for _, tt := range tests {
@@ -65,7 +65,7 @@ func TestValidateWhatsAppURL(t *testing.T) {
 		{"Invalid - FTP protocol", "ftp://example.com", true},
 		{"Invalid - no protocol", "example.com", true},
 		{"Invalid - not a URL", "not a url", true},
-		{"Empty URL", "", false}, // Empty is valid if not required
+		{"Empty URL", "", false},
 	}
 
 	for _, tt := range tests {
@@ -90,7 +90,7 @@ func TestValidateSessionID(t *testing.T) {
 		{"Invalid - contains space", "my session", true},
 		{"Invalid - special char @", "session@123", true},
 		{"Invalid - special char #", "session#1", true},
-		{"Empty session ID", "", false}, // Empty is valid if not required
+		{"Empty session ID", "", false},
 	}
 
 	for _, tt := range tests {
@@ -114,7 +114,7 @@ func TestValidateWebhookEvent(t *testing.T) {
 		{"Valid - QRCode", "QRCode", false},
 		{"Valid - GroupInfo", "GroupInfo", false},
 		{"Invalid event", "InvalidEvent", true},
-		{"Empty event", "", false}, // Empty is valid if not required
+		{"Empty event", "", false},
 	}
 
 	for _, tt := range tests {
@@ -140,7 +140,7 @@ func TestValidateMessageType(t *testing.T) {
 		{"Valid - document", "document", false},
 		{"Valid - location", "location", false},
 		{"Invalid type", "invalid", true},
-		{"Empty type", "", false}, // Empty is valid if not required
+		{"Empty type", "", false},
 	}
 
 	for _, tt := range tests {
@@ -165,7 +165,7 @@ func TestValidatePresenceType(t *testing.T) {
 		{"Valid - recording", "recording", false},
 		{"Valid - paused", "paused", false},
 		{"Invalid presence", "invalid", true},
-		{"Empty presence", "", false}, // Empty is valid if not required
+		{"Empty presence", "", false},
 	}
 
 	for _, tt := range tests {
@@ -185,11 +185,10 @@ func TestFormatValidationErrors(t *testing.T) {
 		Phone string `validate:"required,phone"`
 	}
 
-	// Test with invalid data
 	testData := TestStruct{
-		Name:  "ab",        // Too short
-		Email: "not-email", // Invalid email
-		Phone: "abc",       // Invalid phone
+		Name:  "ab",
+		Email: "not-email",
+		Phone: "abc",
 	}
 
 	err := Validate(testData)
@@ -202,7 +201,6 @@ func TestFormatValidationErrors(t *testing.T) {
 		t.Errorf("Expected 3 validation errors, got %d", len(errors))
 	}
 
-	// Check that errors have proper structure
 	for _, e := range errors {
 		if e.Field == "" {
 			t.Error("Error field should not be empty")
@@ -276,4 +274,3 @@ func TestValidateStruct(t *testing.T) {
 		})
 	}
 }
-

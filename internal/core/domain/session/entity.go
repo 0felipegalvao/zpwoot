@@ -18,11 +18,8 @@ type Session struct {
 	ConnectionError string     `json:"connection_error,omitempty" db:"connectionError"`
 	QRCode          string     `json:"qr_code,omitempty" db:"qrCode"`
 	QRCodeExpiresAt *time.Time `json:"qr_code_expires_at,omitempty" db:"qrCodeExpiresAt"`
-	ProxyConfig     *string    `json:"proxy_config,omitempty" db:"proxyConfig"`
 	CreatedAt       time.Time  `json:"created_at" db:"createdAt"`
 	UpdatedAt       time.Time  `json:"updated_at" db:"updatedAt"`
-	ConnectedAt     *time.Time `json:"connected_at,omitempty" db:"connectedAt"`
-	LastSeen        *time.Time `json:"last_seen,omitempty" db:"lastSeen"`
 }
 
 type Status string
@@ -31,24 +28,21 @@ const (
 	StatusDisconnected Status = "disconnected"
 	StatusConnecting   Status = "connecting"
 	StatusConnected    Status = "connected"
-	StatusQRCode       Status = "qr_code"
 	StatusError        Status = "error"
 )
 
 func (s Status) IsValid() bool {
 	switch s {
-	case StatusDisconnected, StatusConnecting, StatusConnected, StatusQRCode, StatusError:
+	case StatusDisconnected, StatusConnecting, StatusConnected, StatusError:
 		return true
 	default:
 		return false
 	}
 }
 
-// GenerateAPIKey generates a random API key in the format: 1C86339AA3E521BE868B4F46725D5
 func GenerateAPIKey() string {
 	bytes := make([]byte, 16)
 	if _, err := rand.Read(bytes); err != nil {
-		// Fallback to UUID-based generation if crypto/rand fails
 		return strings.ToUpper(strings.ReplaceAll(uuid.New().String(), "-", ""))[:32]
 	}
 	return strings.ToUpper(hex.EncodeToString(bytes))[:32]
@@ -56,10 +50,8 @@ func GenerateAPIKey() string {
 
 func NewSession(name string) *Session {
 	now := time.Now()
-	sessionID := uuid.New().String()
-
 	return &Session{
-		ID:          sessionID,
+		ID:          uuid.New().String(),
 		Name:        name,
 		APIKey:      GenerateAPIKey(),
 		IsConnected: false,
@@ -72,60 +64,52 @@ func (s *Session) GetStatus() Status {
 	if s.IsConnected {
 		return StatusConnected
 	}
-
-	if s.QRCode != "" && (s.QRCodeExpiresAt == nil || time.Now().Before(*s.QRCodeExpiresAt)) {
-		return StatusQRCode
+	if s.QRCode != "" && s.isQRCodeValid() {
+		return StatusConnecting
 	}
-
 	if s.ConnectionError != "" {
 		return StatusError
 	}
-
 	return StatusDisconnected
 }
 
 func (s *Session) SetQRCode(qrCode string, expiresAt time.Time) {
 	s.QRCode = qrCode
 	s.QRCodeExpiresAt = &expiresAt
-	s.UpdatedAt = time.Now()
+	s.touch()
 }
 
 func (s *Session) ClearQRCode() {
 	s.QRCode = ""
 	s.QRCodeExpiresAt = nil
-	s.UpdatedAt = time.Now()
+	s.touch()
 }
 
 func (s *Session) SetConnected(deviceJID string) {
 	s.IsConnected = true
 	s.DeviceJID = deviceJID
 	s.ConnectionError = ""
-	now := time.Now()
-	s.ConnectedAt = &now
-	s.LastSeen = &now
-	s.UpdatedAt = now
 	s.ClearQRCode()
+	s.touch()
 }
 
 func (s *Session) SetDisconnected() {
 	s.IsConnected = false
-	now := time.Now()
-	s.LastSeen = &now
-	s.UpdatedAt = now
 	s.ClearQRCode()
+	s.touch()
 }
 
-func (s *Session) SetError(error string) {
+func (s *Session) SetError(errMsg string) {
 	s.IsConnected = false
-	s.ConnectionError = error
-	now := time.Now()
-	s.LastSeen = &now
-	s.UpdatedAt = now
+	s.ConnectionError = errMsg
 	s.ClearQRCode()
+	s.touch()
 }
 
-func (s *Session) UpdateLastSeen() {
-	now := time.Now()
-	s.LastSeen = &now
-	s.UpdatedAt = now
+func (s *Session) isQRCodeValid() bool {
+	return s.QRCodeExpiresAt == nil || time.Now().Before(*s.QRCodeExpiresAt)
+}
+
+func (s *Session) touch() {
+	s.UpdatedAt = time.Now()
 }

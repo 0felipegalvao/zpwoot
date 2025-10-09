@@ -24,26 +24,17 @@ CREATE TABLE IF NOT EXISTS "zpSessions" (
     "connectionError" TEXT,
     "qrCode" TEXT,
     "qrCodeExpiresAt" TIMESTAMP WITH TIME ZONE,
-    "proxyConfig" JSONB,
     "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    "connectedAt" TIMESTAMP WITH TIME ZONE,
-    "lastSeen" TIMESTAMP WITH TIME ZONE
+    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
--- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS "idx_zp_sessions_name" ON "zpSessions" ("name");
-CREATE INDEX IF NOT EXISTS "idx_zp_sessions_api_key" ON "zpSessions" ("apiKey");
+-- Essential indexes only (UNIQUE constraints already indexed)
 CREATE INDEX IF NOT EXISTS "idx_zp_sessions_is_connected" ON "zpSessions" ("isConnected");
-CREATE INDEX IF NOT EXISTS "idx_zp_sessions_device_jid" ON "zpSessions" ("deviceJid");
+CREATE INDEX IF NOT EXISTS "idx_zp_sessions_updated_at" ON "zpSessions" ("updatedAt");
 
 -- Unique constraint for deviceJid - only when not NULL and not empty
 CREATE UNIQUE INDEX IF NOT EXISTS "idx_zp_sessions_device_jid_unique" ON "zpSessions" ("deviceJid")
 WHERE "deviceJid" IS NOT NULL AND "deviceJid" != '';
-CREATE INDEX IF NOT EXISTS "idx_zp_sessions_created_at" ON "zpSessions" ("createdAt");
-CREATE INDEX IF NOT EXISTS "idx_zp_sessions_updated_at" ON "zpSessions" ("updatedAt");
-CREATE INDEX IF NOT EXISTS "idx_zp_sessions_connected_at" ON "zpSessions" ("connectedAt");
-CREATE INDEX IF NOT EXISTS "idx_zp_sessions_qr_expires" ON "zpSessions" ("qrCodeExpiresAt");
 
 -- Sessions trigger
 CREATE TRIGGER update_zp_sessions_updated_at
@@ -52,20 +43,59 @@ CREATE TRIGGER update_zp_sessions_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Sessions table comments
-COMMENT ON TABLE "zpSessions" IS 'Wameow sessions management table - optimized with boolean connection status';
+COMMENT ON TABLE "zpSessions" IS 'WhatsApp sessions - single source of truth (isConnected)';
 COMMENT ON COLUMN "zpSessions"."id" IS 'Unique session identifier';
 COMMENT ON COLUMN "zpSessions"."name" IS 'Human-readable session name (unique, URL-friendly)';
-COMMENT ON COLUMN "zpSessions"."apiKey" IS 'Unique API key for this session (auto-generated if not provided)';
-COMMENT ON COLUMN "zpSessions"."deviceJid" IS 'Wameow device JID identifier';
-COMMENT ON COLUMN "zpSessions"."isConnected" IS 'Boolean indicating if session is currently connected to Wameow';
-COMMENT ON COLUMN "zpSessions"."connectionError" IS 'Last connection error message if any';
-COMMENT ON COLUMN "zpSessions"."qrCode" IS 'Current QR code for session pairing';
+COMMENT ON COLUMN "zpSessions"."apiKey" IS 'Unique API key for authentication';
+COMMENT ON COLUMN "zpSessions"."deviceJid" IS 'WhatsApp device JID (set after authentication)';
+COMMENT ON COLUMN "zpSessions"."isConnected" IS 'Single source of truth for connection status';
+COMMENT ON COLUMN "zpSessions"."connectionError" IS 'Last connection error message (for debugging)';
+COMMENT ON COLUMN "zpSessions"."qrCode" IS 'Current QR code for pairing (persisted for GET /qr endpoint)';
 COMMENT ON COLUMN "zpSessions"."qrCodeExpiresAt" IS 'QR code expiration timestamp';
-COMMENT ON COLUMN "zpSessions"."proxyConfig" IS 'Proxy configuration in JSON format';
 COMMENT ON COLUMN "zpSessions"."createdAt" IS 'Session creation timestamp';
-COMMENT ON COLUMN "zpSessions"."updatedAt" IS 'Last update timestamp';
-COMMENT ON COLUMN "zpSessions"."connectedAt" IS 'Last successful connection timestamp';
-COMMENT ON COLUMN "zpSessions"."lastSeen" IS 'Last activity timestamp';
+COMMENT ON COLUMN "zpSessions"."updatedAt" IS 'Last update timestamp (auto-updated by trigger)';
+
+-- =====================================================
+-- Proxy Configuration Table
+-- =====================================================
+CREATE TABLE IF NOT EXISTS "zpProxyConfig" (
+    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "sessionId" UUID NOT NULL REFERENCES "zpSessions"("id") ON DELETE CASCADE,
+    "host" VARCHAR(255) NOT NULL,
+    "port" INTEGER NOT NULL,
+    "protocol" VARCHAR(10) NOT NULL DEFAULT 'http' CHECK ("protocol" IN ('http', 'https', 'socks4', 'socks5')),
+    "username" VARCHAR(255),
+    "password" VARCHAR(255),
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- Proxy indexes
+CREATE INDEX IF NOT EXISTS "idx_zp_proxy_session_id" ON "zpProxyConfig" ("sessionId");
+CREATE INDEX IF NOT EXISTS "idx_zp_proxy_enabled" ON "zpProxyConfig" ("enabled");
+
+-- Unique constraint: one proxy config per session
+CREATE UNIQUE INDEX IF NOT EXISTS "idx_zp_proxy_unique_session" ON "zpProxyConfig" ("sessionId");
+
+-- Proxy trigger
+CREATE TRIGGER update_zp_proxy_updated_at
+    BEFORE UPDATE ON "zpProxyConfig"
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Proxy table comments
+COMMENT ON TABLE "zpProxyConfig" IS 'Proxy configuration for sessions - one per session';
+COMMENT ON COLUMN "zpProxyConfig"."id" IS 'Unique proxy configuration identifier';
+COMMENT ON COLUMN "zpProxyConfig"."sessionId" IS 'Associated session ID (one-to-one)';
+COMMENT ON COLUMN "zpProxyConfig"."host" IS 'Proxy server host/IP';
+COMMENT ON COLUMN "zpProxyConfig"."port" IS 'Proxy server port';
+COMMENT ON COLUMN "zpProxyConfig"."protocol" IS 'Proxy protocol (http, https, socks4, socks5)';
+COMMENT ON COLUMN "zpProxyConfig"."username" IS 'Optional proxy authentication username';
+COMMENT ON COLUMN "zpProxyConfig"."password" IS 'Optional proxy authentication password';
+COMMENT ON COLUMN "zpProxyConfig"."enabled" IS 'Whether proxy is enabled';
+COMMENT ON COLUMN "zpProxyConfig"."createdAt" IS 'Configuration creation timestamp';
+COMMENT ON COLUMN "zpProxyConfig"."updatedAt" IS 'Last update timestamp';
 
 -- =====================================================
 -- Webhooks Table - Event Notifications

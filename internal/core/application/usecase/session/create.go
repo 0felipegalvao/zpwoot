@@ -7,8 +7,8 @@ import (
 
 	"zpwoot/internal/core/application/dto"
 	"zpwoot/internal/core/application/validator"
+	"zpwoot/internal/core/domain/common"
 	"zpwoot/internal/core/domain/session"
-	"zpwoot/internal/core/domain/shared"
 	"zpwoot/internal/core/ports/output"
 )
 
@@ -31,23 +31,20 @@ func NewCreateUseCase(
 }
 
 func (uc *CreateUseCase) Execute(ctx context.Context, req *dto.CreateRequest) (*dto.CreateSessionResponse, error) {
-	// Validate request using validator
+
 	if err := validator.Validate(req); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	// Additional custom validation
 	if err := req.Validate(); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	// Converter DTO para domínio (inclui apiKey customizado se fornecido)
 	domainSession := req.ToDomain()
 
-	// Criar sessão no repositório
 	err := uc.sessionService.CreateFromSession(ctx, domainSession)
 	if err != nil {
-		if errors.Is(err, shared.ErrSessionAlreadyExists) {
+		if errors.Is(err, common.ErrAlreadyExists) {
 			return nil, dto.ErrSessionAlreadyExists
 		}
 
