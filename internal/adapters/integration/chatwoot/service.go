@@ -329,11 +329,13 @@ type WebhookResponse struct {
 	Data    map[string]interface{} `json:"data,omitempty"`
 }
 
+// BuildWebhookURL builds the webhook URL for a session
+// Format: {baseURL}/sessions/{sessionID}/chatwoot/webhook
 func (s *Service) BuildWebhookURL(baseURL, sessionID string) string {
-
+	// Remove trailing slash from baseURL if present
 	baseURL = strings.TrimSuffix(baseURL, "/")
 
-	return fmt.Sprintf("%s/%s/webhook/chatwoot", baseURL, sessionID)
+	return fmt.Sprintf("%s/sessions/%s/chatwoot/webhook", baseURL, sessionID)
 }
 
 func (s *Service) FormatWhatsAppMessage(content, fromName, phoneNumber string, isGroup bool) string {

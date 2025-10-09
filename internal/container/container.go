@@ -16,6 +16,7 @@ import (
 	"zpwoot/internal/config"
 	chatwootUseCase "zpwoot/internal/core/application/usecase/chatwoot"
 	"zpwoot/internal/core/application/usecase/message"
+	proxyUseCase "zpwoot/internal/core/application/usecase/proxy"
 	"zpwoot/internal/core/application/usecase/session"
 	webhookUseCase "zpwoot/internal/core/application/usecase/webhook"
 	domainChatwoot "zpwoot/internal/core/domain/chatwoot"
@@ -45,6 +46,7 @@ type Container struct {
 	sessionService  *domainSession.Service
 	webhookService  *domainWebhook.Service
 	chatwootService *domainChatwoot.Service
+	proxyService    *domainProxy.Service
 
 	whatsappClient output.WhatsAppClient
 	webhookSender  output.WebhookSender
@@ -53,6 +55,7 @@ type Container struct {
 	messageUseCases  input.MessageUseCases
 	webhookUseCases  input.WebhookUseCases
 	chatwootUseCases input.ChatwootUseCases
+	proxyUseCases    input.ProxyUseCases
 
 	chatwootIntegrator *chatwootIntegration.Integrator
 }
@@ -111,6 +114,7 @@ func (c *Container) InitWithContext(ctx context.Context) error {
 	c.sessionUseCases = session.NewUseCases(c.sessionService, c.whatsappClient, c.logger)
 	c.messageUseCases = message.NewUseCases(c.sessionService, c.whatsappClient, c.logger)
 	c.webhookUseCases = c.initWebhookUseCases()
+	c.proxyUseCases = proxyUseCase.NewUseCases(c.proxyService, c.logger)
 
 	baseURL := buildBaseURL(c.config)
 	c.chatwootUseCases = chatwootUseCase.NewUseCases(c.chatwootService, c.logger, baseURL)
@@ -208,6 +212,7 @@ func (c *Container) initDomainServices() error {
 
 	c.sessionService = domainSession.NewService(cachedSessionRepo)
 	c.webhookService = domainWebhook.NewService()
+	c.proxyService = domainProxy.NewService(cachedProxyRepo)
 	c.chatwootService = domainChatwoot.NewService(cachedChatwootRepo)
 
 	c.cachedSessionRepo = cachedSessionRepo
@@ -294,6 +299,10 @@ func (c *Container) GetMessageUseCases() input.MessageUseCases {
 
 func (c *Container) GetWebhookUseCases() input.WebhookUseCases {
 	return c.webhookUseCases
+}
+
+func (c *Container) GetProxyUseCases() input.ProxyUseCases {
+	return c.proxyUseCases
 }
 
 func (c *Container) GetChatwootUseCases() input.ChatwootUseCases {

@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+// StandardResponse represents the standardized API response format
+type StandardResponse struct {
+	Success bool        `json:"success" example:"true" description:"Indicates if the request was successful"`
+	Data    interface{} `json:"data,omitempty" description:"Response data when successful"`
+	Error   string      `json:"error,omitempty" example:"Invalid request" description:"Error message when unsuccessful"`
+	Status  int         `json:"status,omitempty" example:"400" description:"HTTP status code when unsuccessful"`
+} // @name StandardResponse
+
 type APIResponse struct {
 	Success   bool          `json:"success" example:"true" description:"Whether the request was successful"`
 	Data      interface{}   `json:"data,omitempty" description:"Response data (present on success)"`

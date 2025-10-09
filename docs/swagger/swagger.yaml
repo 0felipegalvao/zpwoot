@@ -161,6 +161,8 @@ definitions:
     properties:
       name:
         example: John Doe
+        maxLength: 255
+        minLength: 1
         type: string
       phone:
         example: "5511999999999"
@@ -172,6 +174,7 @@ definitions:
           FN:John Doe
           TEL:+5511999999999
           END:VCARD
+        maxLength: 4096
         type: string
     required:
     - name
@@ -196,6 +199,8 @@ definitions:
         type: string
       stanzaId:
         example: 3EB0A9253FA64269E11C9D
+        maxLength: 100
+        minLength: 1
         type: string
     type: object
   CreateCommunityRequest:
@@ -246,6 +251,9 @@ definitions:
     type: object
   CreateSessionRequest:
     properties:
+      apiKey:
+        example: 1C86339AA3E521BE868B4F46725D5
+        type: string
       name:
         example: my-session
         maxLength: 100
@@ -263,6 +271,8 @@ definitions:
           type: string
         type: array
       secret:
+        maxLength: 256
+        minLength: 8
         type: string
       url:
         type: string
@@ -674,6 +684,8 @@ definitions:
         type: string
       pass:
         example: proxyPass123
+        maxLength: 100
+        minLength: 1
         type: string
       port:
         example: "8080"
@@ -687,6 +699,8 @@ definitions:
         type: string
       user:
         example: proxyUser123
+        maxLength: 100
+        minLength: 1
         type: string
     type: object
   QRCodeResponse:
@@ -721,9 +735,13 @@ definitions:
         type: string
       fileName:
         example: audio.mp3
+        maxLength: 255
+        minLength: 1
         type: string
       mimeType:
         example: audio/mpeg
+        maxLength: 100
+        minLength: 1
         type: string
       phone:
         example: "5511999999999"
@@ -775,6 +793,7 @@ definitions:
     properties:
       caption:
         example: Check out this beautiful image!
+        maxLength: 1024
         type: string
       contextInfo:
         $ref: '#/definitions/ContextInfoRequest'
@@ -783,9 +802,13 @@ definitions:
         type: string
       fileName:
         example: image.jpg
+        maxLength: 255
+        minLength: 1
         type: string
       mimeType:
         example: image/jpeg
+        maxLength: 100
+        minLength: 1
         type: string
       phone:
         example: "5511999999999"
@@ -962,6 +985,8 @@ definitions:
         type: string
       text:
         example: Hello! This is a test message from zpwoot API.
+        maxLength: 65536
+        minLength: 1
         type: string
     required:
     - phone
@@ -971,6 +996,7 @@ definitions:
     properties:
       caption:
         example: Watch this amazing video!
+        maxLength: 1024
         type: string
       contextInfo:
         $ref: '#/definitions/ContextInfoRequest'
@@ -979,9 +1005,13 @@ definitions:
         type: string
       fileName:
         example: video.mp4
+        maxLength: 255
+        minLength: 1
         type: string
       mimeType:
         example: video/mp4
+        maxLength: 100
+        minLength: 1
         type: string
       phone:
         example: "5511999999999"
@@ -1269,6 +1299,8 @@ definitions:
         type: array
       secret:
         example: supersecrettoken123
+        maxLength: 256
+        minLength: 8
         type: string
       url:
         example: https://api.example.com/webhook
@@ -1312,6 +1344,334 @@ definitions:
         type: string
       verifiedName:
         example: John Doe Business
+        type: string
+    type: object
+  zpwoot_internal_core_application_dto.ChatwootAccount:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  zpwoot_internal_core_application_dto.ChatwootAttachment:
+    properties:
+      data_url:
+        type: string
+      file_size:
+        type: integer
+      file_type:
+        type: string
+      id:
+        type: integer
+      thumb_url:
+        type: string
+    type: object
+  zpwoot_internal_core_application_dto.ChatwootContact:
+    properties:
+      contact_inboxes:
+        items:
+          $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootContactInbox'
+        type: array
+      custom_attributes:
+        additionalProperties: true
+        type: object
+      email:
+        type: string
+      id:
+        type: integer
+      identifier:
+        type: string
+      name:
+        type: string
+      phone_number:
+        type: string
+      thumbnail:
+        type: string
+    type: object
+  zpwoot_internal_core_application_dto.ChatwootContactInbox:
+    properties:
+      inbox_id:
+        type: integer
+      source_id:
+        type: string
+    type: object
+  zpwoot_internal_core_application_dto.ChatwootConversation:
+    properties:
+      agent_last_seen_at:
+        type: integer
+      contact:
+        $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootContact'
+      contact_last_seen_at:
+        type: integer
+      created_at:
+        type: integer
+      custom_attributes:
+        additionalProperties: true
+        type: object
+      id:
+        type: integer
+      inbox:
+        $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootInbox'
+      labels:
+        items:
+          type: string
+        type: array
+      messages:
+        items:
+          $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootMessage'
+        type: array
+      status:
+        type: string
+      timestamp:
+        type: integer
+      updated_at:
+        type: integer
+    type: object
+  zpwoot_internal_core_application_dto.ChatwootInbox:
+    properties:
+      channel_type:
+        type: string
+      enable_auto_assignment:
+        type: boolean
+      greeting_enabled:
+        type: boolean
+      greeting_message:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      working_hours_enabled:
+        type: boolean
+    type: object
+  zpwoot_internal_core_application_dto.ChatwootMessage:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootAttachment'
+        type: array
+      contact:
+        $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootContact'
+      content:
+        type: string
+      content_type:
+        type: string
+      conversation:
+        $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootConversation'
+      created_at:
+        type: integer
+      echo:
+        type: boolean
+      id:
+        type: integer
+      inbox:
+        $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootInbox'
+      message_type:
+        type: integer
+      private:
+        type: boolean
+      sender:
+        $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootUser'
+      source_id:
+        type: string
+    type: object
+  zpwoot_internal_core_application_dto.ChatwootResponse:
+    properties:
+      accountId:
+        type: string
+      autoCreate:
+        type: boolean
+      convPending:
+        type: boolean
+      createdAt:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      ignoreJids:
+        items:
+          type: string
+        type: array
+      importContacts:
+        type: boolean
+      importDays:
+        type: integer
+      importMessages:
+        type: boolean
+      inboxId:
+        type: string
+      inboxName:
+        type: string
+      logo:
+        type: string
+      mergeBrazil:
+        type: boolean
+      number:
+        type: string
+      organization:
+        type: string
+      reopenConv:
+        type: boolean
+      sessionId:
+        type: string
+      signDelimiter:
+        type: string
+      signMsg:
+        type: boolean
+      token:
+        type: string
+      updatedAt:
+        type: string
+      url:
+        type: string
+      webhookUrl:
+        type: string
+    type: object
+  zpwoot_internal_core_application_dto.ChatwootUser:
+    properties:
+      availability_status:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      thumbnail:
+        type: string
+      type:
+        type: string
+    type: object
+  zpwoot_internal_core_application_dto.ChatwootWebhookRequest:
+    properties:
+      account:
+        $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootAccount'
+      changed_by:
+        $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootUser'
+      contact:
+        $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootContact'
+      conversation:
+        $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootConversation'
+      event:
+        type: string
+      inbox:
+        $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootInbox'
+      message:
+        $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootMessage'
+      timestamp:
+        type: integer
+    type: object
+  zpwoot_internal_core_application_dto.ChatwootWebhookResponse:
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  zpwoot_internal_core_application_dto.CreateChatwootRequest:
+    properties:
+      accountId:
+        minLength: 1
+        type: string
+      autoCreate:
+        type: boolean
+      convPending:
+        type: boolean
+      enabled:
+        type: boolean
+      ignoreJids:
+        items:
+          type: string
+        type: array
+      importContacts:
+        type: boolean
+      importDays:
+        maximum: 365
+        minimum: 1
+        type: integer
+      importMessages:
+        type: boolean
+      inboxId:
+        type: string
+      inboxName:
+        type: string
+      logo:
+        type: string
+      mergeBrazil:
+        type: boolean
+      number:
+        type: string
+      organization:
+        type: string
+      reopenConv:
+        type: boolean
+      signDelimiter:
+        type: string
+      signMsg:
+        type: boolean
+      token:
+        minLength: 1
+        type: string
+      url:
+        type: string
+    required:
+    - accountId
+    - token
+    - url
+    type: object
+  zpwoot_internal_core_application_dto.CreateProxyRequest:
+    properties:
+      enabled:
+        type: boolean
+      host:
+        minLength: 1
+        type: string
+      password:
+        type: string
+      port:
+        maximum: 65535
+        minimum: 1
+        type: integer
+      protocol:
+        enum:
+        - http
+        - https
+        - socks4
+        - socks5
+        type: string
+      username:
+        type: string
+    required:
+    - host
+    - port
+    - protocol
+    type: object
+  zpwoot_internal_core_application_dto.ProxyResponse:
+    properties:
+      createdAt:
+        type: string
+      enabled:
+        type: boolean
+      host:
+        type: string
+      id:
+        type: string
+      password:
+        type: string
+      port:
+        type: integer
+      protocol:
+        type: string
+      sessionId:
+        type: string
+      updatedAt:
+        type: string
+      url:
+        type: string
+      username:
         type: string
     type: object
 info:
@@ -1487,6 +1847,120 @@ paths:
       summary: Get WhatsApp Session
       tags:
       - Sessions
+  /sessions/{sessionId}/chatwoot/find:
+    get:
+      consumes:
+      - application/json
+      description: Get Chatwoot configuration for a specific session
+      parameters:
+      - description: Session ID
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Configuration found
+          schema:
+            $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Configuration not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Find Chatwoot Configuration
+      tags:
+      - Chatwoot
+  /sessions/{sessionId}/chatwoot/set:
+    post:
+      consumes:
+      - application/json
+      description: 'Create or update Chatwoot configuration for a session (upsert
+        operation). To disable/remove integration, set enabled: false'
+      parameters:
+      - description: Session ID
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      - description: Chatwoot configuration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/zpwoot_internal_core_application_dto.CreateChatwootRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Configuration updated successfully
+          schema:
+            $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootResponse'
+        "201":
+          description: Configuration created successfully
+          schema:
+            $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Set Chatwoot Configuration
+      tags:
+      - Chatwoot
+  /sessions/{sessionId}/chatwoot/webhook:
+    post:
+      consumes:
+      - application/json
+      description: Receive webhook events from Chatwoot and forward to WhatsApp
+      parameters:
+      - description: Session ID
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      - description: Webhook payload from Chatwoot
+        in: body
+        name: webhook
+        required: true
+        schema:
+          $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootWebhookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Webhook processed successfully
+          schema:
+            $ref: '#/definitions/zpwoot_internal_core_application_dto.ChatwootWebhookResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Chatwoot Webhook
+      tags:
+      - Chatwoot
   /sessions/{sessionId}/communities:
     get:
       consumes:
@@ -3906,6 +4380,83 @@ paths:
       summary: Send presence
       tags:
       - Presence
+  /sessions/{sessionId}/proxy/find:
+    get:
+      consumes:
+      - application/json
+      description: Get proxy configuration for a specific session
+      parameters:
+      - description: Session ID
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Configuration found
+          schema:
+            $ref: '#/definitions/zpwoot_internal_core_application_dto.ProxyResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "404":
+          description: Configuration not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Find Proxy Configuration
+      tags:
+      - Proxy
+  /sessions/{sessionId}/proxy/set:
+    post:
+      consumes:
+      - application/json
+      description: 'Create or update proxy configuration for a session (upsert operation).
+        To disable/remove proxy, set enabled: false'
+      parameters:
+      - description: Session ID
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      - description: Proxy configuration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/zpwoot_internal_core_application_dto.CreateProxyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Configuration updated successfully
+          schema:
+            $ref: '#/definitions/zpwoot_internal_core_application_dto.ProxyResponse'
+        "201":
+          description: Configuration created successfully
+          schema:
+            $ref: '#/definitions/zpwoot_internal_core_application_dto.ProxyResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Set Proxy Configuration
+      tags:
+      - Proxy
   /sessions/{sessionId}/qr:
     get:
       consumes:
@@ -3947,35 +4498,7 @@ paths:
       summary: Get QR Code
       tags:
       - Sessions
-  /sessions/{sessionId}/webhooks:
-    delete:
-      description: Delete webhook configuration for a session
-      parameters:
-      - description: Session ID
-        in: path
-        name: sessionId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Webhook deleted successfully
-          schema:
-            $ref: '#/definitions/APIResponse'
-        "404":
-          description: Webhook not found
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Delete Webhook Configuration
-      tags:
-      - Webhooks
+  /sessions/{sessionId}/webhooks/find:
     get:
       description: Get webhook configuration for a session
       parameters:
@@ -4004,10 +4527,12 @@ paths:
       summary: Get Webhook Configuration
       tags:
       - Webhooks
+  /sessions/{sessionId}/webhooks/set:
     post:
       consumes:
       - application/json
-      description: Configure or update webhook for a session
+      description: 'Configure or update webhook for a session (upsert operation).
+        To disable/remove webhook, set enabled: false'
       parameters:
       - description: Session ID
         in: path
@@ -4080,5 +4605,9 @@ tags:
   name: Presence
 - description: Webhook configuration and event management
   name: Webhooks
+- description: Chatwoot integration for customer support
+  name: Chatwoot
+- description: Proxy configuration for WhatsApp connections
+  name: Proxy
 - description: Health check and system status
   name: Health

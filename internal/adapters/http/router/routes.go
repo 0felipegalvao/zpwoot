@@ -25,6 +25,7 @@ func NewRouter(c *container.Container) http.Handler {
 		c.GetWebhookUseCases(),
 		c.GetChatwootUseCases(),
 		c.GetChatwootWebhookHandler(),
+		c.GetProxyUseCases(),
 		c.GetWhatsAppClient(),
 	)
 
@@ -38,9 +39,6 @@ func setupPublicRoutes(r *chi.Mux, h *handlers.Handlers) {
 	r.Get("/", h.Health.Info)
 	r.Get("/health", h.Health.Health)
 	r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL("/swagger/doc.json")))
-
-	r.Post("/chatwoot/webhook/{sessionId}", h.Chatwoot.Webhook)
-	r.Post("/{sessionId}/webhook/chatwoot", h.Chatwoot.Webhook)
 }
 
 func setupProtectedRoutes(r *chi.Mux, h *handlers.Handlers, cfg *config.Config) {
@@ -55,6 +53,7 @@ func setupProtectedRoutes(r *chi.Mux, h *handlers.Handlers, cfg *config.Config) 
 		setupNewsletterRoutes(r, h)
 		setupWebhookRoutes(r, h)
 		setupChatwootRoutes(r, h)
+		setupProxyRoutes(r, h)
 	})
 }
 
@@ -143,18 +142,21 @@ func setupNewsletterRoutes(r chi.Router, h *handlers.Handlers) {
 }
 
 func setupWebhookRoutes(r chi.Router, h *handlers.Handlers) {
-	r.Post("/sessions/{sessionId}/webhooks", h.Webhook.SetWebhook)
-	r.Get("/sessions/{sessionId}/webhooks", h.Webhook.GetWebhook)
-	r.Delete("/sessions/{sessionId}/webhooks", h.Webhook.DeleteWebhook)
-	r.Get("/webhooks/events", h.Webhook.ListEvents)
+	// Webhook routes following the requested pattern
+	r.Get("/sessions/{sessionId}/webhooks/find", h.Webhook.GetWebhook)   // Get Webhook Configuration
+	r.Post("/sessions/{sessionId}/webhooks/set", h.Webhook.SetWebhook)   // Configure Webhook (upsert)
+	r.Get("/webhooks/events", h.Webhook.ListEvents)                      // List available events
 }
 
 func setupChatwootRoutes(r chi.Router, h *handlers.Handlers) {
+	// Chatwoot routes following the requested pattern
+	r.Get("/sessions/{sessionId}/chatwoot/find", h.Chatwoot.Find)     // Find Chatwoot Configuration
+	r.Post("/sessions/{sessionId}/chatwoot/set", h.Chatwoot.Set)      // Set Chatwoot Configuration (upsert)
+	r.Post("/sessions/{sessionId}/chatwoot/webhook", h.Chatwoot.Webhook) // Chatwoot Webhook
+}
 
-	r.Post("/sessions/{sessionId}/chatwoot", h.Chatwoot.Create)
-	r.Get("/sessions/{sessionId}/chatwoot", h.Chatwoot.Get)
-	r.Put("/sessions/{sessionId}/chatwoot", h.Chatwoot.Update)
-	r.Delete("/sessions/{sessionId}/chatwoot", h.Chatwoot.Delete)
-
-	r.Get("/chatwoot/configurations", h.Chatwoot.List)
+func setupProxyRoutes(r chi.Router, h *handlers.Handlers) {
+	// Proxy routes following the requested pattern
+	r.Get("/sessions/{sessionId}/proxy/find", h.Proxy.Find)  // Find Proxy Configuration
+	r.Post("/sessions/{sessionId}/proxy/set", h.Proxy.Set)   // Set Proxy Configuration (upsert)
 }

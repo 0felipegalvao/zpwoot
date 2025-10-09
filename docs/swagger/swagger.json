@@ -261,6 +261,183 @@
                 }
             }
         },
+        "/sessions/{sessionId}/chatwoot/find": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Chatwoot configuration for a specific session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chatwoot"
+                ],
+                "summary": "Find Chatwoot Configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sessionId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Configuration found",
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Configuration not found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/sessions/{sessionId}/chatwoot/set": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create or update Chatwoot configuration for a session (upsert operation). To disable/remove integration, set enabled: false",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chatwoot"
+                ],
+                "summary": "Set Chatwoot Configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sessionId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Chatwoot configuration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.CreateChatwootRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Configuration updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootResponse"
+                        }
+                    },
+                    "201": {
+                        "description": "Configuration created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/sessions/{sessionId}/chatwoot/webhook": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Receive webhook events from Chatwoot and forward to WhatsApp",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chatwoot"
+                ],
+                "summary": "Chatwoot Webhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sessionId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Webhook payload from Chatwoot",
+                        "name": "webhook",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootWebhookRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Webhook processed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootWebhookResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/sessions/{sessionId}/communities": {
             "get": {
                 "description": "Lista todas as comunidades que a sessão participa",
@@ -3960,6 +4137,125 @@
                 }
             }
         },
+        "/sessions/{sessionId}/proxy/find": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get proxy configuration for a specific session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proxy"
+                ],
+                "summary": "Find Proxy Configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sessionId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Configuration found",
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ProxyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Configuration not found",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/sessions/{sessionId}/proxy/set": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create or update proxy configuration for a session (upsert operation). To disable/remove proxy, set enabled: false",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proxy"
+                ],
+                "summary": "Set Proxy Configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sessionId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Proxy configuration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.CreateProxyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Configuration updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ProxyResponse"
+                        }
+                    },
+                    "201": {
+                        "description": "Configuration created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/zpwoot_internal_core_application_dto.ProxyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/sessions/{sessionId}/qr": {
             "get": {
                 "security": [
@@ -4022,7 +4318,7 @@
                 }
             }
         },
-        "/sessions/{sessionId}/webhooks": {
+        "/sessions/{sessionId}/webhooks/find": {
             "get": {
                 "security": [
                     {
@@ -4066,14 +4362,16 @@
                         }
                     }
                 }
-            },
+            }
+        },
+        "/sessions/{sessionId}/webhooks/set": {
             "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Configure or update webhook for a session",
+                "description": "Configure or update webhook for a session (upsert operation). To disable/remove webhook, set enabled: false",
                 "consumes": [
                     "application/json"
                 ],
@@ -4111,50 +4409,6 @@
                     },
                     "400": {
                         "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Delete webhook configuration for a session",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Webhooks"
-                ],
-                "summary": "Delete Webhook Configuration",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Session ID",
-                        "name": "sessionId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Webhook deleted successfully",
-                        "schema": {
-                            "$ref": "#/definitions/APIResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Webhook not found",
                         "schema": {
                             "$ref": "#/definitions/ErrorResponse"
                         }
@@ -4432,6 +4686,8 @@
             "properties": {
                 "name": {
                     "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1,
                     "example": "John Doe"
                 },
                 "phone": {
@@ -4440,6 +4696,7 @@
                 },
                 "vcard": {
                     "type": "string",
+                    "maxLength": 4096,
                     "example": "BEGIN:VCARD\nVERSION:3.0\nFN:John Doe\nTEL:+5511999999999\nEND:VCARD"
                 }
             }
@@ -4470,6 +4727,8 @@
                 },
                 "stanzaId": {
                     "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
                     "example": "3EB0A9253FA64269E11C9D"
                 }
             }
@@ -4546,6 +4805,10 @@
                 "name"
             ],
             "properties": {
+                "apiKey": {
+                    "type": "string",
+                    "example": "1C86339AA3E521BE868B4F46725D5"
+                },
                 "name": {
                     "type": "string",
                     "maxLength": 100,
@@ -4570,7 +4833,9 @@
                     }
                 },
                 "secret": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 256,
+                    "minLength": 8
                 },
                 "url": {
                     "type": "string"
@@ -5165,6 +5430,8 @@
                 },
                 "pass": {
                     "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
                     "example": "proxyPass123"
                 },
                 "port": {
@@ -5182,6 +5449,8 @@
                 },
                 "user": {
                     "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
                     "example": "proxyUser123"
                 }
             }
@@ -5235,10 +5504,14 @@
                 },
                 "fileName": {
                     "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1,
                     "example": "audio.mp3"
                 },
                 "mimeType": {
                     "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
                     "example": "audio/mpeg"
                 },
                 "phone": {
@@ -5311,6 +5584,7 @@
             "properties": {
                 "caption": {
                     "type": "string",
+                    "maxLength": 1024,
                     "example": "Check out this beautiful image!"
                 },
                 "contextInfo": {
@@ -5322,10 +5596,14 @@
                 },
                 "fileName": {
                     "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1,
                     "example": "image.jpg"
                 },
                 "mimeType": {
                     "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
                     "example": "image/jpeg"
                 },
                 "phone": {
@@ -5567,6 +5845,8 @@
                 },
                 "text": {
                     "type": "string",
+                    "maxLength": 65536,
+                    "minLength": 1,
                     "example": "Hello! This is a test message from zpwoot API."
                 }
             }
@@ -5580,6 +5860,7 @@
             "properties": {
                 "caption": {
                     "type": "string",
+                    "maxLength": 1024,
                     "example": "Watch this amazing video!"
                 },
                 "contextInfo": {
@@ -5591,10 +5872,14 @@
                 },
                 "fileName": {
                     "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1,
                     "example": "video.mp4"
                 },
                 "mimeType": {
                     "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
                     "example": "video/mp4"
                 },
                 "phone": {
@@ -5994,6 +6279,8 @@
                 },
                 "secret": {
                     "type": "string",
+                    "maxLength": 256,
+                    "minLength": 8,
                     "example": "supersecrettoken123"
                 },
                 "url": {
@@ -6057,6 +6344,497 @@
                     "example": "John Doe Business"
                 }
             }
+        },
+        "zpwoot_internal_core_application_dto.ChatwootAccount": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.ChatwootAttachment": {
+            "type": "object",
+            "properties": {
+                "data_url": {
+                    "type": "string"
+                },
+                "file_size": {
+                    "type": "integer"
+                },
+                "file_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "thumb_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.ChatwootContact": {
+            "type": "object",
+            "properties": {
+                "contact_inboxes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootContactInbox"
+                    }
+                },
+                "custom_attributes": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "identifier": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "thumbnail": {
+                    "type": "string"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.ChatwootContactInbox": {
+            "type": "object",
+            "properties": {
+                "inbox_id": {
+                    "type": "integer"
+                },
+                "source_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.ChatwootConversation": {
+            "type": "object",
+            "properties": {
+                "agent_last_seen_at": {
+                    "type": "integer"
+                },
+                "contact": {
+                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootContact"
+                },
+                "contact_last_seen_at": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "integer"
+                },
+                "custom_attributes": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "inbox": {
+                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootInbox"
+                },
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootMessage"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "integer"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.ChatwootInbox": {
+            "type": "object",
+            "properties": {
+                "channel_type": {
+                    "type": "string"
+                },
+                "enable_auto_assignment": {
+                    "type": "boolean"
+                },
+                "greeting_enabled": {
+                    "type": "boolean"
+                },
+                "greeting_message": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "working_hours_enabled": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.ChatwootMessage": {
+            "type": "object",
+            "properties": {
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootAttachment"
+                    }
+                },
+                "contact": {
+                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootContact"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "content_type": {
+                    "type": "string"
+                },
+                "conversation": {
+                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootConversation"
+                },
+                "created_at": {
+                    "type": "integer"
+                },
+                "echo": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "inbox": {
+                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootInbox"
+                },
+                "message_type": {
+                    "type": "integer"
+                },
+                "private": {
+                    "type": "boolean"
+                },
+                "sender": {
+                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootUser"
+                },
+                "source_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.ChatwootResponse": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "autoCreate": {
+                    "type": "boolean"
+                },
+                "convPending": {
+                    "type": "boolean"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ignoreJids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "importContacts": {
+                    "type": "boolean"
+                },
+                "importDays": {
+                    "type": "integer"
+                },
+                "importMessages": {
+                    "type": "boolean"
+                },
+                "inboxId": {
+                    "type": "string"
+                },
+                "inboxName": {
+                    "type": "string"
+                },
+                "logo": {
+                    "type": "string"
+                },
+                "mergeBrazil": {
+                    "type": "boolean"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "organization": {
+                    "type": "string"
+                },
+                "reopenConv": {
+                    "type": "boolean"
+                },
+                "sessionId": {
+                    "type": "string"
+                },
+                "signDelimiter": {
+                    "type": "string"
+                },
+                "signMsg": {
+                    "type": "boolean"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "webhookUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.ChatwootUser": {
+            "type": "object",
+            "properties": {
+                "availability_status": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "thumbnail": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.ChatwootWebhookRequest": {
+            "type": "object",
+            "properties": {
+                "account": {
+                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootAccount"
+                },
+                "changed_by": {
+                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootUser"
+                },
+                "contact": {
+                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootContact"
+                },
+                "conversation": {
+                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootConversation"
+                },
+                "event": {
+                    "type": "string"
+                },
+                "inbox": {
+                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootInbox"
+                },
+                "message": {
+                    "$ref": "#/definitions/zpwoot_internal_core_application_dto.ChatwootMessage"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.ChatwootWebhookResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.CreateChatwootRequest": {
+            "type": "object",
+            "required": [
+                "accountId",
+                "token",
+                "url"
+            ],
+            "properties": {
+                "accountId": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "autoCreate": {
+                    "type": "boolean"
+                },
+                "convPending": {
+                    "type": "boolean"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "ignoreJids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "importContacts": {
+                    "type": "boolean"
+                },
+                "importDays": {
+                    "type": "integer",
+                    "maximum": 365,
+                    "minimum": 1
+                },
+                "importMessages": {
+                    "type": "boolean"
+                },
+                "inboxId": {
+                    "type": "string"
+                },
+                "inboxName": {
+                    "type": "string"
+                },
+                "logo": {
+                    "type": "string"
+                },
+                "mergeBrazil": {
+                    "type": "boolean"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "organization": {
+                    "type": "string"
+                },
+                "reopenConv": {
+                    "type": "boolean"
+                },
+                "signDelimiter": {
+                    "type": "string"
+                },
+                "signMsg": {
+                    "type": "boolean"
+                },
+                "token": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.CreateProxyRequest": {
+            "type": "object",
+            "required": [
+                "host",
+                "port",
+                "protocol"
+            ],
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "host": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "password": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1
+                },
+                "protocol": {
+                    "type": "string",
+                    "enum": [
+                        "http",
+                        "https",
+                        "socks4",
+                        "socks5"
+                    ]
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "zpwoot_internal_core_application_dto.ProxyResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "host": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "protocol": {
+                    "type": "string"
+                },
+                "sessionId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {
@@ -6091,6 +6869,14 @@
         {
             "description": "Webhook configuration and event management",
             "name": "Webhooks"
+        },
+        {
+            "description": "Chatwoot integration for customer support",
+            "name": "Chatwoot"
+        },
+        {
+            "description": "Proxy configuration for WhatsApp connections",
+            "name": "Proxy"
         },
         {
             "description": "Health check and system status",

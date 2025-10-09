@@ -35,6 +35,12 @@
 //	@tag.name			Webhooks
 //	@tag.description	Webhook configuration and event management
 
+//	@tag.name			Chatwoot
+//	@tag.description	Chatwoot integration for customer support
+
+//	@tag.name			Proxy
+//	@tag.description	Proxy configuration for WhatsApp connections
+
 // @tag.name			Health
 // @tag.description	Health check and system status
 package main

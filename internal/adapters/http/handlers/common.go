@@ -19,6 +19,7 @@ type Handlers struct {
 	Health     *HealthHandler
 	Webhook    *WebhookHandler
 	Chatwoot   *ChatwootHandler
+	Proxy      *ProxyHandler
 }
 
 func NewHandlers(
@@ -30,6 +31,7 @@ func NewHandlers(
 	webhookUseCases input.WebhookUseCases,
 	chatwootUseCases input.ChatwootUseCases,
 	chatwootWebhookHandler input.ChatwootWebhookHandler,
+	proxyUseCases input.ProxyUseCases,
 	waClient output.WhatsAppClient,
 ) *Handlers {
 	return &Handlers{
@@ -42,6 +44,7 @@ func NewHandlers(
 		Health:     NewHealthHandler(db, logger),
 		Webhook:    NewWebhookHandler(webhookUseCases, logger),
 		Chatwoot:   NewChatwootHandler(chatwootUseCases, chatwootWebhookHandler, logger, ""),
+		Proxy:      NewProxyHandler(proxyUseCases, logger),
 	}
 }
 
