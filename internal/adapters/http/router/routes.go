@@ -23,6 +23,8 @@ func NewRouter(c *container.Container) http.Handler {
 		c.GetSessionUseCases(),
 		c.GetMessageUseCases(),
 		c.GetWebhookUseCases(),
+		c.GetChatwootUseCases(),
+		c.GetChatwootWebhookHandler(),
 		c.GetWhatsAppClient(),
 	)
 
@@ -36,6 +38,9 @@ func setupPublicRoutes(r *chi.Mux, h *handlers.Handlers) {
 	r.Get("/", h.Health.Info)
 	r.Get("/health", h.Health.Health)
 	r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL("/swagger/doc.json")))
+
+	r.Post("/chatwoot/webhook/{sessionId}", h.Chatwoot.Webhook)
+	r.Post("/{sessionId}/webhook/chatwoot", h.Chatwoot.Webhook)
 }
 
 func setupProtectedRoutes(r *chi.Mux, h *handlers.Handlers, cfg *config.Config) {
@@ -49,6 +54,7 @@ func setupProtectedRoutes(r *chi.Mux, h *handlers.Handlers, cfg *config.Config) 
 		setupCommunityRoutes(r, h)
 		setupNewsletterRoutes(r, h)
 		setupWebhookRoutes(r, h)
+		setupChatwootRoutes(r, h)
 	})
 }
 
@@ -141,4 +147,14 @@ func setupWebhookRoutes(r chi.Router, h *handlers.Handlers) {
 	r.Get("/sessions/{sessionId}/webhooks", h.Webhook.GetWebhook)
 	r.Delete("/sessions/{sessionId}/webhooks", h.Webhook.DeleteWebhook)
 	r.Get("/webhooks/events", h.Webhook.ListEvents)
+}
+
+func setupChatwootRoutes(r chi.Router, h *handlers.Handlers) {
+
+	r.Post("/sessions/{sessionId}/chatwoot", h.Chatwoot.Create)
+	r.Get("/sessions/{sessionId}/chatwoot", h.Chatwoot.Get)
+	r.Put("/sessions/{sessionId}/chatwoot", h.Chatwoot.Update)
+	r.Delete("/sessions/{sessionId}/chatwoot", h.Chatwoot.Delete)
+
+	r.Get("/chatwoot/configurations", h.Chatwoot.List)
 }

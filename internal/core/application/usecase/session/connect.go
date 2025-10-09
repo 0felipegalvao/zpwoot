@@ -138,7 +138,6 @@ func (uc *ConnectUseCase) buildConnectingResponse(sessionID string, domainSessio
 		Message:   "Connection initiated. Wait for QR code or connection event.",
 	}
 
-	// Generate Base64 if QR code is available
 	if domainSession.QRCode != "" {
 		response.QRCodeBase64 = dto.QRBase64(domainSession.QRCode)
 		response.QRCodeExpiresAt = domainSession.QRCodeExpiresAt

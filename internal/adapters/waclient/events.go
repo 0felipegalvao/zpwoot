@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	chatwootIntegration "zpwoot/internal/adapters/integration/chatwoot"
 	"zpwoot/internal/adapters/logger"
 	"zpwoot/internal/core/domain/webhook"
 	"zpwoot/internal/core/ports/output"
@@ -20,10 +21,11 @@ const (
 )
 
 type DefaultEventHandler struct {
-	logger        *logger.Logger
-	webhookSender output.WebhookSender
-	webhookRepo   webhook.Repository
-	sessionRepo   SessionRepository
+	logger             *logger.Logger
+	webhookSender      output.WebhookSender
+	webhookRepo        webhook.Repository
+	sessionRepo        SessionRepository
+	chatwootIntegrator *chatwootIntegration.Integrator
 }
 
 func NewDefaultEventHandler(logger *logger.Logger, webhookSender output.WebhookSender, webhookRepo webhook.Repository, sessionRepo SessionRepository) *DefaultEventHandler {

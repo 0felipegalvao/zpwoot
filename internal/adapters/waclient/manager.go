@@ -101,13 +101,14 @@ func (wac *WAClient) loadSessionsFromDatabase() {
 		wac.sessions[sess.ID] = client
 		wac.sessionsMutex.Unlock()
 
-		if sess.IsConnected {
-			go wac.autoReconnect(client)
-		}
+		wac.logger.Info().Str("session_id", sess.ID).Str("device_jid", sess.DeviceJID).Msg("Starting auto-reconnect for session with existing device")
+		go wac.autoReconnect(client)
 	}
 }
 
 func (wac *WAClient) autoReconnect(client *Client) {
+	wac.logger.Info().Str("session_id", client.SessionID).Msg("Starting auto-reconnect process")
+
 	timer := time.NewTimer(AutoReconnectDelay)
 	defer timer.Stop()
 
@@ -118,11 +119,23 @@ func (wac *WAClient) autoReconnect(client *Client) {
 		return
 	}
 
+	if client.WAClient.IsConnected() {
+		wac.logger.Info().Str("session_id", client.SessionID).Msg("Session already connected, updating status")
+		client.Status = session.StatusConnected
+		wac.updateSessionStatus(client.ctx, client)
+		return
+	}
+
+	wac.logger.Info().Str("session_id", client.SessionID).Msg("Attempting to reconnect session")
 	if err := client.WAClient.Connect(); err != nil {
+		if strings.Contains(err.Error(), "websocket is already connected") {
+			wac.logger.Info().Str("session_id", client.SessionID).Msg("Websocket already connected, waiting for Connected event")
+			return
+		}
 		wac.logger.Error().Err(err).Str("session_id", client.SessionID).Msg("Failed to auto-reconnect session")
 		client.Status = session.StatusDisconnected
 	} else {
-		wac.logger.Debug().Str("session_id", client.SessionID).Msg("Auto-reconnected")
+		wac.logger.Info().Str("session_id", client.SessionID).Msg("Auto-reconnect initiated successfully")
 	}
 
 	wac.updateSessionStatus(client.ctx, client)
@@ -466,7 +479,6 @@ func (wac *WAClient) handleConnected(client *Client, evt *events.Connected) {
 	client.ConnectedAt = time.Now()
 	client.LastSeen = time.Now()
 
-	// Clear QR code when connected
 	client.QRCode = ""
 	client.QRExpiresAt = time.Time{}
 
