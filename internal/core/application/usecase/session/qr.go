@@ -74,7 +74,7 @@ func (uc *QRUseCase) GetQRCode(ctx context.Context, sessionID string) (*dto.QRCo
 	}
 
 	return dto.NewQRResponse(
-		qrInfo.Base64,
+		qrInfo.Code,
 		qrInfo.ExpiresAt,
 		string(domainSession.GetStatus()),
 	), nil
@@ -122,7 +122,7 @@ func (uc *QRUseCase) RefreshQRCode(ctx context.Context, sessionID string) (*dto.
 	}
 
 	return dto.NewQRResponse(
-		qrInfo.Base64,
+		qrInfo.Code,
 		qrInfo.ExpiresAt,
 		string(domainSession.GetStatus()),
 	), nil

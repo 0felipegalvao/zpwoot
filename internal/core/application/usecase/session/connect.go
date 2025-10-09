@@ -130,11 +130,19 @@ func (uc *ConnectUseCase) updateConnectionStatus(ctx context.Context, sessionID 
 }
 
 func (uc *ConnectUseCase) buildConnectingResponse(sessionID string, domainSession *session.Session) *dto.SessionStatusResponse {
-	return &dto.SessionStatusResponse{
+	response := &dto.SessionStatusResponse{
 		ID:        sessionID,
 		Status:    string(domainSession.GetStatus()),
 		Connected: domainSession.IsConnected,
 		QRCode:    domainSession.QRCode,
 		Message:   "Connection initiated. Wait for QR code or connection event.",
 	}
+
+	// Generate Base64 if QR code is available
+	if domainSession.QRCode != "" {
+		response.QRCodeBase64 = dto.QRBase64(domainSession.QRCode)
+		response.QRCodeExpiresAt = domainSession.QRCodeExpiresAt
+	}
+
+	return response
 }

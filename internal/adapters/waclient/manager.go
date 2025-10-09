@@ -133,10 +133,12 @@ func (wac *WAClient) createClient(ctx context.Context, sess *session.Session, de
 	clientCtx, cancel := context.WithCancel(ctx)
 
 	client := &Client{
-		SessionID: sess.ID,
-		Name:      sess.Name,
-		WAClient:  waClient,
-		Status:    sess.GetStatus(),
+		SessionID:   sess.ID,
+		Name:        sess.Name,
+		WAClient:    waClient,
+		Status:      sess.GetStatus(),
+		QRCode:      sess.QRCode,
+		QRExpiresAt: getTimeValue(sess.QRCodeExpiresAt),
 		Config: &SessionConfig{
 			SessionID: sess.ID,
 			Name:      sess.Name,
